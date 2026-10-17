@@ -1,11 +1,10 @@
 import express from 'express';
-import baileys from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
 import QRCode from 'qrcode';
 import path from 'path';
-const makeWASocket = baileys.default;
-const { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } = baileys;
+
 const app = express();
 const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
@@ -18,14 +17,12 @@ let welcomeOn = true;
 let callRejectOn = true;
 let autoReactOn = true;
 const EMOJI = ["❤️","🔥","👑","😎","✨"];
-// 👑 FIXED HARD VERSION - QR FAST
 const WA_VERSION = [2, 3000, 1023223823];
 
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
   try{
-    let pp;
-    try{ pp = await sock.profilePictureUrl(p, 'image'); }catch{ pp = BOT_PIC; }
+    let pp; try{ pp = await sock.profilePictureUrl(p, 'image'); }catch{ pp = BOT_PIC; }
     let m = await sock.groupMetadata(gid);
     let txt = "━━━━━━━━━━━━━━━━━━━━\n"+
 "👑 "+BOT_NAME+" 👑\n"+
@@ -122,14 +119,14 @@ app.get('/qr', async (req,res)=>{
 
 async function startBot(){
   try{
-    const SESSION_DIR = './session/RANA-SESSION';
-    if(!fs.existsSync(SESSION_DIR)) { console.log('No session yet, waiting for pair or qr...'); return; }
+    const SESSION_DIR = './session/RANA-X-VIP-SESSION';
+    if(!fs.existsSync(SESSION_DIR)) { console.log('No session yet, waiting...'); return; }
     const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR);
     let version = WA_VERSION;
     const sock=makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser:Browsers.windows('Chrome'), syncFullHistory:false });
     mainSock=sock;
     sock.ev.on('creds.update',saveCreds);
-    sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ Main Bot Connected!'); } });
+    sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ Connected!'); } });
     sock.ev.on('group-participants.update', async (u)=>{ for(let p of u.participants){ if(u.action=='add') await welcome(sock,u.id,p); } });
     sock.ev.on('call', async (c)=>{ if(!callRejectOn) return; for(let x of c){ if(x.status=='offer'){ await sock.rejectCall(x.id,x.from); } } });
     sock.ev.on('messages.upsert', async (m)=>{
@@ -146,6 +143,5 @@ async function startBot(){
     });
   }catch(e){ setTimeout(startBot,5000); }
 }
-
 const PORT=process.env.PORT||10000;
 app.listen(PORT,()=>{ startBot(); console.log('Server running on '+PORT); });
