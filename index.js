@@ -43,7 +43,7 @@ app.get('/', (req,res)=>{
   res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:420px;width:100%;border-radius:28px;padding:28px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:90px;height:90px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:45px}.flags{background:#f5f3ff;padding:8px;border-radius:10px;margin:8px 0}.footer{margin-top:15px;padding:12px;background:#f9f5ff;border-radius:12px;font-size:13px;font-weight:700}h1{color:#6d28d9}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:14px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:#dcfce7}.code{font-size:30px;font-weight:900;color:green}.copy{padding:8px 14px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>🌍</div><h1>RANA-X-VIP-BOT</h1><p style=font-weight:700>ALL COUNTRY SUPPORTED 🌍</p><div class=flags>🇧🇩 🇵🇰 🇮🇳 🇸🇦 🇦🇪 🇺🇸 🇬🇧 🇹🇷 🇲🇾 🇮🇩</div><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">Generate Pair Code</button><div id=box class=box><span id=code class=code></span><button class=copy onclick="copyCode()">Copy</button></div><div id=res></div><div class=footer>© 2026 RANA-X-VIP | ALL COUNTRY BOT 📵 Call Reject ON</div></div><script>async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n){alert('Number dao');return}b.style.display='none';r.style.display='block';r.innerText='Generating... 5 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2'}}catch(e){r.innerText='❌ Error - 10 sec por try';r.style.background='#fee2e2'}}function copyCode(){navigator.clipboard.writeText(document.getElementById('code').innerText);alert('Copied!')}</script></body></html>`);
 });
 
-// 🔥 FIXED PAIR - আলাদা Folder এ Pair হবে
+// 🔥 FIXED PAIR - VERSION 2.26.39.79 FIX
 app.get('/pair', async (req,res)=>{
   let pairSock = null;
   try{
@@ -51,16 +51,15 @@ app.get('/pair', async (req,res)=>{
     if(!num) return res.json({error:"Number dao"});
     console.log('Pair request for:', num);
 
-    // Main bot বন্ধ
-    if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; await new Promise(r=>setTimeout(r,1000)); }
+    if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; await new Promise(r=>setTimeout(r,1500)); }
     
-    // Pair এর জন্য Temp folder - এটা Main Session কে নষ্ট করবে না
     const PAIR_DIR = './session/PAIR-TEMP';
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
 
     const {state, saveCreds} = await useMultiFileAuthState(PAIR_DIR);
-    const {version} = await fetchLatestBaileysVersion();
+    const {version} = await fetchLatestBaileysVersion(); // 👈 AUTO LATEST 2.3000.102...
+    console.log('RANA FIX - Using version:', version);
     
     pairSock = makeWASocket({
       version,
@@ -71,51 +70,47 @@ app.get('/pair', async (req,res)=>{
       logger: pino({level:'silent'}),
       browser: Browsers.macOS('Chrome'),
       syncFullHistory: false,
-      markOnlineOnConnect: true,
-      printQRInTerminal: false
+      markOnlineOnConnect: false, // 👈 FIX 1 - Logging stuck fix
+      printQRInTerminal: false,
+      keepAliveIntervalMs: 30000,
+      connectTimeoutMs: 60000 // 👈 FIX 2 - 60 sec timeout
     });
     
     pairSock.ev.on('creds.update', saveCreds);
     
-    console.log('Waiting 3 sec...');
-    await new Promise(r=>setTimeout(r,3000));
+    // 👈 FIX 3 - 5 sec wait, age 3 sec chilo, tai logging atke jeto
+    console.log('Waiting 5 sec for WA...');
+    await new Promise(r=>setTimeout(r,5000));
     
     let code = await pairSock.requestPairingCode(num);
+    code = code.match(/.{1,4}/g)?.join("-") || code; // Sundor code
     console.log('Pair code:', code);
     res.json({code});
     
-    // Pair হওয়ার জন্য 2 মিনিট wait
     let paired = false;
     pairSock.ev.on('connection.update', async (u)=>{
-      console.log('Pair update:', u.connection, u.lastDisconnect?.error?.message || '');
+      console.log('Pair update:', u.connection);
       if(u.connection === 'open' && !paired){
         paired = true;
-        console.log('✅ Pair Success! Saving session...');
+        console.log('✅ Pair Success!');
         
-        // Temp থেকে Main এ Copy করো
         const MAIN_DIR = './session/RANA-SESSION';
         if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
         fs.mkdirSync(MAIN_DIR,{recursive:true});
-        // সব ফাইল copy
         fs.readdirSync(PAIR_DIR).forEach(f=>{
           fs.copyFileSync(`${PAIR_DIR}/${f}`, `${MAIN_DIR}/${f}`);
         });
         
         try{ pairSock.end(); }catch{}
-        console.log('Starting Bot...');
         setTimeout(()=>startBot(), 3000);
-      }
-      if(u.connection === 'close' && !paired){
-        console.log('Pair closed before success, will retry');
       }
     });
     
-    // 2 মিনিট পর Auto Close
-    setTimeout(()=>{ try{ if(!paired) pairSock?.end(); }catch{} }, 120000);
+    setTimeout(()=>{ try{ if(!paired) pairSock?.end(); }catch{} }, 180000); // 3 min
     
   }catch(e){
     console.log('Pair error:', e.message);
-    res.json({error:"10 sec por try - number check koro"});
+    res.json({error:"10 sec por try - "+e.message});
     try{ pairSock?.end(); }catch{}
   }
 });
@@ -129,19 +124,20 @@ async function startBot(){
     }
     const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR);
     const {version}=await fetchLatestBaileysVersion();
+    console.log('Main Bot version:', version);
     mainSock=makeWASocket({
       version,
       auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))},
       logger:pino({level:'silent'}),
       browser:Browsers.macOS('Chrome'),
-      syncFullHistory: false
+      syncFullHistory: false,
+      keepAliveIntervalMs: 30000
     });
     mainSock.ev.on('creds.update',saveCreds);
     
     mainSock.ev.on('connection.update', (u)=>{
       console.log('Main Bot:', u.connection);
       if(u.connection === 'close'){
-        console.log('Main Bot closed, restarting in 5s');
         setTimeout(startBot, 5000);
       }
       if(u.connection === 'open'){
