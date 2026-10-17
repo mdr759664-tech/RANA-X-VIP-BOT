@@ -1,5 +1,6 @@
 import express from 'express';
-import makeWASocket, { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import makeWASocket from '@whiskeysockets/baileys';
+import { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
 const app = express();
