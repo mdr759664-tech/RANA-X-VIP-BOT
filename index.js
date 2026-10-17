@@ -1,8 +1,10 @@
 import express from 'express';
-import makeWASocket from '@whiskeysockets/baileys';
-import { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import baileys from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
+
+const makeWASocket = baileys.default;
+const { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } = baileys;
 const app = express();
 const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
