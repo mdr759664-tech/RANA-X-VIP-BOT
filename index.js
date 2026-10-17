@@ -5,7 +5,7 @@ import fs from 'fs';
 import QRCode from 'qrcode';
 import path from 'path';
 const makeWASocket = baileys.default;
-const { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } = baileys;
+const { useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } = baileys;
 const app = express();
 const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
@@ -18,6 +18,8 @@ let welcomeOn = true;
 let callRejectOn = true;
 let autoReactOn = true;
 const EMOJI = ["❤️","🔥","👑","😎","✨"];
+// 👑 FIXED HARD VERSION - QR FAST
+const WA_VERSION = [2, 3000, 1023223823];
 
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
@@ -48,7 +50,7 @@ async function welcome(sock,gid,p){
 }
 
 app.get('/', (req,res)=>{
-  res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA 2 IN 1</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:14px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:#dcfce7}.code{font-size:30px;font-weight:900;color:green}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>Pair + QR 2 System</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">Generate Pair Code</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:8px 14px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:700">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">Generate QR Code</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh QR</button></div></div><div id=res></div></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n){alert('Number dao');return}b.style.display='none';r.style.display='block';r.innerText='Generating...';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText=d.error}}catch(e){r.innerText='Error'}}function copyCode(){navigator.clipboard.writeText(document.getElementById('code').innerText);alert('Copied!')}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');box.style.display='block';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;}}catch(e){}}<\/script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA 2 IN 1</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:14px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:#dcfce7}.code{font-size:30px;font-weight:900;color:green}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>Pair + QR 2 System</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">Generate Pair Code</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:8px 14px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:700">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">Generate QR Code</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh QR</button></div></div><div id=res></div></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n){alert('Number dao');return}b.style.display='none';r.style.display='block';r.innerText='Generating...';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error';r.style.background='#fee2e2';}}function copyCode(){navigator.clipboard.writeText(document.getElementById('code').innerText);alert('Copied!')}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');let r=document.getElementById('res');let s=document.getElementById('qrstatus');img.removeAttribute('src');box.style.display='none';r.style.display='block';r.innerText='Generating QR... Wait 5 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;box.style.display='block';r.style.display='none';s.innerText='Scan within 60 sec';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - Refresh click koro';r.style.background='#fee2e2';}}<\/script></body></html>`);
 });
 
 app.get('/pair', async (req,res)=>{
@@ -62,7 +64,7 @@ app.get('/pair', async (req,res)=>{
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
     const {state, saveCreds} = await useMultiFileAuthState(PAIR_DIR);
-    let version; try{ version=(await fetchLatestBaileysVersion()).version; }catch{ version=[2,3000,1023223821]; }
+    let version = WA_VERSION;
     pairSock = makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser:Browsers.windows('Chrome'), syncFullHistory:false, markOnlineOnConnect:false, printQRInTerminal:false });
     pairSock.ev.on('creds.update', saveCreds);
     let paired=false;
@@ -95,7 +97,7 @@ app.get('/qr', async (req,res)=>{
     fs.mkdirSync(QR_DIR,{recursive:true});
     latestQR=null;
     const {state, saveCreds} = await useMultiFileAuthState(QR_DIR);
-    let version; try{ version=(await fetchLatestBaileysVersion()).version; }catch{ version=[2,3000,1023223821]; }
+    let version = WA_VERSION;
     qrSock = makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser:Browsers.windows('Chrome'), syncFullHistory:false, printQRInTerminal:false });
     qrSock.ev.on('creds.update', saveCreds);
     qrSock.ev.on('connection.update', async (u)=>{
@@ -111,8 +113,8 @@ app.get('/qr', async (req,res)=>{
       }
     });
     let tries=0;
-    while(!latestQR && tries<15){ await new Promise(r=>setTimeout(r,1000)); tries++; }
-    if(!latestQR) return res.json({error:"QR Timeout, try again"});
+    while(!latestQR && tries<20){ await new Promise(r=>setTimeout(r,1000)); tries++; }
+    if(!latestQR) return res.json({error:"QR Timeout, Refresh click koro"});
     let qrImage = await QRCode.toDataURL(latestQR);
     res.json({qr: qrImage});
   }catch(e){ res.json({error:e.message}); }
@@ -123,7 +125,7 @@ async function startBot(){
     const SESSION_DIR = './session/RANA-SESSION';
     if(!fs.existsSync(SESSION_DIR)) { console.log('No session yet, waiting for pair or qr...'); return; }
     const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR);
-    let version; try{ version=(await fetchLatestBaileysVersion()).version; }catch{ version=[2,3000,1023223821]; }
+    let version = WA_VERSION;
     const sock=makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser:Browsers.windows('Chrome'), syncFullHistory:false });
     mainSock=sock;
     sock.ev.on('creds.update',saveCreds);
@@ -136,7 +138,6 @@ async function startBot(){
         if(!msg.message||msg.key.fromMe) return;
         const from=msg.key.remoteJid;
         const isGroup=from.endsWith('@g.us');
-        const body=msg.message.conversation||msg.message.extendedTextMessage?.text||"";
         if(isGroup&&autoReactOn){
           let e=EMOJI[Math.floor(Math.random()*EMOJI.length)];
           await sock.sendMessage(from,{react:{text:e,key:msg.key}});
