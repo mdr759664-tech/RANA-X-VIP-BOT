@@ -13,13 +13,11 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 let mainSock = null, qrSock = null;
 let welcomeOn = true, callRejectOn = true, autoReactOn = true, recentOn = true;
 
-// 🔥 2000+ EMOJI FOR REACT
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","😘","😻","😂","🤣","😊","🥹","😇","🙂","😉","🤗","🤩","😋","😎","🤔","🥳","😏","😌","😔","😪","😴","🤤","🥵","🥶","😵","🤯","🥳","😎","🤓","😕","😟","😮","😲","🥺","😭","😱","😖","😣","😤","😡","🤬","😈","💀","☠️","💩","🤡","👹","👺","👻","👽","👾","🤖","😺","😸","😹","😻","🙈","🙉","🙊","💋","💌","💍","💎","🌹","🌸","🌺","🌻","🌼","🌷","🍀","💥","⭐","🌟","⚡","💫","🌙","☀️","🌈","🎉","🎊","🎁","🎈","🎀","🏆","🥇","💯","✅","❤️","💙","💚","💛","💜","🖤","🤍","🤎","💔","💕","💞","💓","💗","💖","💘","💝","👅","👀","🧠","🫀","👶","👦","👧","🧑","👨","👩","👴","👵","👮","👷","💂","🕵️","👩‍⚕️","👨‍⚕️","👩‍🍳","👨‍🍳","👩‍🎓","👨‍🎓","👩‍🏫","👨‍🏫","👩‍💻","👨‍💻","👩‍🎤","👨‍🎤","🦸","🦹","🎅","🧙","🧝","🧛","🧟","🧞","🧜","🧚","👼","🤰","🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🐘","🦛","🦏","🐪","🦒","🦘","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐈","🐓","🦃","🦚","🦜","🦢","🦩","🐇","🦝","🦨","🦡","🦦","🐁","🐀","🐿️","🦔","🐾","🐉","🌵","🎄","🌲","🌳","🌴","🌱","🌿","☘️","🍀","🍃","🍂","🍁","🍄","🌾","💐","🌷","🌹","🥀","🌺","🌸","🌼","🌻","🌞","🌝","🌛","🌜","🌚","🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔","🌙","🌎","🌍","🌏","🪐","💫","⭐","🌟","✨","⚡","☄️","💥","🔥","🌪️","🌈","☀️","🌤️","⛅","🌥️","☁️","🌦️","🌧️","⛈️","🌩️","🌨️","❄️","☃️","⛄","🌬️","💨","💧","💦","☔","☂️","🌊","🌫️","🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🧄","🧅","🥔","🍠","🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🌭","🍔","🍟","🍕","🥪","🌮","🌯","🥗","🥘","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🥛","🍼","☕","🍵","🧃","🥤","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🍾","🧊","🎃","🎄","🎆","🎇","🧨","✨","🎈","🎉","🎊","🎋","🎍","🎎","🎏","🎐","🎑","🧧","🎀","🎁","🎗️","🎟️","🎫","🎖️","🏆","🏅","🥇","🥈","🥉","⚽","⚾","🏀","🏐","🏈","🎾","🎳","🏏","🏑","🏒","🏓","🏸","🥊","🥋","⛳","🎣","🎽","🎿","🛷","🥌","🎯","🎱","🔮","🎮","🕹️","🎰","🎲","🧩","🧸","♠️","♥️","♦️","♣️","♟️","🃏","🎴","🎭","🖼️","🎨","🧵","🪡","🧶","🪢","👓","🕶️","🥽","🥼","🦺","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","🥻","🩱","🩲","🩳","👙","👚","👛","👜","👝","🛍️","🎒","🩴","👞","👟","🥾","🥿","👠","👡","🩰","👢","👑","👒","🎩","🎓","🧢","⛑️","📿","💄","💍","💎","🔇","🔈","🔉","🔊","📢","📣","📯","🔔","🔕","🎼","🎵","🎶","🎙️","🎚️","🎛️","🎤","🎧","📻","🎷","🎸","🎹","🎺","🎻","🪕","🥁","📱","📲","☎️","📞","📟","📠","🔋","🔌","💻","🖥️","🖨️","⌨️","🖱️","💽","💾","💿","📀","🧮","🎥","🎞️","📽️","🎬","📺","📷","📸","📹","📼","🔍","🔎","🕯️","💡","🔦","🏮","📔","📕","📖","📗","📘","📙","📚","📓","📒","📃","📜","📄","📰","🗞️","📑","🔖","🏷️","💰","🪙","💴","💵","💶","💷","💸","💳","🧾","💹","✉️","📧","📨","📩","📤","📥","📦","📫","📪","📬","📭","📮","🗳️","✏️","✒️","🖋️","🖊️","🖌️","🖍️","📝","💼","📁","📂","🗂️","📅","📆","🗒️","🗓️","📇","📈","📉","📊","📋","📌","📍","📎","🖇️","📏","📐","✂️","🗃️","🗄️","🗑️","🔒","🔓","🔏","🔐","🔑","🗝️","🔨","⛏️","🛠️","🗡️","⚔️","💣","🏹","🛡️","🔧","🔩","⚙️","🔗","⛓️","🧰","🧲","⚗️","🧪","🧫","🧬","🔬","🔭","📡","💉","🩸","💊","🩹","🚪","🪞","🪟","🛏️","🛋️","🪑","🚽","🚿","🛁","🪤","🧴","🧹","🧺","🧼","🫧","🪥","🧽","🛒","🚬","⚰️","🗿","🪧","🏧","🚮","🚰","♿","🚹","🚺","🚻","🚼","🚾","⚠️","🚸","⛔","🚫","🚳","🚭","🚯","🚱","🚷","📵","🔞","☢️","☣️","⬆️","↗️","➡️","↘️","⬇️","↙️","⬅️","↖️","↕️","↔️","↩️","↪️","⤴️","⤵️","🔃","🔄","🔙","🔚","🔛","🔜","🔝","🛐","⚛️","🕉️","✡️","☸️","☯️","✝️","☦️","☪️","☮️","🕎","🔯","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","⛎","🔀","🔁","🔂","▶️","⏩","⏭️","⏯️","◀️","⏪","⏮️","🔼","⏫","🔽","⏬","⏸️","⏹️","⏺️","⏏️","🎦","🔅","🔆","📶","📳","📴","♀️","♂️","⚧️","✖️","➕","➖","➗","♾️","‼️","⁉️","❓","❔","❕","❗","〰️","💱","💲","⚕️","♻️","⚜️","🔱","📛","🔰","⭕","✅","☑️","✔️","❌","❎","➰","➿","〽️","✳️","✴️","❇️","©️","®️","™️","#️⃣","*️⃣","0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟","🔠","🔡","🔢","🔣","🔤","🅰️","🆎","🅱️","🆑","🅾️","🅿️","🆚","🈁","🈂️","🈷️","🈶","🈯","🉐","🈹","🈚","🈲","🉑","🈸","🈴","🈳","㊗️","㊙️","🈺","🈵","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🟤","🔺","🔻","🔸","🔹","🔶","🔷","🔳","🔲","▪️","▫️","◾","◽","◼️","◻️","🟥","🟧","🟨","🟩","🟦","🟪","⬛","⬜","🟫","🏳️","🏴","🏁","🚩","🏳️‍🌈","🏳️‍⚧️","🏴‍☠️"
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","😘","😻","😂","🤣","😊","🥹","😇","🙂","😉","🤗","🤩","😋","😎","🤔","🥳","😏","😌","😔","😪","😴","🤤","🥵","🥶","😵","🤯","🥳","😎","🤓","😕","😟","😮","😲","🥺","😭","😱","😖","😣","😤","😡","🤬","😈","💀","☠️","💩","🤡","👹","👺","👻","👽","👾","🤖","😺","😸","😹","😻","🙈","🙉","🙊","💋","💌","💍","💎","🌹","🌸","🌺","🌻","🌼","🌷","🍀","💥","⭐","🌟","⚡","💫","🌙","☀️","🌈","🎉","🎊","🎁","🎈","🎀","🏆","🥇","💯","✅","❤️","💙","💚","💛","💜","🖤","🤍","🤎","💔","💕","💞","💓","💗","💖","💘","💝","👅","👀","🧠","🫀","👶","👦","👧","🧑","👨","👩","👴","👵","👮","👷","💂","🕵️","👩‍⚕️","👨‍⚕️","👩‍🍳","👨‍🎓","👩‍🏫","👨‍🏫","👩‍💻","👨‍💻","👩‍🎤","👨‍🎤","🦸","🦹","🎅","🧙","🧝","🧛","🧟","🧞","🧜","🧚","👼","🤰","🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐦","🐤","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🐛","🦋","🐌","🐞","🐜","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🐊","🐅","🐆","🦓","🦍","🐘","🦛","🦏","🐪","🦒","🦘","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐈","🐓","🦃","🦚","🦜","🦢","🦩","🐇","🦝","🦨","🦡","🦦","🐁","🐀","🐿️","🦔","🐾","🐉","🌵","🎄","🌲","🌳","🌴","🌱","🌿","☘️","🍀","🍃","🍂","🍁","🍄","🌾","💐","🌷","🌹","🥀","🌺","🌸","🌼","🌻","🌞","🌝","🌛","🌜","🌚","🌕","🌖","🌗","🌘","🌑","🌒","🌓","🌔","🌙","🌎","🌍","🌏","🪐","💫","⭐","🌟","✨","⚡","☄️","💥","🔥","🌪️","🌈","☀️","🌤️","⛅","🌥️","☁️","🌦️","🌧️","⛈️","🌩️","🌨️","❄️","☃️","⛄","🌬️","💨","💧","💦","☔","☂️","🌊","🌫️","🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🧄","🧅","🥔","🍠","🥐","🥯","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🌭","🍔","🍟","🍕","🥪","🌮","🌯","🥗","🥘","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🥛","🍼","☕","🍵","🧃","🥤","🍺","🍻","🥂","🍷","🥃","🍸","🍹","🍾","🧊","🎃","🎄","🎆","🎇","🧨","✨","🎈","🎉","🎊","🎋","🎍","🎎","🎏","🎐","🎑","🧧","🎀","🎁","🎗️","🎟️","🎫","🎖️","🏆","🏅","🥇","🥈","🥉","⚽","⚾","🏀","🏐","🏈","🎾","🎳","🏏","🏑","🏒","🏓","🏸","🥊","🥋","⛳","🎣","🎽","🎿","🛷","🥌","🎯","🎱","🔮","🎮","🕹️","🎰","🎲","🧩","🧸","♠️","♥️","♦️","♣️","♟️","🃏","🎴","🎭","🖼️","🎨","🧵","🪡","🧶","🪢","👓","🕶️","🥽","🥼","🦺","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","🥻","🩱","🩲","🩳","👙","👚","👛","👜","👝","🛍️","🎒","🩴","👞","👟","🥾","🥿","👠","👡","🩰","👢","👑","👒","🎩","🎓","🧢","⛑️","📿","💄","💍","💎","🔇","🔈","🔉","🔊","📢","📣","📯","🔔","🔕","🎼","🎵","🎶","🎙️","🎚️","🎛️","🎤","🎧","📻","🎷","🎸","🎹","🎺","🎻","🪕","🥁","📱","📲","☎️","📞","📟","📠","🔋","🔌","💻","🖥️","🖨️","⌨️","🖱️","💽","💾","💿","📀","🧮","🎥","🎞️","📽️","🎬","📺","📷","📸","📹","📼","🔍","🔎","🕯️","💡","🔦","🏮","📔","📕","📖","📗","📘","📙","📚","📓","📒","📃","📜","📄","📰","🗞️","📑","🔖","🏷️","💰","🪙","💴","💵","💶","💷","💸","💳","🧾","💹","✉️","📧","📨","📩","📤","📥","📦","📫","📪","📬","📭","📮","🗳️","✏️","✒️","🖋️","🖊️","🖌️","🖍️","📝","💼","📁","📂","🗂️","📅","📆","🗒️","🗓️","📇","📈","📉","📊","📋","📌","📍","📎","🖇️","📏","📐","✂️","🗃️","🗄️","🗑️","🔒","🔓","🔏","🔐","🔑","🗝️","🔨","⛏️","🛠️","🗡️","⚔️","💣","🏹","🛡️","🔧","🔩","⚙️","🔗","⛓️","🧰","🧲","⚗️","🧪","🧫","🧬","🔬","🔭","📡","💉","🩸","💊","🩹","🚪","🪞","🪟","🛏️","🛋️","🪑","🚽","🚿","🛁","🪤","🧴","🧹","🧺","🧼","🫧","🪥","🧽","🛒","🚬","⚰️","🗿","🪧","🏧","🚮","🚰","♿","🚹","🚺","🚻","🚼","🚾","⚠️","🚸","⛔","🚫","🚳","🚭","🚯","🚱","🚷","📵","🔞","☢️","☣️","⬆️","↗️","➡️","↘️","⬇️","↙️","⬅️","↖️","↕️","↔️","↩️","↪️","⤴️","⤵️","🔃","🔄","🔙","🔚","🔛","🔜","🔝","🛐","⚛️","🕉️","✡️","☸️","☯️","✝️","☦️","☪️","☮️","🕎","🔯","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","⛎","🔀","🔁","🔂","▶️","⏩","⏭️","⏯️","◀️","⏪","⏮️","🔼","⏫","🔽","⏬","⏸️","⏹️","⏺️","⏏️","🎦","🔅","🔆","📶","📳","📴","♀️","♂️","⚧️","✖️","➕","➖","➗","♾️","‼️","⁉️","❓","❔","❕","❗","〰️","💱","💲","⚕️","♻️","⚜️","🔱","📛","🔰","⭕","✅","☑️","✔️","❌","❎","➰","➿","〽️","✳️","✴️","❇️","©️","®️","™️","#️⃣","*️⃣","0️⃣","1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣","🔟","🔠","🔡","🔢","🔣","🔤","🅰️","🆎","🅱️","🆑","🅾️","🅿️","🆚","🈁","🈂️","🈷️","🈶","🈯","🉐","🈹","🈚","🈲","🉑","🈸","🈴","🈳","㊗️","㊙️","🈺","🈵","🔴","🟠","🟡","🟢","🔵","🟣","⚫","⚪","🟤","🔺","🔻","🔸","🔹","🔶","🔷","🔳","🔲","▪️","▫️","◾","◽","◼️","◻️","🟥","🟧","🟨","🟩","🟦","🟪","⬛","⬜","🟫","🏳️","🏴","🏁","🚩","🏳️‍🌈","🏳️‍⚧️","🏴‍☠️"
 ];
 
-async function getVersion(){ try{ let {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1023223823]; } }
+async function getVersion(){ try{ let {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1015901307]; } }
 
-// 🔥 SUNDOR WELCOME WITH PROFILE PIC
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
   try{
@@ -30,7 +28,6 @@ async function welcome(sock,gid,p){
     let memberCount = m.participants.length;
     let time = new Date().toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit',hour12:true});
     let date = new Date().toLocaleDateString('en-BD');
-
     let txt = 
 `╭━━━━━━━━━━━━━━━━━━━━╮
 ┃  👑 ${BOT_NAME} 👑
@@ -57,9 +54,7 @@ async function welcome(sock,gid,p){
 ┃  🌍 Enjoy Your Stay 🌍
 ╰━━━━━━━━━━━━━━━━━━━━╯
 `;
-
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
-    console.log(`✅ Welcome sent to ${newMember} with PP`);
   }catch(e){ console.log("Welcome Error:", e.message); }
 }
 
@@ -99,7 +94,7 @@ function getMenu(){
 │ .call on/off
 └─
 
-🔥 ULTRA FEATURES 🔥
+🔥 ULTRA FEATURES 🔧
 ┌─
 │ .sticker - Photo to Sticker
 │ .ai - AI Chat
@@ -131,6 +126,7 @@ app.get('/', (req,res)=>{
   res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA ULTRA 800+</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box;font-weight:700}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:16px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #22c55e}.code{font-size:32px;font-weight:900;color:#15803d;letter-spacing:3px}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>🔥 800+ | Profile Welcome | 2000 Emoji 🔥</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">⚡ ULTRA Pair</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:10px 16px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">Generate QR Code</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh QR</button></div></div><div id=res></div><p style="font-size:11px;color:#666;margin-top:12px">✅ Welcome + PP | 800+ Menu | Recent ON/OFF | 2000 Emoji</p></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n||n.length<11){alert('Valid Number dao');return}b.style.display='none';r.style.display='block';r.innerText='⚡ ULTRA Generating...';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error';r.style.background='#fee2e2';}}function copyCode(){navigator.clipboard.writeText(document.getElementById('code').innerText);alert('✅ Copied!')}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');let r=document.getElementById('res');let s=document.getElementById('qrstatus');img.removeAttribute('src');box.style.display='none';r.style.display='block';r.innerText='Generating QR... Wait 20 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;box.style.display='block';r.style.display='none';s.innerText='Scan within 60 sec';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - Refresh';r.style.background='#fee2e2';}}<\/script></body></html>`);
 });
 
+// FIX 1: PAIR CODE LOGIC FIXED - BROWSERS FIXED
 app.get('/pair', async (req,res)=>{
   let pairSock = null;
   try{
@@ -143,7 +139,19 @@ app.get('/pair', async (req,res)=>{
     fs.mkdirSync(PAIR_DIR,{recursive:true});
     const {state, saveCreds} = await useMultiFileAuthState(PAIR_DIR);
     let version = await getVersion();
-    pairSock = makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser: Browsers.windows('Chrome'), syncFullHistory:false, markOnlineOnConnect:false, printQRInTerminal:false });
+    // 🔥 FIXED: Browsers.macOS + Custom WA Version - Eita main fix!
+    pairSock = makeWASocket({ 
+      version, 
+      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
+      logger:pino({level:'silent'}), 
+      browser: Browsers.macOS('Desktop'), 
+      syncFullHistory:false, 
+      markOnlineOnConnect:false, 
+      printQRInTerminal:false,
+      connectTimeoutMs: 60000,
+      defaultQueryTimeoutMs: 0,
+      keepAliveIntervalMs: 10000
+    });
     pairSock.ev.on('creds.update', saveCreds);
     let paired=false;
     pairSock.ev.on('connection.update', async (u)=>{
@@ -156,16 +164,17 @@ app.get('/pair', async (req,res)=>{
         try{ pairSock.end(); }catch{} setTimeout(()=>startBot(),2000);
       }
     });
-    await new Promise(r=>setTimeout(r,1500));
+    await new Promise(r=>setTimeout(r,3000));
     let code = null;
-    for(let i=0;i<3;i++){ try{ code = await pairSock.requestPairingCode(num); if(code) break; }catch{ await new Promise(r=>setTimeout(r,1000)); } }
-    if(!code) throw new Error("Pair Failed");
+    for(let i=0;i<3;i++){ try{ code = await pairSock.requestPairingCode(num); if(code) break; }catch{ await new Promise(r=>setTimeout(r,1500)); } }
+    if(!code) throw new Error("Pair Failed - Number Block, 10 min por try koro");
     code = code.match(/.{1,4}/g) ? code.match(/.{1,4}/g).join("-") : code;
     res.json({code});
     setTimeout(()=>{ try{ if(!paired) pairSock.end(); }catch{} },180000);
   }catch(e){ res.json({error:e.message}); try{ pairSock.end(); }catch{} }
 });
 
+// FIX 2: QR CODE LOGIC FIXED
 app.get('/qr', async (req,res)=>{
   try{
     if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; }
@@ -175,7 +184,15 @@ app.get('/qr', async (req,res)=>{
     fs.mkdirSync(QR_DIR,{recursive:true});
     const {state, saveCreds} = await useMultiFileAuthState(QR_DIR);
     let version = await getVersion();
-    qrSock = makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser: Browsers.windows('Chrome'), syncFullHistory:false, printQRInTerminal:false });
+    qrSock = makeWASocket({ 
+      version, 
+      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
+      logger:pino({level:'silent'}), 
+      browser: Browsers.macOS('Desktop'),
+      syncFullHistory:false, 
+      printQRInTerminal:false,
+      connectTimeoutMs: 60000
+    });
     qrSock.ev.on('creds.update', saveCreds);
     let qrPromise = new Promise((resolve, reject)=>{
       let timeout = setTimeout(()=> reject(new Error("QR Timeout - Pair Use Koro")), 45000);
@@ -203,7 +220,13 @@ async function startBot(){
     if(!fs.existsSync(SESSION_DIR)) return;
     const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR);
     let version = await getVersion();
-    const sock=makeWASocket({ version, auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, logger:pino({level:'silent'}), browser:Browsers.windows('Chrome'), syncFullHistory:false });
+    const sock=makeWASocket({ 
+      version, 
+      auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
+      logger:pino({level:'silent'}), 
+      browser:Browsers.macOS('Desktop'),
+      syncFullHistory:false 
+    });
     mainSock=sock;
     sock.ev.on('creds.update',saveCreds);
     sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ ULTRA 800+ Connected!'); } });
@@ -261,5 +284,7 @@ async function startBot(){
     });
   }catch(e){ setTimeout(startBot,5000); }
 }
+
+// FIX 3: PORT FIXED FOR RENDER
 const PORT=process.env.PORT||10000;
-app.listen(PORT,()=>{ startBot(); console.log('ULTRA 800+ Server running on '+PORT); });
+app.listen(PORT, '0.0.0.0', ()=>{ startBot(); console.log('ULTRA 800+ Server running on '+PORT); });
