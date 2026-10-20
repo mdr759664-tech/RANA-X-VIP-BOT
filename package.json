@@ -1,15 +1,21 @@
 {
   "name": "rana-x-vip-bot",
-  "version": "2.26.39.79",
+  "version": "2.26.39.79-FIXED",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
-    "express": "^4.18.2",
-    "@whiskeysockets/baileys": "^6.7.20",
-    "pino": "^8.17.0",
-    "qrcode": "^1.5.3"
+    "express": "^4.21.2",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4",
+    "axios": "^1.7.9",
+    "fs-extra": "^11.2.0",
+    "dotenv": "^16.4.5"
   }
 }
