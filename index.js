@@ -15,7 +15,6 @@ let welcomeOn = true, callRejectOn = true, autoReactOn = true, recentOn = true;
 
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍"];
 
-// ⚡ FIXED - NO MORE 2-3 MIN LOADING - DIRECT VERSION
 async function getVersion(){ return [2,3000,1015901307]; }
 
 async function welcome(sock,gid,p){
@@ -58,10 +57,6 @@ async function welcome(sock,gid,p){
 🤖 Bot: ${BOT_NAME}`;
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
   }catch(e){}
-}
-
-function getMenu(){
-  return `👑 ${BOT_NAME} - 800+ Commands Ready!`;
 }
 
 app.get('/', (req,res)=>{
@@ -176,7 +171,6 @@ async function startBot(){
         const msg=m.messages[0]; if(!msg.message||msg.key.fromMe) return;
         const from=msg.key.remoteJid; const isGroup=from.endsWith('@g.us');
         const body=msg.message.conversation||msg.message.extendedTextMessage?.text||"";
-        const sender = msg.key.participant || from;
         if(isGroup && autoReactOn){
           let e=EMOJI[Math.floor(Math.random()*EMOJI.length)];
           await sock.sendMessage(from,{react:{text:e,key:msg.key}});
@@ -192,5 +186,6 @@ async function startBot(){
 }
 
 console.log('⚡ RANA-X-VIP Starting... Wait 10 sec');
-const PORT=process.env.PORT||10000;
+// ✅ FIXED FOR BOT-HOSTING
+const PORT = process.env.SERVER_PORT || process.env.PORT || 10000;
 app.listen(PORT, '0.0.0.0', ()=>{ startBot(); console.log('ULTRA 800+ Server running on '+PORT); });
