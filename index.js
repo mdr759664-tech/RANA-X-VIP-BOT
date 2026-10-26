@@ -1,5 +1,5 @@
 import express from 'express';
-import { default as makeWASocket, useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore } from '@whiskeysockets/baileys';
+import { default as makeWASocket, useMultiFileAuthState, Browsers, makeCacheableSignalKeyStore, fetchLatestBaileysVersion } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
 import QRCode from 'qrcode';
@@ -12,10 +12,14 @@ const BOT_PIC = "https://i.ibb.co/4ZqDk7Yp/3d-crown-golden-logo-with-ai-generate
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 let mainSock = null, qrSock = null;
 let welcomeOn = true, callRejectOn = true, autoReactOn = true, recentOn = true;
-
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍"];
 
-async function getVersion(){ return [2,3000,1015901307]; }
+async function getVersion(){ 
+  try {
+    const { version } = await fetchLatestBaileysVersion();
+    return version;
+  } catch { return [2,3000,1015901307]; }
+}
 
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
@@ -29,16 +33,12 @@ async function welcome(sock,gid,p){
     let date = new Date().toLocaleDateString('en-BD');
     let txt = 
 `╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
-
    👑 ${BOT_NAME} 👑
-
    আসসালামু আলাইকুম ওয়া 
    রহমাতুল্লাহি ওয়া বারাকাতুহু 💖
-
    প্রিয় @${newMember} ভাই/আপু
    আপনাকে আমাদের পরিবারে
    জানাই আন্তরিক স্বাগতম 🥰
-
 ┏━━━━━━━━━━━━━━━━━━┓
 ┃  🏰 গ্রুপ: ${m.subject}
 ┃  👤 নাম: @${newMember}
@@ -47,12 +47,9 @@ async function welcome(sock,gid,p){
 ┃  🕒 সময়: ${time}
 ┃  📅 তারিখ: ${date}
 ┗━━━━━━━━━━━━━━━━━━┛
-
    🌸 গ্রুপের নিয়ম মেনে চলবেন 🌸
    ✨ প্রোফাইল পিক সহ স্বাগতম ✨
-
 ╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯
-
 👑 Owner: +${OWNER}
 🤖 Bot: ${BOT_NAME}`;
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
@@ -79,13 +76,11 @@ app.get('/pair', async (req,res)=>{
       version, 
       auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
       logger:pino({level:'silent'}), 
-      browser: Browsers.ubuntu('Chrome'),
+      browser: Browsers.macOS('Chrome'),
       syncFullHistory:false, 
       markOnlineOnConnect:false, 
       printQRInTerminal:false,
-      connectTimeoutMs: 60000,
-      defaultQueryTimeoutMs: 0,
-      keepAliveIntervalMs: 10000
+      connectTimeoutMs: 60000
     });
     pairSock.ev.on('creds.update', saveCreds);
     let paired=false;
@@ -99,10 +94,8 @@ app.get('/pair', async (req,res)=>{
         try{ pairSock.end(); }catch{} setTimeout(()=>startBot(),2000);
       }
     });
-    await new Promise(r=>setTimeout(r,1500));
-    let code = null;
-    for(let i=0;i<3;i++){ try{ code = await pairSock.requestPairingCode(num); if(code) break; }catch{ await new Promise(r=>setTimeout(r,1000)); } }
-    if(!code) throw new Error("Pair Failed - QR use koro");
+    await new Promise(r=>setTimeout(r,3000));
+    let code = await pairSock.requestPairingCode(num);
     code = code.match(/.{1,4}/g) ? code.match(/.{1,4}/g).join("-") : code;
     res.json({code});
     setTimeout(()=>{ try{ if(!paired) pairSock.end(); }catch{} },180000);
@@ -122,7 +115,7 @@ app.get('/qr', async (req,res)=>{
       version, 
       auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
       logger:pino({level:'silent'}), 
-      browser: Browsers.ubuntu('Chrome'),
+      browser: Browsers.macOS('Chrome'),
       syncFullHistory:false, 
       printQRInTerminal:false,
       connectTimeoutMs: 60000
@@ -158,7 +151,7 @@ async function startBot(){
       version, 
       auth: {creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({level:'silent'}))}, 
       logger:pino({level:'silent'}), 
-      browser:Browsers.ubuntu('Chrome'),
+      browser:Browsers.macOS('Chrome'),
       syncFullHistory:false 
     });
     mainSock=sock;
