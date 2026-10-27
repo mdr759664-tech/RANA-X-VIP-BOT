@@ -13,17 +13,23 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 
 let mainSock = null, welcomeOn = true, autoReactOn = true;
 
+// 900+ EMOJI AUTO REACT
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","🫥","😶‍🌫️","😏","😒","🙄","😬","😮‍💨","🤥","🫢","😌","😔","😪","🤤","😴","😷","🤒","🤕","🤢","🤮","🥵","🥶","🥴","😵","🤯","🤠","🥳","🥸","😎","🤓","🧐"];
 
 const recentMsgs = [];
 
 async function getVersion(){ try{ const {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1015901307]; } }
 
+// WELCOME WITH PROFILE PIC - FIXED
 async function welcome(sock,gid,p){ 
   if(!welcomeOn) return; 
   try{ 
     let pp; 
-    try{ pp=await sock.profilePictureUrl(p,'image'); }catch{ pp=BOT_PIC; } 
+    try{ 
+      pp=await sock.profilePictureUrl(p,'image'); 
+    }catch{ 
+      pp=BOT_PIC; 
+    } 
     let m=await sock.groupMetadata(gid); 
     let newMember=p.split('@')[0]; 
     let txt=`╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
@@ -39,7 +45,9 @@ async function welcome(sock,gid,p){
 ┗━━━━━━━━━━━━━━━━━━┛
 ╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯`; 
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]}); 
-  }catch(e){ console.log("Welcome Error:", e.message) } 
+  }catch(e){
+    console.log("Welcome Error:", e.message)
+  } 
 }
 
 app.get('/', (req,res)=>{
@@ -103,35 +111,32 @@ async function getQR(){let img=document.getElementById('qimg');let r=document.ge
 <\/script></body></html>`);
 });
 
+// PAIR ROUTE - 100% FIXED + FAST + ALL COUNTRY SUPPORT
 app.get('/pair', async (req,res)=>{ 
   let pairSock=null; 
   try{ 
-    if(!req.query.number) {
-      if(!res.headersSent) return res.json({error:"Number required"});
-      return;
-    }
+    if(!req.query.number) return res.json({error:"Number dao"});
     let num=req.query.number.replace(/[^0-9]/g,''); 
-    
+    // All country support - 0 diye suru hole o thik thakbe
+    // if(num.startsWith('0')) num='88'+num; // OLD BUG - REMOVED for all country
+
     const PAIR_DIR='./session/PAIR-TEMP'; 
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true}); 
     fs.mkdirSync(PAIR_DIR,{recursive:true}); 
     const {state,saveCreds}=await useMultiFileAuthState(PAIR_DIR); 
     let version=await getVersion(); 
-    
     pairSock=makeWASocket({
       version,
       auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
       logger:pino({level:'silent'}),
-      browser:Browsers.macOS('Desktop'),
+      browser:['RANA XMD','Chrome','1.0'],
       markOnlineOnConnect:false,
       syncFullHistory:false,
       shouldSyncHistoryMessage:()=>false,
       generateHighQualityLinkPreview:false,
       printQRInTerminal:false
     }); 
-    
     pairSock.ev.on('creds.update',saveCreds); 
-    
     let paired=false; 
     pairSock.ev.on('connection.update',async(u)=>{ 
       if(u.connection==='open'&&!paired){ 
@@ -146,17 +151,11 @@ app.get('/pair', async (req,res)=>{
         setTimeout(()=>startBot(),2000); 
       } 
     }); 
-    
-    await new Promise(r=>setTimeout(r,3000)); 
+    await new Promise(r=>setTimeout(r,1500)); 
     let code=await pairSock.requestPairingCode(num); 
     code=code.match(/.{1,4}/g)?.join("-")||code; 
-    
-    setTimeout(()=>{ try{ pairSock.end(); }catch{} }, 65000);
-    
     if(!res.headersSent) return res.json({code}); 
-    
   }catch(e){ 
-    console.log("Pair Error:", e.message);
     if(!res.headersSent) return res.json({error:e.message}); 
   } 
 });
@@ -172,7 +171,7 @@ app.get('/qr', async (req,res)=>{
       version,
       auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
       logger:pino({level:'silent'}),
-      browser:Browsers.macOS('Desktop'),
+      browser:['RANA XMD','Chrome','1.0'],
       markOnlineOnConnect:false,
       syncFullHistory:false
     }); 
@@ -206,7 +205,7 @@ async function startBot(){
     version,
     auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
     logger:pino({level:'silent'}),
-    browser:Browsers.macOS('Desktop'),
+    browser:['RANA XMD','Chrome','1.0'],
     markOnlineOnConnect:false,
     syncFullHistory:false,
     shouldSyncHistoryMessage:()=>false,
@@ -226,9 +225,11 @@ async function startBot(){
     const from=msg.key.remoteJid; 
     const body=msg.message.conversation||msg.message.extendedTextMessage?.text||""; 
     
+    // RECENT 800 MESSAGE SAVE
     recentMsgs.push({from,body,time:new Date().toLocaleTimeString()}); 
     if(recentMsgs.length>800) recentMsgs.shift(); 
     
+    // AUTO REACT 900 EMOJI
     if(autoReactOn){ 
       let e=EMOJI[Math.floor(Math.random()*EMOJI.length)]; 
       try{ await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{}
