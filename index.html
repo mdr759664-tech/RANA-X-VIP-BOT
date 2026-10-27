@@ -8,7 +8,7 @@ import path from 'path';
 const app = express();
 const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
-const BOT_PIC = "https://i.ibb.co/4ZqDk7Yp/3d-crown-golden-logo-with-ai-generated-free-png.png";
+const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 
 let mainSock = null, qrSock = null;
@@ -56,9 +56,7 @@ app.get('/pair', async (req,res)=>{
   let pairSock = null;
   try{
     let num = req.query.number.replace(/[^0-9]/g,'');
-    // 🌍 ALL COUNTRY SUPPORT - শুধু 0 দিয়ে শুরু হলে BD ধরে নিবে, বাকি সব দেশ এমনিই চলবে
     if(num.startsWith('0')) num = '88' + num;
-    
     const PAIR_DIR = './session/PAIR-TEMP';
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
