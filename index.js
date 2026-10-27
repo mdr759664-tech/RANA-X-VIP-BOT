@@ -43,7 +43,7 @@ async function welcome(sock,gid,p){
    জানাই আন্তরিক স্বাগতম 🥰
 
 ┏━━━━━━━━━━━━━━━━━━┓
-┃  🏡 গ্রুপ: ${m.subject}
+┃  🏰 গ্রুপ: ${m.subject}
 ┃  👤 নাম: @${newMember}
 ┃  🆔 নাম্বার: +${newMember}
 ┃  👥 আপনি ${memberCount} তম সদস্য
