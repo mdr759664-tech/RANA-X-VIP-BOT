@@ -31,14 +31,17 @@ async function welcome(sock,gid,p){
     let memberCount = m.participants.length;
     let time = new Date().toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit',hour12:true});
     let date = new Date().toLocaleDateString('en-BD');
-    let txt = 
-`╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
+    let txt = `╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
+
    👑 ${BOT_NAME} 👑
+
    আসসালামু আলাইকুম ওয়া 
    রহমাতুল্লাহি ওয়া বারাকাতুহু 💖
+
    প্রিয় @${newMember} ভাই/আপু
    আপনাকে আমাদের পরিবারে
    জানাই আন্তরিক স্বাগতম 🥰
+
 ┏━━━━━━━━━━━━━━━━━━┓
 ┃  🏰 গ্রুপ: ${m.subject}
 ┃  👤 নাম: @${newMember}
@@ -47,9 +50,12 @@ async function welcome(sock,gid,p){
 ┃  🕒 সময়: ${time}
 ┃  📅 তারিখ: ${date}
 ┗━━━━━━━━━━━━━━━━━━┛
+
    🌸 গ্রুপের নিয়ম মেনে চলবেন 🌸
    ✨ প্রোফাইল পিক সহ স্বাগতম ✨
+
 ╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯
+
 👑 Owner: +${OWNER}
 🤖 Bot: ${BOT_NAME}`;
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]});
@@ -57,7 +63,7 @@ async function welcome(sock,gid,p){
 }
 
 app.get('/', (req,res)=>{
-  res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA ULTRA 800+</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box;font-weight:700}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:16px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #22c55e}.code{font-size:32px;font-weight:900;color:#15803d;letter-spacing:3px}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>🔥 বাংলা স্বাগতম | FAST 10s | 800+ 🔥</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">⚡ Pair Code নাও</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:10px 16px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">QR Generate - FAST</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh</button></div></div><div id=res></div></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n||n.length<11){alert('Valid Number dao');return}b.style.display='none';r.style.display='block';r.innerText='⚡ Generating... 10 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error';r.style.background='#fee2e2';}}function copyCode(){let t=document.getElementById('code').innerText;if(!t){alert('❌ Code নাই!');return;}if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(()=>{alert('✅ Copied: '+t)}).catch(()=>{fallbackCopy(t)});}else{fallbackCopy(t);}function fallbackCopy(text){let ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');alert('✅ Copied: '+text);}catch{alert('❌ Copy Failed! Code: '+text);}document.body.removeChild(ta);}}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');let r=document.getElementById('res');let s=document.getElementById('qrstatus');img.removeAttribute('src');box.style.display='none';r.style.display='block';r.innerText='Generating QR... 10 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;box.style.display='block';r.style.display='none';s.innerText='Scan within 60 sec';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error';r.style.background='#fee2e2';}}<\/script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA ULTRA 800+</title><style>body{margin:0;min-height:100vh;display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#a855f7,#7c3aed);font-family:sans-serif;padding:15px}.card{background:#fff;max-width:430px;width:100%;border-radius:28px;padding:24px;text-align:center;box-shadow:0 20px 60px #0003}.logo{width:80px;height:80px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:40px}h1{color:#6d28d9;margin:5px}.tab{display:flex;gap:10px;margin:14px 0}.tab button{flex:1;padding:12px;border:2px solid #7c3aed;border-radius:12px;font-weight:800;cursor:pointer;background:#fff;color:#7c3aed}.tab button.active{background:#7c3aed;color:#fff}.panel{display:none}.panel.active{display:block}input{width:100%;padding:14px;border:2px solid #e9d5ff;border-radius:12px;box-sizing:border-box;font-weight:700}.btn{width:100%;margin-top:12px;padding:14px;background:#7c3aed;color:#fff;border:none;border-radius:12px;font-weight:800;cursor:pointer}.box{margin-top:14px;padding:16px;border-radius:12px;display:none;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #22c55e}.code{font-size:32px;font-weight:900;color:#15803d;letter-spacing:3px}.qrbox{margin-top:14px;padding:14px;background:#f5f3ff;border-radius:16px;display:none}.qrbox img{width:250px;height:250px;background:#fff;padding:10px;border-radius:12px}#res{margin-top:12px;padding:12px;border-radius:10px;display:none;font-weight:700}</style></head><body><div class=card><div class=logo>👑</div><h1>RANA-X-VIP-BOT</h1><p><b>🔥 বাংলা স্বাগতম | FAST 10s | 800+ 🔥</b></p><div class=tab><button id=t1 class=active onclick="showTab('pair')">📱 Pair Code</button><button id=t2 onclick="showTab('qr')">📷 QR Code</button></div><div id=pairPanel class="panel active"><input id=num placeholder="8801XXXXXXXXX"><button class=btn onclick="getPair()">⚡ Pair Code নাও</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:10px 16px;background:#000;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div></div><div id=qrPanel class="panel"><p>WhatsApp > Linked Devices > Link a Device</p><button class=btn onclick="getQR()">QR Generate - FAST</button><div id=qrbox class=qrbox><img id=qimg src=""/><p id=qrstatus style="font-weight:700;color:#7c3aed">Scan within 60 sec</p><button class=btn onclick="getQR()" style="background:#000">Refresh</button></div></div><div id=res></div></div><script>function showTab(t){document.getElementById('pairPanel').classList.remove('active');document.getElementById('qrPanel').classList.remove('active');document.getElementById('t1').classList.remove('active');document.getElementById('t2').classList.remove('active');if(t==='pair'){document.getElementById('pairPanel').classList.add('active');document.getElementById('t1').classList.add('active');}else{document.getElementById('qrPanel').classList.add('active');document.getElementById('t2').classList.add('active');}}async function getPair(){let n=document.getElementById('num').value.replace(/[^0-9]/g,'');let b=document.getElementById('box');let r=document.getElementById('res');if(!n||n.length<11){alert('Valid Number dao - 8801XXXXXXXXX');return}b.style.display='none';r.style.display='block';r.innerText='⚡ Generating... 15 sec wait koro';r.style.background='#fef3c7';try{let d=await (await fetch('/pair?number='+n)).json();if(d.code){document.getElementById('code').innerText=d.code;b.style.display='flex';r.style.display='none';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - abar try koro';r.style.background='#fee2e2';}}function copyCode(){let t=document.getElementById('code').innerText;if(!t){alert('❌ Code নাই!');return;}if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(t).then(()=>{alert('✅ Copied: '+t)}).catch(()=>{fallbackCopy(t)});}else{fallbackCopy(t);}function fallbackCopy(text){let ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');alert('✅ Copied: '+text);}catch{alert('❌ Copy Failed! Code: '+text);}document.body.removeChild(ta);}}async function getQR(){let box=document.getElementById('qrbox');let img=document.getElementById('qimg');let r=document.getElementById('res');let s=document.getElementById('qrstatus');img.removeAttribute('src');box.style.display='none';r.style.display='block';r.innerText='Generating QR... 15 sec';r.style.background='#fef3c7';try{let d=await (await fetch('/qr')).json();if(d.qr){img.src=d.qr;box.style.display='block';r.style.display='none';s.innerText='Scan within 60 sec';}else{r.innerText='❌ '+d.error;r.style.background='#fee2e2';}}catch(e){r.innerText='❌ Error - abar try koro';r.style.background='#fee2e2';}}<\/script></body></html>`);
 });
 
 app.get('/pair', async (req,res)=>{
@@ -65,6 +71,7 @@ app.get('/pair', async (req,res)=>{
   try{
     let num = req.query.number ? req.query.number.replace(/[^0-9]/g,'') : '';
     if(!num) return res.json({error:"Number dao"});
+    if(num.startsWith('0')) num = '88' + num;
     if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; }
     if(qrSock){ try{ qrSock.end(); }catch{} qrSock=null; }
     const PAIR_DIR = './session/PAIR-TEMP';
@@ -80,7 +87,8 @@ app.get('/pair', async (req,res)=>{
       syncFullHistory:false, 
       markOnlineOnConnect:false, 
       printQRInTerminal:false,
-      connectTimeoutMs: 60000
+      connectTimeoutMs: 60000,
+      keepAliveIntervalMs: 15000
     });
     pairSock.ev.on('creds.update', saveCreds);
     let paired=false;
@@ -91,21 +99,22 @@ app.get('/pair', async (req,res)=>{
         if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
         fs.mkdirSync(MAIN_DIR,{recursive:true});
         fs.readdirSync(PAIR_DIR).forEach(f=>{ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN_DIR,f)); });
-        try{ pairSock.end(); }catch{} setTimeout(()=>startBot(),2000);
+        try{ pairSock.end(); }catch{} setTimeout(()=>startBot(),3000);
       }
     });
-    await new Promise(r=>setTimeout(r,3000));
+    await new Promise(r=>setTimeout(r,3500));
     let code = await pairSock.requestPairingCode(num);
-    code = code.match(/.{1,4}/g) ? code.match(/.{1,4}/g).join("-") : code;
+    code = code.match(/.{1,4}/g)?.join("-") || code;
     res.json({code});
     setTimeout(()=>{ try{ if(!paired) pairSock.end(); }catch{} },180000);
   }catch(e){ res.json({error:e.message}); try{ pairSock.end(); }catch{} }
 });
 
 app.get('/qr', async (req,res)=>{
+  let qrSent = false;
   try{
     if(mainSock){ try{ mainSock.end(); }catch{} mainSock=null; }
-    if(qrSock){ try{ qrSock.end(); }catch{} }
+    if(qrSock){ try{ qrSock.end(); }catch{} qrSock=null; }
     const QR_DIR = './session/QR-TEMP';
     if(fs.existsSync(QR_DIR)) fs.rmSync(QR_DIR,{recursive:true,force:true});
     fs.mkdirSync(QR_DIR,{recursive:true});
@@ -121,24 +130,38 @@ app.get('/qr', async (req,res)=>{
       connectTimeoutMs: 60000
     });
     qrSock.ev.on('creds.update', saveCreds);
-    let qrPromise = new Promise((resolve, reject)=>{
-      let timeout = setTimeout(()=> reject(new Error("QR Timeout")), 30000);
-      qrSock.ev.on('connection.update', async (u)=>{
-        if(u.qr){ clearTimeout(timeout); resolve(u.qr); }
-        if(u.connection==='open'){
-          const MAIN_DIR='./session/RANA-SESSION';
-          if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
-          fs.mkdirSync(MAIN_DIR,{recursive:true});
-          fs.readdirSync(QR_DIR).forEach(f=>{ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN_DIR,f)); });
-          try{ qrSock.end(); }catch{} qrSock=null;
-          setTimeout(()=>startBot(),2000);
-        }
-      });
+    qrSock.ev.on('connection.update', async (u)=>{
+      if(u.qr && !qrSent){
+        qrSent = true;
+        let qrImage = await QRCode.toDataURL(u.qr, { width: 300 });
+        res.json({qr: qrImage});
+      }
+      if(u.connection==='open'){
+        const MAIN_DIR='./session/RANA-SESSION';
+        if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true});
+        fs.mkdirSync(MAIN_DIR,{recursive:true});
+        fs.readdirSync(QR_DIR).forEach(f=>{ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN_DIR,f)); });
+        try{ qrSock.end(); }catch{} qrSock=null;
+        setTimeout(()=>startBot(),2000);
+      }
     });
-    let qrData = await qrPromise;
-    let qrImage = await QRCode.toDataURL(qrData);
-    res.json({qr: qrImage});
-  }catch(e){ res.json({error:e.message}); }
+    setTimeout(()=>{
+      if(!qrSent && !res.headersSent){
+        res.json({error:"QR Timeout - abar Generate চাপো"});
+        try{ qrSock.end(); }catch{}
+      }
+    }, 30000);
+  }catch(e){ if(!res.headersSent) res.json({error:e.message}); }
+});
+
+app.get('/clear', (req,res)=>{
+  try{
+    ['PAIR-TEMP','QR-TEMP','RANA-SESSION'].forEach(d=>{
+      const dir = './session/'+d;
+      if(fs.existsSync(dir)) fs.rmSync(dir,{recursive:true,force:true});
+    });
+    res.send("✅ Session Cleared - abar try koro");
+  }catch(e){ res.send("Error: "+e.message); }
 });
 
 async function startBot(){
@@ -156,7 +179,7 @@ async function startBot(){
     });
     mainSock=sock;
     sock.ev.on('creds.update',saveCreds);
-    sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ ULTRA 800+ Connected!'); } });
+    sock.ev.on('connection.update', (u)=>{ if(u.connection==='close'){ setTimeout(startBot,5000); } if(u.connection==='open'){ console.log('✅ Connected!'); } });
     sock.ev.on('group-participants.update', async (u)=>{ for(let p of u.participants){ if(u.action=='add') await welcome(sock,u.id,p); } });
     sock.ev.on('call', async (c)=>{ if(!callRejectOn) return; for(let x of c){ if(x.status=='offer'){ await sock.rejectCall(x.id,x.from); } } });
     sock.ev.on('messages.upsert', async (m)=>{
@@ -178,6 +201,6 @@ async function startBot(){
   }catch(e){ setTimeout(startBot,5000); }
 }
 
-console.log('⚡ RANA-X-VIP Starting... Wait 10 sec');
+console.log('⚡ RANA-X-VIP Starting FIXED...');
 const PORT = process.env.SERVER_PORT || process.env.PORT || 10000;
-app.listen(PORT, '0.0.0.0', ()=>{ startBot(); console.log('ULTRA 800+ Server running on '+PORT); });
+app.listen(PORT, '0.0.0.0', ()=>{ startBot(); console.log('FIXED Server running on '+PORT); });
