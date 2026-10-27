@@ -13,41 +13,22 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 
 let mainSock = null, welcomeOn = true, autoReactOn = true;
 
-// 900+ EMOJI AUTO REACT
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","🫥","😶‍🌫️","😏","😒","🙄","😬","😮‍💨","🤥","🫢","😌","😔","😪","🤤","😴","😷","🤒","🤕","🤢","🤮","🥵","🥶","🥴","😵","🤯","🤠","🥳","🥸","😎","🤓","🧐"];
+// 900+ EMOJI
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","👻","👽","🤖","💩","👋","🤚","✋","👌","✌️","🤞","🤟","🤘","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","👐","🤝","🙏","💪","👀"];
 
 const recentMsgs = [];
-
 async function getVersion(){ try{ const {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1015901307]; } }
 
-// WELCOME WITH PROFILE PIC - FIXED
 async function welcome(sock,gid,p){ 
   if(!welcomeOn) return; 
   try{ 
     let pp; 
-    try{ 
-      pp=await sock.profilePictureUrl(p,'image'); 
-    }catch{ 
-      pp=BOT_PIC; 
-    } 
+    try{ pp=await sock.profilePictureUrl(p,'image'); }catch{ pp=BOT_PIC; } 
     let m=await sock.groupMetadata(gid); 
     let newMember=p.split('@')[0]; 
-    let txt=`╭───❰ 🌸 স্বাগতম 🌸 ❱───╮
-
-   👑 ${BOT_NAME} 👑
-
-   প্রিয় @${newMember} ভাই/আপু আপনাকে স্বাগতম 🥰
-
-┏━━━━━━━━━━━━━━━━━━┓
-┃  🏰 গ্রুপ: ${m.subject}
-┃  👥 আপনি ${m.participants.length} তম সদস্য
-┃  ✨ Powered by ${BOT_NAME}
-┗━━━━━━━━━━━━━━━━━━┛
-╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯`; 
+    let txt=`╭───❰ 🌸 স্বাগতম 🌸 ❱───╮\n\n   👑 ${BOT_NAME} 👑\n\n   প্রিয় @${newMember} ভাই/আপু আপনাকে স্বাগতম 🥰\n\n┏━━━━━━━━━━━━━━━━━━┓\n┃  🏰 গ্রুপ: ${m.subject}\n┃  👥 আপনি ${m.participants.length} তম সদস্য\n┗━━━━━━━━━━━━━━━━━━┛\n╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯`; 
     await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]}); 
-  }catch(e){
-    console.log("Welcome Error:", e.message)
-  } 
+  }catch(e){} 
 }
 
 app.get('/', (req,res)=>{
@@ -111,31 +92,17 @@ async function getQR(){let img=document.getElementById('qimg');let r=document.ge
 <\/script></body></html>`);
 });
 
-// PAIR ROUTE - 100% FIXED + FAST + ALL COUNTRY SUPPORT
 app.get('/pair', async (req,res)=>{ 
   let pairSock=null; 
   try{ 
-    if(!req.query.number) return res.json({error:"Number dao"});
     let num=req.query.number.replace(/[^0-9]/g,''); 
-    // All country support - 0 diye suru hole o thik thakbe
-    // if(num.startsWith('0')) num='88'+num; // OLD BUG - REMOVED for all country
-
+    if(num.startsWith('0')) num='88'+num; 
     const PAIR_DIR='./session/PAIR-TEMP'; 
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true}); 
     fs.mkdirSync(PAIR_DIR,{recursive:true}); 
     const {state,saveCreds}=await useMultiFileAuthState(PAIR_DIR); 
     let version=await getVersion(); 
-    pairSock=makeWASocket({
-      version,
-      auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
-      logger:pino({level:'silent'}),
-      browser:['RANA XMD','Chrome','1.0'],
-      markOnlineOnConnect:false,
-      syncFullHistory:false,
-      shouldSyncHistoryMessage:()=>false,
-      generateHighQualityLinkPreview:false,
-      printQRInTerminal:false
-    }); 
+    pairSock=makeWASocket({version,auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},logger:pino({level:'silent'}),browser:Browsers.macOS('Desktop'),printQRInTerminal:false,markOnlineOnConnect:false,syncFullHistory:false,shouldSyncHistoryMessage:()=>false,generateHighQualityLinkPreview:false}); 
     pairSock.ev.on('creds.update',saveCreds); 
     let paired=false; 
     pairSock.ev.on('connection.update',async(u)=>{ 
@@ -144,20 +111,17 @@ app.get('/pair', async (req,res)=>{
         const MAIN_DIR='./session/RANA-SESSION'; 
         if(fs.existsSync(MAIN_DIR)) fs.rmSync(MAIN_DIR,{recursive:true,force:true}); 
         fs.mkdirSync(MAIN_DIR,{recursive:true}); 
-        fs.readdirSync(PAIR_DIR).forEach(f=>{ 
-          fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN_DIR,f)); 
-        }); 
+        fs.readdirSync(PAIR_DIR).forEach(f=>{ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN_DIR,f)); }); 
         try{ pairSock.end(); }catch{} 
         setTimeout(()=>startBot(),2000); 
       } 
     }); 
-    await new Promise(r=>setTimeout(r,1500)); 
+    await new Promise(r=>setTimeout(r,3000)); 
     let code=await pairSock.requestPairingCode(num); 
     code=code.match(/.{1,4}/g)?.join("-")||code; 
+    setTimeout(()=>{ try{ pairSock.end(); }catch{} }, 65000);
     if(!res.headersSent) return res.json({code}); 
-  }catch(e){ 
-    if(!res.headersSent) return res.json({error:e.message}); 
-  } 
+  }catch(e){ if(!res.headersSent) return res.json({error:e.message}); } 
 });
 
 app.get('/qr', async (req,res)=>{ 
@@ -167,14 +131,7 @@ app.get('/qr', async (req,res)=>{
     fs.mkdirSync(QR_DIR,{recursive:true}); 
     const {state,saveCreds}=await useMultiFileAuthState(QR_DIR); 
     let version=await getVersion(); 
-    const sock=makeWASocket({
-      version,
-      auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
-      logger:pino({level:'silent'}),
-      browser:['RANA XMD','Chrome','1.0'],
-      markOnlineOnConnect:false,
-      syncFullHistory:false
-    }); 
+    const sock=makeWASocket({version,auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},logger:pino({level:'silent'}),browser:Browsers.macOS('Desktop')}); 
     sock.ev.on('creds.update',saveCreds); 
     sock.ev.on('connection.update',async(u)=>{ 
       if(u.qr){ 
@@ -191,9 +148,7 @@ app.get('/qr', async (req,res)=>{
         setTimeout(()=>startBot(),2000); 
       } 
     }); 
-  }catch(e){ 
-    if(!res.headersSent) res.json({error:e.message}); 
-  } 
+  }catch(e){ if(!res.headersSent) res.json({error:e.message}); } 
 });
 
 async function startBot(){ 
@@ -201,17 +156,7 @@ async function startBot(){
   if(!fs.existsSync(SESSION_DIR)) return; 
   const {state,saveCreds}=await useMultiFileAuthState(SESSION_DIR); 
   let version=await getVersion(); 
-  const sock=makeWASocket({
-    version,
-    auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},
-    logger:pino({level:'silent'}),
-    browser:['RANA XMD','Chrome','1.0'],
-    markOnlineOnConnect:false,
-    syncFullHistory:false,
-    shouldSyncHistoryMessage:()=>false,
-    generateHighQualityLinkPreview:false,
-    getMessage: async () => undefined
-  }); 
+  const sock=makeWASocket({version,auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},logger:pino({level:'silent'}),browser:Browsers.macOS('Desktop'),markOnlineOnConnect:false,syncFullHistory:false,shouldSyncHistoryMessage:()=>false,generateHighQualityLinkPreview:false,getMessage: async () => undefined}); 
   mainSock=sock; 
   sock.ev.on('creds.update',saveCreds); 
   sock.ev.on('group-participants.update',async(u)=>{ 
@@ -224,48 +169,21 @@ async function startBot(){
     if(!msg.message||msg.key.fromMe) return; 
     const from=msg.key.remoteJid; 
     const body=msg.message.conversation||msg.message.extendedTextMessage?.text||""; 
-    
-    // RECENT 800 MESSAGE SAVE
     recentMsgs.push({from,body,time:new Date().toLocaleTimeString()}); 
     if(recentMsgs.length>800) recentMsgs.shift(); 
-    
-    // AUTO REACT 900 EMOJI
     if(autoReactOn){ 
       let e=EMOJI[Math.floor(Math.random()*EMOJI.length)]; 
       try{ await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{}
     } 
-    
     if(!body.startsWith(".")) return; 
     let cmd=body.slice(1).trim().split(" ")[0].toLowerCase(); 
-    
     if(cmd==="menu"||cmd==="help"){ 
-      let menu=`╭───👑 ${BOT_NAME} ───╮
-│ 🔥 Owner: +${OWNER}
-│ ✨ Prefix: .
-│ 📢 Channel: ${CHANNEL}
-│ 👑 RANA XMD VIP
-╰─────────────────╯
-┏━━━❰ COMMANDS ❱━━━┓
-┃ .menu - Bot Menu
-┃ .ping - Bot Alive?
-┃ .recent - Last Messages (800)
-┃ .welcome on/off - Welcome Toggle
-┃ .emoji on/off - Auto React Toggle
-┃ .cam - Bot Pic
-┗━━━━━━━━━━━━━━━━━┛
-👑 Powered by RANA-X`; 
+      let menu=`╭───👑 ${BOT_NAME} ───╮\n│ 🔥 Owner: +${OWNER}\n│ ✨ Prefix: .\n╰─────────────────╯\n┏━━━❰ COMMANDS ❱━━━┓\n┃ .menu - Bot Menu\n┃ .cam - Bot Photo\n┃ .ping - Alive\n┃ .recent - Last 800\n┃ .welcome on/off\n┃ .emoji on/off\n┗━━━━━━━━━━━━━━━━━┛\n👑 Powered by RANA-X`; 
       await sock.sendMessage(from,{image:{url:BOT_PIC},caption:menu}); 
     } 
-    if(cmd==="recent"){ 
-      let txt="📜 *Recent 800:*\n\n"+recentMsgs.slice(-20).map((r,i)=>`${i+1}. ${r.from.split('@')[0]}: ${r.body}`).join("\n"); 
-      await sock.sendMessage(from,{text:txt}); 
-    } 
-    if(cmd==="ping"){ 
-      await sock.sendMessage(from,{text:`👑 ${BOT_NAME} ALIVE! ✅\n⚡ Speed: Fast\n👑 RANA XMD`}); 
-    }
-    if(cmd==="cam"||cmd==="pic"){
-      await sock.sendMessage(from,{image:{url:BOT_PIC},caption:`👑 ${BOT_NAME} Official Pic`});
-    }
+    if(cmd==="cam"){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:`👑 ${BOT_NAME} Official`}); }
+    if(cmd==="recent"){ let txt="📜 *Recent 800:*\n\n"+recentMsgs.slice(-20).map((r,i)=>`${i+1}. ${r.from.split('@')[0]}: ${r.body}`).join("\n"); await sock.sendMessage(from,{text:txt}); } 
+    if(cmd==="ping"){ await sock.sendMessage(from,{text:`👑 ${BOT_NAME} ALIVE! ✅`}); } 
     if(cmd==="welcome"){
       let arg=body.split(" ")[1];
       if(arg==="on") { welcomeOn=true; await sock.sendMessage(from,{text:"✅ Welcome ON"}); }
@@ -273,13 +191,10 @@ async function startBot(){
     }
     if(cmd==="emoji"){
       let arg=body.split(" ")[1];
-      if(arg==="on") { autoReactOn=true; await sock.sendMessage(from,{text:"✅ Emoji React ON (900+)"}); }
-      if(arg==="off") { autoReactOn=false; await sock.sendMessage(from,{text:"❌ Emoji React OFF"}); }
+      if(arg==="on") { autoReactOn=true; await sock.sendMessage(from,{text:"✅ Emoji ON 900+"}); }
+      if(arg==="off") { autoReactOn=false; await sock.sendMessage(from,{text:"❌ Emoji OFF"}); }
     }
   }); 
 }
 const PORT=process.env.PORT||10000; 
-app.listen(PORT,'0.0.0.0',()=>{ 
-  startBot(); 
-  console.log('RANA-X VIP Running on '+PORT); 
-});
+app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT); });
