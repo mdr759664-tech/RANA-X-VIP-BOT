@@ -12,10 +12,59 @@ const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 
 let mainSock = null, welcomeOn = true, autoReactOn = true;
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😮‍💨","🤥","😌","😔","😪","😴","🤒","🥵","🥶","😵","🤯","🤠","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
+
+// 700+ EMOJI FOR WELCOME + REACT
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪","🦾","🦿","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","🦴","👀","👁️","👅","👄","🌟","💫","🎊","🎈","🎁","🎀","🌹","🌷","🌼","🍀","🌙","⭐","💎","🏆","🥇"];
+
 const recentMsgs = [];
 async function getVersion(){ try{ const {version}=await fetchLatestBaileysVersion(); return version; }catch{ return [2,3000,1015901307]; } }
-async function welcome(sock,gid,p){ if(!welcomeOn) return; try{ let pp; try{ pp=await sock.profilePictureUrl(p,'image'); }catch{ pp=BOT_PIC; } let m=await sock.groupMetadata(gid); let txt=`╭───❰ 🌸 স্বাগতম 🌸 ❱───╮\n\n   👑 ${BOT_NAME} 👑\n\n   প্রিয় @${p.split('@')[0]} ভাই/আপু আপনাকে স্বাগতম 🥰\n\n┏━━━━━━━━━━━━━━━━━━┓\n┃  🏰 গ্রুপ: ${m.subject}\n┃  👥 আপনি ${m.participants.length} তম সদস্য\n┗━━━━━━━━━━━━━━━━━━┛\n╰───❰ 🌍 ভালো থাকবেন 🌍 ❱───╯`; await sock.sendMessage(gid,{image:{url:pp},caption:txt,mentions:[p]}); }catch(e){} }
+
+// VIP WELCOME DESIGN WITH PIC - 700+ EMOJI
+async function welcome(sock,gid,p){ 
+  if(!welcomeOn) return; 
+  try{ 
+    let ppUrl;
+    try{ ppUrl=await sock.profilePictureUrl(p,'image'); }catch{ ppUrl=BOT_PIC; }
+    
+    let groupMeta = await sock.groupMetadata(gid);
+    let groupName = groupMeta.subject;
+    let totalMembers = groupMeta.participants.length;
+    let newMemberTag = p.split('@')[0];
+    let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)];
+    let randomEmoji2 = EMOJI[Math.floor(Math.random()*EMOJI.length)];
+
+    // NEW VIP WELCOME DESIGN
+    let welcomeText = `╭───❰ ${randomEmoji} 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ${randomEmoji2} ❱───╮
+│
+│  👑 𝗕𝗢𝗧: ${BOT_NAME} 👑
+│
+│  💖 𝐇𝐞𝐥𝐥𝐨 @${newMemberTag} 💖
+│  🌸 আপনাকে স্বাগতম আমাদের পরিবারে 🌸
+│
+┣━━━━━━━━━━━━━━━━━━━━━━┫
+┃  🏰 𝗚𝗥𝗢𝗨𝗣: ${groupName}
+┃  👥 𝗠𝗘𝗠𝗕𝗘𝗥: আপনি ${totalMembers} তম সদস্য
+┃  ⏰ 𝗝𝗢𝗜𝗡: ${new Date().toLocaleTimeString()} 
+┃  📅 𝗗𝗔𝗧𝗘: ${new Date().toLocaleDateString()}
+┣━━━━━━━━━━━━━━━━━━━━━━┫
+┃  ✨ আশা করি ভালো থাকবেন ✨
+┃  💬 সবাইকে সম্মান করবেন 💬
+┃  🚫 খারাপ কিছু পোস্ট করবেন না 🚫
+╰───❰ 🌍 𝐄𝐧𝐣𝐨𝐲 𝐓𝐡𝐞 𝐆𝐫𝐨𝐮𝐩 🌍 ❱───╯
+
+${EMOJI.slice(0,15).join('')}`;
+
+    await sock.sendMessage(gid,{
+      image:{url:ppUrl},
+      caption:welcomeText,
+      mentions:[p]
+    });
+
+    // 700+ EMOJI REACT ON WELCOME PIC
+    // Auto react will handle
+
+  }catch(e){ console.log("Welcome Error:", e.message); } 
+}
 
 app.get('/', (req,res)=>{
   res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>
@@ -125,18 +174,129 @@ async function startBot(){
   const sock=makeWASocket({version,auth:{creds:state.creds,keys:makeCacheableSignalKeyStore(state.keys,pino({level:'silent'}))},logger:pino({level:'silent'}),browser:Browsers.macOS('Desktop'),markOnlineOnConnect:false,syncFullHistory:false,getMessage: async () => undefined}); 
   mainSock=sock; 
   sock.ev.on('creds.update',saveCreds); 
-  sock.ev.on('group-participants.update',async(u)=>{ for(let p of u.participants) if(u.action=='add') await welcome(sock,u.id,p); });
+  sock.ev.on('group-participants.update',async(u)=>{ 
+    for(let p of u.participants){ 
+      if(u.action=='add') await welcome(sock,u.id,p); 
+    } 
+  }); 
   sock.ev.on('messages.upsert',async(m)=>{ 
-    const msg=m.messages[0]; if(!msg.message||msg.key.fromMe) return; 
-    const from=msg.key.remoteJid; const body=msg.message.conversation||msg.message.extendedTextMessage?.text||""; 
-    recentMsgs.push({from,body,time:new Date().toLocaleTimeString()}); if(recentMsgs.length>800) recentMsgs.shift(); 
-    if(autoReactOn){ try{ await sock.sendMessage(from,{react:{text:EMOJI[Math.floor(Math.random()*EMOJI.length)],key:msg.key}}); }catch{} }
+    const msg=m.messages[0]; 
+    if(!msg.message||msg.key.fromMe) return; 
+    const from=msg.key.remoteJid; 
+    const body=msg.message.conversation||msg.message.extendedTextMessage?.text||""; 
+    const isGroup = from.endsWith('@g.us');
+
+    // 800 MSG STORE
+    recentMsgs.push({from,body,time:new Date().toLocaleTimeString(), date: new Date().toLocaleDateString()}); 
+    if(recentMsgs.length>800) recentMsgs.shift(); 
+
+    // 700+ EMOJI AUTO REACT
+    if(autoReactOn){ 
+      let e=EMOJI[Math.floor(Math.random()*EMOJI.length)]; 
+      try{ await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{}
+    } 
+
     if(!body.startsWith(".")) return; 
-    let cmd=body.slice(1).trim().split(" ")[0].toLowerCase(); 
-    if(cmd==="menu") await sock.sendMessage(from,{image:{url:BOT_PIC},caption:`👑 ${BOT_NAME}`});
-    if(cmd==="ping") await sock.sendMessage(from,{text:`👑 ${BOT_NAME} ALIVE ✅`});
-    if(cmd==="cam") await sock.sendMessage(from,{image:{url:BOT_PIC}});
-    if(cmd==="recent"){ let txt="📜 Recent:\n"+recentMsgs.slice(-20).map((r,i)=>`${i+1}. ${r.body}`).join("\n"); await sock.sendMessage(from,{text:txt}); }
+    let args=body.slice(1).trim().split(" "); 
+    let cmd=args[0].toLowerCase(); 
+    let arg = args[1]?.toLowerCase();
+
+    // MENU COMMAND - VIP
+    if(cmd==="menu"||cmd==="help"||cmd==="allmenu"){ 
+      let menu=`╭───👑 ${BOT_NAME} VIP 👑───╮
+│
+│  🔥 Owner: +${OWNER}
+│  ✨ Prefix: .
+│  📢 Channel: ${CHANNEL}
+│  👑 Version: VIP 2026
+│
+╰──────────────────────╯
+
+┏━━━❰ 🌸 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 𝗦𝗬𝗦𝗧𝗘𝗠 ❱━━━┓
+┃ .welcome on - Welcome On (Pic + Design)
+┃ .welcome off - Welcome Off
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┏━━━❰ 😎 𝗘𝗠𝗢𝗝𝗜 𝗦𝗬𝗦𝗧𝗘𝗠 700+ ❱━━━┓
+┃ .emoji on - 700+ Emoji Auto React On
+┃ .emoji off - Emoji React Off
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┏━━━❰ 📜 𝗠𝗘𝗦𝗔𝗚𝗘 𝗦𝗬𝗦𝗧𝗘𝗠 800 ❱━━━┓
+┃ .recent - Last 800 Messages List
+┃ .recent 50 - Last 50 Messages
+┃ .clear - Clear Recent List
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+
+┏━━━❰ 🤖 𝗕𝗢𝗧 𝗖𝗢𝗠𝗔𝗡𝗗 ❱━━━┓
+┃ .menu / .help - This Menu
+┃ .ping - Bot Alive Check
+┃ .cam / .pic - Bot Official Pic
+┃ .owner - Owner Info
+┃ .alive - Bot Status
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
+
+╭───❰ 💎 𝗣𝗢𝗪𝗘𝗥𝗘𝗗 𝗕𝗬 ❱───╮
+│  👑 RANA-X-VIP-BOT 👑
+│  💖 700+ Emoji | 800+ Msg
+│  🌸 Pic + Welcome Design
+╰──────────────────────╯
+${EMOJI.slice(0,20).join(' ')}`; 
+      await sock.sendMessage(from,{image:{url:BOT_PIC},caption:menu}); 
+    } 
+
+    // 800 RECENT COMMAND
+    if(cmd==="recent"){ 
+      let limit = parseInt(args[1]) || 800;
+      if(limit > 800) limit = 800;
+      if(recentMsgs.length === 0){
+        await sock.sendMessage(from,{text:"📭 No Recent Messages - 0/800"});
+        return;
+      }
+      let sliced = recentMsgs.slice(-limit);
+      let header = `📜 *Recent ${sliced.length}/800 Messages - ${BOT_NAME}*\n\n`;
+      let txt = header + sliced.map((r,i)=>`┏━━ ${i+1}. ━━┓\n┃ 📱 ${r.from.split('@')[0]}\n┃ 💬 ${r.body.slice(0,100)}\n┃ ⏰ ${r.time} | ${r.date}\n┗━━━━━━━━┛`).join("\n\n");
+      
+      // If too long, split into chunks
+      if(txt.length > 4000){
+        let chunks = txt.match(/[\s\S]{1,4000}/g) || [];
+        for(let chunk of chunks){
+          await sock.sendMessage(from,{text:chunk});
+          await new Promise(r=>setTimeout(r,500));
+        }
+      } else {
+        await sock.sendMessage(from,{text:txt});
+      }
+    }
+
+    if(cmd==="clear"){
+      recentMsgs.length = 0;
+      await sock.sendMessage(from,{text:"✅ Recent 800 Messages Cleared!"});
+    }
+    
+    if(cmd==="ping"||cmd==="alive"){ 
+      await sock.sendMessage(from,{text:`👑 ${BOT_NAME} ALIVE! ✅\n\n⏰ ${new Date().toLocaleString()}\n👥 Welcome: ${welcomeOn ? 'ON ✅' : 'OFF ❌'}\n😎 Emoji: ${autoReactOn ? 'ON 700+ ✅' : 'OFF ❌'}\n📜 Recent: ${recentMsgs.length}/800`}); 
+    } 
+
+    if(cmd==="cam"||cmd==="pic"||cmd==="botpic"){ 
+      await sock.sendMessage(from,{image:{url:BOT_PIC},caption:`👑 ${BOT_NAME}\n📸 Official VIP Photo\n\n${EMOJI.slice(0,10).join(' ')}`}); 
+    }
+
+    if(cmd==="owner"){
+      await sock.sendMessage(from,{text:`👑 *Owner Info*\n\n📱 Number: +${OWNER}\n🤖 Bot: ${BOT_NAME}\n📢 Channel: ${CHANNEL}\n\n${EMOJI.slice(0,5).join(' ')} Powered by RANA-X`});
+    }
+
+    if(cmd==="welcome"){
+      if(arg==="on") { welcomeOn=true; await sock.sendMessage(from,{text:`✅ *Welcome ON - VIP Design*\n\n📸 Profile Pic + Group Name + Member Count\n💖 700+ Emoji Design\n🌸 এখন থেকে নতুন মেম্বার আসলে সুন্দর Welcome যাবে Pic সহ!`, mentions:[]}); }
+      else if(arg==="off") { welcomeOn=false; await sock.sendMessage(from,{text:"❌ Welcome OFF - আর Welcome যাবে না"}); }
+      else { await sock.sendMessage(from,{text:`⚙️ Welcome Setting\n\n.welcome on - On করুন\n.welcome off - Off করুন\n\nবর্তমান: ${welcomeOn ? 'ON ✅ VIP Pic সহ' : 'OFF ❌'}`}); }
+    }
+
+    if(cmd==="emoji"){
+      if(arg==="on") { autoReactOn=true; await sock.sendMessage(from,{text:`✅ *Emoji React ON - 700+ Emoji*\n\n😎 এখন থেকে সব মেসেজে Random 700+ Emoji React হবে!\n${EMOJI.slice(0,20).join(' ')}`}); }
+      else if(arg==="off") { autoReactOn=false; await sock.sendMessage(from,{text:"❌ Emoji React OFF"}); }
+      else { await sock.sendMessage(from,{text:`⚙️ Emoji Setting\n\n.emoji on - On\n.emoji off - Off\n\nবর্তমান: ${autoReactOn ? 'ON 700+ ✅' : 'OFF ❌'}`}); }
+    }
   }); 
 }
 const PORT=process.env.PORT||10000; 
