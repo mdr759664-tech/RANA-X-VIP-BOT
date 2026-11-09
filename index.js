@@ -19,14 +19,14 @@ async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); r
 function getCountryInfo(num){
   num = num.replace(/[^0-9]/g,'');
   const list = {
-    "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD", browser: Browsers.macOS('Desktop')},
-    "91": {name:"India", flag:"🇮🇳", code:"IN", browser: Browsers.macOS('Chrome')},
+    "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD", browser: Browsers.windows('Chrome')},
+    "91": {name:"India", flag:"🇮🇳", code:"IN", browser: Browsers.windows('Chrome')},
     "92": {name:"Pakistan", flag:"🇵🇰", code:"PK", browser: Browsers.windows('Chrome')},
     "1": {name:"USA", flag:"🇺🇸", code:"US", browser: Browsers.windows('Chrome')},
   };
   let keys = Object.keys(list).sort(function(a,b){ return b.length - a.length; });
   for(let k of keys){ if(num.startsWith(k)) return list[k]; }
-  return {name:"International", flag:"🌍", code:"INT", browser: Browsers.macOS('Desktop')};
+  return {name:"International", flag:"🌍", code:"INT", browser: Browsers.windows('Chrome')};
 }
 
 async function welcome(sock,gid,p){ 
@@ -144,7 +144,7 @@ app.get('/pair', async function(req,res){
     fs.mkdirSync(PAIR_DIR,{recursive:true});
     let sd = await useMultiFileAuthState(PAIR_DIR);
     let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: country.browser, markOnlineOnConnect: false});
+    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome'), markOnlineOnConnect: false});
     sock.ev.on('creds.update', sd.saveCreds);
     sock.ev.on('connection.update', async function(u){
       if(u.connection === 'open'){
@@ -170,7 +170,7 @@ app.get('/qr', async function(req,res){
     fs.mkdirSync(QR_DIR,{recursive:true});
     let sd = await useMultiFileAuthState(QR_DIR);
     let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.macOS('Desktop')});
+    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome')});
     sock.ev.on('creds.update', sd.saveCreds);
     let sent = false;
     sock.ev.on('connection.update', async function(u){
@@ -191,7 +191,7 @@ async function startBot(){
   if(!fs.existsSync(SESSION_DIR)) return;
   let sd = await useMultiFileAuthState(SESSION_DIR);
   let version = await getVersion();
-  let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.macOS('Desktop'), markOnlineOnConnect: false, getMessage: async function(){ return undefined; }});
+  let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome'), markOnlineOnConnect: false, getMessage: async function(){ return undefined; }});
   sock.ev.on('creds.update', sd.saveCreds);
   sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
   sock.ev.on('messages.upsert', async function(m){
