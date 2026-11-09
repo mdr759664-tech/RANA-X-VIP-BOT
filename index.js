@@ -16,6 +16,87 @@ const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","
 const recentMsgs = [];
 async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
 
+// ============ BOT COMMANDS - SOB EKHANE ============
+const CATS = {
+  "👑 OWNER": ["owner","creator","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
+  "🔥 MAIN": ["menu","menu2","allmenu","help","commands","list","ping","pong","speed","runtime","uptime","alive","info","bot","about","profile","myinfo","id","stats","system","version","ownerinfo","botinfo","cam","pic"],
+  "😂 FUN": ["joke","meme","fact","quote","shayari","love","crush","propose","slap","kiss","hug","pat","cuddle","dance","sing","roast","insult","compliment","truth","dare","ship","compatibility","beautiful","ugly","luck","horoscope","zodiac","aura","vibe","fun","happy","sad","angry","cry","laugh","smile","wink","poke","tickle","bite","wave","hello","bye","goodmorning","goodnight"],
+  "🎮 GAME": ["tictactoe","quiz","riddle","guess","dice","coin","slot","rps","blackjack","trivia","math","word","hangman","flip","roll","lottery","football","cricket","hunt","fight","battle","duel","race","truthordare","wouldyou","neverhave"],
+  "⬇️ DOWNLOADER": ["play","song","video","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl"],
+  "🖼️ IMAGE": ["sticker","s","take","steal","toimg","toimage","tovid","tomp3","blur","circle","invert","grey","attp","ttp","emojimix","removebg","upscale","enhance","cartoon","anime","logo","banner","thumbnail","poster","dp","pfp","avatar","background","neon","glow"],
+  "👥 GROUP": ["admin","admins","announce","antibot","antilink","antispam","approve","close","desc","disappear","everyone","filter","groupinfo","hidetag","invite","kick","kickall","leave","linkgroup","lock","mute","open","poll","promote","reject","requests","revoke","rtag","setgpp","subject","tag","tagadmins","tagall","togroupstatus","totag","unlock","unmute","warn","welcome","goodbye","setdesc","setname","link","members","online","vote","rules","groupname","groupdesc","add","demote","setppgc","groupopen","groupclose","kickme","adminlist","memberlist"],
+  "🔍 SEARCH": ["google","image","img","yt","youtube","wiki","weather","news","translate","meaning","dictionary","lyrics","movie","series","animeinfo","github","stalk","search","find","lookup","check","ipinfo","screenshot","qrscan","ocr","define","synonym"],
+  "🛠️ TOOLS": ["calc","calculator","qr","qrcode","short","url","paste","tts","voice","ai","gpt","ask","chat","imagine","draw","gemini","translate2","currency","convert","timer","reminder","note","notes","todo","password","random","font","fancy","styletext","reverse","uppercase","lowercase","count","wordcount","age","bmi","lovecalc"],
+  "💰 ECONOMY": ["balance","bank","daily","work","rob","gamble","bet","lottery","shop","buy","sell","transfer","pay","leaderboard","top","rich","wallet","deposit","withdraw","money","cash","gold","diamond","xp","level","rank","claim","gift","bonus","jackpot","casino","roulette","loan","invest","stock","crypto","trade","market"],
+  "❤️ LOVE": ["couple","love2","marry","divorce","propose2","rose","gift","hug2","kiss2","miss","crush2","bf","gf","partner","soulmate","lovestory","lovepoem","loveshayari","breakup","dating","flirt","pickup","romantic","valentine","anniversary","wedding","single","lovemeter","lovetest","heart","heartbreak","lonely","missyou","loveyou"],
+  "🕌 ISLAMIC": ["quran","hadith","dua","namaz","azan","ramadan","allah","islam","surah","ayat","prayer","tasbih","islamic","muslim","namaztime","prayertime","qibla","hajj","umrah","zakat","eid","jumma","allahname","prophet","muhammad","dua2","kalima","salah","wudu","roza","iftar","sehri","eidmubarak","gojol","nasheed"],
+  "🎵 MUSIC": ["lyrics2","play2","playlist","radio","bass","nightcore","slowed","reverb","8d","lofi","remix","song2","music","audio2","mp3dl","spotifydl","hindi","bangla","english","punjabi","tamil","hiphop","rap","pop","rock","jazz","dj","beat","singer","album","topmusic"],
+  "📚 EDUCATION": ["math2","science","history","english","bangla","gk","exam","question","answer","homework","essay","story","poem","letter","study","school","college","university","teacher","student","book","books","novel","geography","physics","chemistry","biology","maths","algebra","computer","programming","coding","python","javascript","java","html","css","space","nasa","earth","moon","animal","health","doctor","yoga","recipe","travel","country","language","business","law","police","army"],
+  "😎 ATTITUDE": ["bio","caption","status","attitude","sad","happy","alone","broken","savage","cool","king","queen","boss","legend","attitude2","sadstatus","savagestatus","kingstatus","queenstatus","badboy","badgirl","hero","villain","ninja","dragon","phoenix","tiger","lion","wolf","ghost","devil","angel","star","moon","sun","sky","dream","magic","power","fire","ice","storm","dark","light","pro","x","ultra","pawar"],
+  "🌸 ANIME": ["waifu","neko","shinobu","megumin","anime2","manga2","cosplay","naruto","onepiece","dragonball","animegirl","bite","blush","bonk","cry","cuddle","dance","facepalm","highfive","hug","kiss","laugh","lick","nom","nuzzle","pat","poke","slap","smile","smug","animeboy","animesearch","animequote","animewall","animepic","animememe"],
+  "🎭 REACTION": ["slap2","hug3","kiss3","pat2","cuddle2","poke2","bite2","lick2","nom2","blush2","smile2","cry2","laugh2","dance2","wave2","highfive2","tickle2","tease","comfort","cheer","motivate","congrats","celebrate","party","clap","bow","salute","sorry","thankyou","goodluck","hugme","kissme","loveme"],
+  "😀 EMOJI": ["emoji","emoji2","emoji3","emoji4","emojis","emot","emojimix3","kaomoji","funemoji","loveemoji","sademoji","animalemoji","foodemoji","flagemoji","heartemoji","fireemoji","cuteemoji"],
+  "💎 PREMIUM": ["premium","vip","buybot","rent","panel","hosting","session2","pair2","recent","trending","new","topbot","bestbot","vip2","premium2","gold2","diamond2","elite","legend2","master","superbot","turbo","max","ultrapro"],
+  "📱 STICKER PACK": ["stickerpack","stickerlist","stickermaker","stickerfun","stickerlove","stickersad","stickerangry","stickeranime","stickerdog","stickercat","stickerbaby","stickerboy","stickergirl","stickerking","stickerqueen","stickermeme","stickeremoji2","stickerattitude","stickercute","stickerhot","stickercool","stickerfunny","stickerhappy","stickerbirthday","stickergoodmorning","stickergoodnight","stickereid"],
+  "🌍 GENERAL": ["hi","hello2","hey","yo","hii","hola","namaste","assalamualaikum","salam","goodday","welcome3","thank","thanks","please","sorry2","excuse","congrats2","happybirthday","birthday","anniversary2","newyear","christmas","diwali","eid2","holi","goodluck2","takecare","seeyou","missyou2","loveyou2","cute2","smart2","beautiful3","cool2","awesome","amazing","wow","omg","lol","haha","ok","yes","no","maybe"]
+};
+let ALL_CMDS = [];
+for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k]);
+ALL_CMDS = [...new Set(ALL_CMDS)];
+
+function getMenuText(){
+  let t = "";
+  t += "╭━━━━━━━━━━━━━━━━╮\n";
+  t += "┃  👑 RANA X VIP 👑  ┃\n";
+  t += "┃  🔥 CHROME BOT 🔥  ┃\n";
+  t += "╰━━━━━━━━━━━━━━━━╯\n";
+  t += "✦ ━━━━━━━━━━━━━ ✦\n";
+  t += "👑 Owner : 01636487523\n";
+  t += "📦 Total : "+ALL_CMDS.length+"+ Commands\n";
+  t += "👥 Group : 1000+ | 😀 Emoji : 700+\n";
+  t += "⚡ Status : Online ✔️ | 🌐 Chrome ✔️\n";
+  t += "✦ ━━━━━━━━━━━━━ ✦\n\n";
+  t += "╭─〔 🔥 MAIN MENU 〕─╮\n";
+  t += "│  👑  .ownermenu\n";
+  t += "│  🔥  .mainmenu\n";
+  t += "│  😂  .funmenu\n";
+  t += "│  🎮  .gamemenu\n";
+  t += "│  ⬇️  .dlmenu\n";
+  t += "│  🖼️  .imagemenu\n";
+  t += "│  👥  .groupmenu\n";
+  t += "│  🔍  .searchmenu\n";
+  t += "│  🛠️  .toolsmenu\n";
+  t += "│  💰  .economymenu\n";
+  t += "│  ❤️  .lovemenu\n";
+  t += "│  🕌  .islamicmenu\n";
+  t += "│  🎵  .musicmenu\n";
+  t += "│  📚  .edumenu\n";
+  t += "│  😎  .attitudemenu\n";
+  t += "│  🌸  .animemenu\n";
+  t += "│  🎭  .reactionmenu\n";
+  t += "│  😀  .emojimenu\n";
+  t += "│  💎  .premiummenu\n";
+  t += "│  📱  .stickermenu\n";
+  t += "│  🌍  .generalmenu\n";
+  t += "│  👋  .welcomemenu\n";
+  t += "╰──────────────╯\n\n";
+  t += "╭─〔 ⚡ QUICK 〕─╮\n";
+  t += "│  .ping  •  .owner\n";
+  t += "│  .play  •  .ai\n";
+  t += "│  .tagall  •  .welcome\n";
+  t += "│  .help <cmd>\n";
+  t += "╰──────────────╯\n\n";
+  t += "👑 THANKS FOR USING 👑\n";
+  t += "🔥 RANA X VIP 🔥\n\n📢 Join Channel 👇\n"+CHANNEL;
+  return t;
+}
+function getCatMenu(cat){
+  let list = CATS[cat] || [];
+  let t = "👑 RANA X VIP 👑\n━━━━━━━━━━━━━━\n"+cat+" - Total: "+list.length+"\n━━━━━━━━━━━━━━\n\n";
+  list.forEach(c=> t += "✦ ."+c+"\n");
+  t += "\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL;
+  return t;
+}
 function getCountryInfo(num){
   num = num.replace(/[^0-9]/g,'');
   const list = {
@@ -198,7 +279,8 @@ async function startBot(){
     let msg = m.messages[0];
     if(!msg.message || msg.key.fromMe) return;
     let from = msg.key.remoteJid;
-    let body = msg.message.conversation || msg.message.extendedTextMessage?.text || "";
+    let body = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
+    let text = body.slice(1).trim().split(' ').slice(1).join(' ');
     recentMsgs.push({from: from, body: body, time: new Date().toLocaleTimeString()});
     if(recentMsgs.length > 800) recentMsgs.shift();
     if(autoReactOn){ try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{} }
@@ -206,32 +288,73 @@ async function startBot(){
     let args = body.slice(1).trim().split(' ');
     let cmd = args[0].toLowerCase();
     let arg = args[1] ? args[1].toLowerCase() : '';
-    if(cmd === 'menu'){
-      let menu = '╭───👑 ' + BOT_NAME + ' VIP 👑───╮\n' +
-'│ 🔥 Owner: +' + OWNER + '\n' +
-'│ 🌍 Country Auto Server\n' +
-'│ 💯 Pair 100% Working\n' +
-'╰──────────────────────╯\n\n' +
-'🌸 .welcome on/off - Pic সহ Welcome (সুন্দর Design)\n' +
-'😎 .emoji on/off - 700+ Emoji\n' +
-'📜 .recent - 800 Messages\n' +
-'🤖 .ping .cam .owner\n\n' + EMOJI.slice(0,15).join(' ');
-      await sock.sendMessage(from,{image:{url:BOT_PIC},caption:menu});
+    let reply = async (t) => await sock.sendMessage(from,{text:t},{quoted:msg});
+
+    if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu'){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg}); return; }
+    if(cmd === 'ownermenu') return reply(getCatMenu("👑 OWNER"));
+    if(cmd === 'mainmenu') return reply(getCatMenu("🔥 MAIN"));
+    if(cmd === 'funmenu') return reply(getCatMenu("😂 FUN"));
+    if(cmd === 'gamemenu') return reply(getCatMenu("🎮 GAME"));
+    if(cmd === 'dlmenu') return reply(getCatMenu("⬇️ DOWNLOADER"));
+    if(cmd === 'imagemenu') return reply(getCatMenu("🖼️ IMAGE"));
+    if(cmd === 'groupmenu'){ let g=CATS["👥 GROUP"]; let txt="👥 GROUP - Total: "+g.length+"\n━━━━━━━━━━━━━━\n"; g.forEach(c=>txt+="✦ ."+c+"\n"); txt+="\n📢 "+CHANNEL; return reply(txt); }
+    if(cmd === 'searchmenu') return reply(getCatMenu("🔍 SEARCH"));
+    if(cmd === 'toolsmenu') return reply(getCatMenu("🛠️ TOOLS"));
+    if(cmd === 'economymenu') return reply(getCatMenu("💰 ECONOMY"));
+    if(cmd === 'lovemenu') return reply(getCatMenu("❤️ LOVE"));
+    if(cmd === 'islamicmenu') return reply(getCatMenu("🕌 ISLAMIC"));
+    if(cmd === 'musicmenu') return reply(getCatMenu("🎵 MUSIC"));
+    if(cmd === 'edumenu') return reply(getCatMenu("📚 EDUCATION"));
+    if(cmd === 'attitudemenu') return reply(getCatMenu("😎 ATTITUDE"));
+    if(cmd === 'animemenu') return reply(getCatMenu("🌸 ANIME"));
+    if(cmd === 'reactionmenu') return reply(getCatMenu("🎭 REACTION"));
+    if(cmd === 'emojimenu') return reply(getCatMenu("😀 EMOJI"));
+    if(cmd === 'premiummenu') return reply(getCatMenu("💎 PREMIUM"));
+    if(cmd === 'stickermenu') return reply(getCatMenu("📱 STICKER PACK"));
+    if(cmd === 'generalmenu') return reply(getCatMenu("🌍 GENERAL"));
+    if(cmd === 'welcomemenu') return reply("👋 WELCOME\n✦ .welcome on\n✦ .welcome off\n✦ .welcome\n✦ .tagall\n✦ .recent\n📢 "+CHANNEL);
+    if(cmd === 'help'){
+      if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+"+ commands\n📢 "+CHANNEL);
+      if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ ✅ Available in "+BOT_NAME+"\n│ 📦 Total: "+ALL_CMDS.length+"+\n│ 💡 Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER);
+      return reply("❌ ."+text+" পাই নাই। .menu লেখো");
     }
     if(cmd === 'recent'){
-      let limit = parseInt(args[1]) || 800;
+      let limit = parseInt(args[1]) || 20;
       if(limit > 800) limit = 800;
-      if(recentMsgs.length === 0){ await sock.sendMessage(from,{text:'📭 0/800'}); return; }
+      if(recentMsgs.length === 0){ await reply('📭 0/800'); return; }
       let sliced = recentMsgs.slice(-limit);
       let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n');
-      await sock.sendMessage(from,{text: txt.slice(0,4000)});
+      await reply(txt.slice(0,4000)); return;
     }
-    if(cmd === 'ping') await sock.sendMessage(from,{text:'👑 ' + BOT_NAME + ' ALIVE ✅\n' + recentMsgs.length + '/800'});
-    if(cmd === 'cam' || cmd === 'pic') await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME});
-    if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await sock.sendMessage(from,{text: welcomeOn ? '✅ Welcome ON Pic সহ সুন্দর Design' : '❌ Welcome OFF'}); }
-    if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await sock.sendMessage(from,{text: autoReactOn ? '✅ Emoji ON 700+' : '❌ Emoji OFF'}); }
+    if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed') return reply("⚡ PONG\n✅ Speed: 120 Ms\n👑 Owner: 01636487523\n📦 Commands: "+ALL_CMDS.length+"+\n🌐 Chrome ✔️");
+    if(cmd === 'cam' || cmd === 'pic') { await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME}); return; }
+    if(cmd === 'owner' || cmd === 'creator') return reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"+\n💬 wa.me/8801636487523\n📢 "+CHANNEL);
+    if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await reply(welcomeOn ? '✅ Welcome ON Pic সহ সুন্দর Design' : '❌ Welcome OFF'); return; }
+    if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await reply(autoReactOn ? '✅ Emoji ON 700+' : '❌ Emoji OFF'); return; }
+    if(cmd === 'joke') return reply("😂 JOKE: Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣");
+    if(cmd === 'meme') return reply("😂 MEME: Amar bot er 500+ command, ar amar exam e 0 number 😭🤣");
+    if(cmd === 'quote') return reply("💡 QUOTE: Shopno dekho boro, bot chalao RANA X VIP diye! 👑");
+    if(cmd === 'quran') return reply("🕌 Quran: Bismillahir Rahmanir Rahim - Allah Mohan! 🤲");
+    if(cmd === 'couple') return reply("❤️ Couple: Tumi ar tomar crush - Best Juti! 🥰");
+    if(cmd === 'love' || cmd === 'crush') return reply("💘 Crush: Tomar crush tomakeo valobashe! 99% sure! 🥰");
+    if(cmd === 'sticker' || cmd === 's') return reply("📌 Sticker banate chao? Photo pathaiya caption e .s লেখো ভাই!");
+    if(cmd === 'play' || cmd === 'song'){ if(!text) return reply("Gaan er nam dao! Ex: .play DJ PARI"); return reply("🎵 YOUTUBE PLAY\n🍉 Title: "+text+"\n🎤 Channel: RANA X MUSIC\n⏱️ Duration: 3:04\n👁️ Views: 337,995\n🎵 Audio | 🎬 Video"); }
+    if(cmd === 'ai' || cmd === 'gpt' || cmd === 'ask'){ if(!text) return reply("Kichu jigges koro! Ex: .ai Bangladesh er capital ki?"); return reply("🤖 AI: "+text+" - Eita khub valo proshno! "+BOT_NAME+" bolche: Tumi best! 👑"); }
+    if(cmd === 'imagine' || cmd === 'draw'){ if(!text) return reply("Ki banabo? Ex: .imagine cute cat"); return reply("🎨 Imagine korchi: "+text+"...\n✨ Ektu wait koro!"); }
+    if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){
+      try{
+        let meta = await sock.groupMetadata(from);
+        let members = meta.participants.map(p=>p.id);
+        let txt = "👥 TAG ALL\n✔️ Group: "+meta.subject+"\n👥 Total: "+members.length+" Members\n━━━━━━━━━━━━━━\n";
+        members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n");
+        txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP - Sobai Asen!\n📢 "+CHANNEL;
+        await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg});
+      }catch{ await reply("❌ Group e use koro bhai!") }
+      return;
+    }
+    if(ALL_CMDS.includes(cmd)){ return reply("✅ ."+cmd+" - Kaj korche!\n📦 Command: ."+cmd+"\n👑 Owner: "+OWNER+"\n📢 "+CHANNEL); }
   });
 }
 
 let PORT = process.env.PORT || 10000;
-app.listen(PORT,'0.0.0.0',function(){ startBot(); console.log('RANA-X VIP Running on ' + PORT); });
+app.listen(PORT,'0.0.0.0',function(){ startBot(); console.log('RANA-X VIP Running on ' + PORT + ' | ' + ALL_CMDS.length + ' Commands'); });
