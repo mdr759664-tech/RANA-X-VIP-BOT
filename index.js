@@ -14,8 +14,8 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 let welcomeOn = true, autoReactOn = true;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
-// FAST - Version anar jonno ar wait korbo na, 1 sec e connect hobe
-async function getVersion(){ return [2,3000,1015901307]; }
+// FIXED - Couldn't link fix: Latest version anbe, puran version e link ney na
+async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
 
 // ============ BOT COMMANDS - SOB EKHANE ============
 const CATS = {
@@ -237,12 +237,12 @@ app.get('/pair', async function(req,res){
         setTimeout(function(){ startBot(); }, 500);
       }
     });
-    // FAST - Age 2500 chilo, ekhon 800
-    await new Promise(function(r){ setTimeout(r, 800); });
+    // FIXED - 2000ms wait, 120 sec khola thakbe
+    await new Promise(function(r){ setTimeout(r, 2000); });
     let code = await sock.requestPairingCode(num);
     code = code.match(/.{1,4}/g).join('-') || code;
     if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code + ' Server 100% Working'});
-    setTimeout(function(){ try{ sock.end(); }catch{} }, 30000);
+    setTimeout(function(){ try{ sock.end(); }catch{} }, 120000);
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
 });
 
