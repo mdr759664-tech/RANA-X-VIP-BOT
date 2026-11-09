@@ -14,7 +14,8 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 let welcomeOn = true, autoReactOn = true;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
-async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
+// FAST - Version anar jonno ar wait korbo na, 1 sec e connect hobe
+async function getVersion(){ return [2,3000,1015901307]; }
 
 // ============ BOT COMMANDS - SOB EKHANE ============
 const CATS = {
@@ -233,14 +234,15 @@ app.get('/pair', async function(req,res){
         if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
         fs.mkdirSync(MAIN,{recursive:true});
         try{ fs.readdirSync(PAIR_DIR).forEach(function(f){ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        setTimeout(function(){ startBot(); }, 2000);
+        setTimeout(function(){ startBot(); }, 500);
       }
     });
-    await new Promise(function(r){ setTimeout(r, 2500); });
+    // FAST - Age 2500 chilo, ekhon 800
+    await new Promise(function(r){ setTimeout(r, 800); });
     let code = await sock.requestPairingCode(num);
     code = code.match(/.{1,4}/g).join('-') || code;
     if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code + ' Server 100% Working'});
-    setTimeout(function(){ try{ sock.end(); }catch{} }, 65000);
+    setTimeout(function(){ try{ sock.end(); }catch{} }, 30000);
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
 });
 
@@ -261,7 +263,7 @@ app.get('/qr', async function(req,res){
         if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
         fs.mkdirSync(MAIN,{recursive:true});
         try{ fs.readdirSync(QR_DIR).forEach(function(f){ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        setTimeout(function(){ startBot(); }, 2000);
+        setTimeout(function(){ startBot(); }, 500);
       }
     });
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
