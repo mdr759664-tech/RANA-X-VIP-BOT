@@ -14,8 +14,6 @@ const CHROME = ["Ubuntu", "Chrome", "20.0.04"];
 
 let welcomeOn = true, autoReactOn = true;
 let sockMain = null, isConnected = false, qrData = null;
-// ✅ FIX 1 - ২টা Socket একসাথে চলবো না!
-let isStarting = false;
 let restartTimer = null;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
@@ -47,6 +45,7 @@ const CATS = {
 let ALL_CMDS = [];
 for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k]);
 ALL_CMDS = [...new Set(ALL_CMDS)];
+
 function getMenuText(){
   let t = "👑 RANA X VIP 👑\n━━━━━━━━━━━━━━\n";
   t += "Owner : 01636487523\n";
@@ -74,6 +73,7 @@ async function welcome(sock,gid,p){
     await sock.sendMessage(gid,{image:{url:ppUrl},caption:txt,mentions:[p]});
   }catch{}
 }
+
 app.get('/', function(req,res){
   res.send('<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>' +
 '*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;align-items:flex-start;padding:12px}' +
@@ -128,30 +128,32 @@ app.get('/', function(req,res){
 '<\/script></body></html>');
 });
 
-// ✅ FIX 2 + 3 - Code চাওয়ার সময় Socket বদলাবো না + Already registered চেক
+// ✅ FIX - /pair এ sockMain null হইলেও বানায়া নিবো, আটকাবো না!
 app.get('/pair', async function(req,res){
   try{
     let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '');
     if(raw.startsWith('8800')) raw = '880' + raw.slice(4);
     if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'});
     if(isConnected) return res.json({error:'Bot Already Connected! /reset dao'});
-    if(!sockMain) return res.json({error:'Bot starting wait 10 sec'});
-    // ✅ FIX 3 - আগে Code নেওয়া থাকলে নতুন Code দিবো না, নাইলে Couldnt link আসবো
-    if(sockMain.authState && sockMain.authState.creds && sockMain.authState.creds.registered) return res.json({error:'Already registered - /reset chap diya notun kore nao'});
+    if(!sockMain){
+      await startBot();
+      await new Promise(r=> setTimeout(r, 2000));
+      if(!sockMain) return res.json({error:'Bot starting, 5 sec por abar chap dao'});
+    }
+    // ❌ আগের ভুল চেকটা বাদ - sock.authState Baileys 6 এ থাকে না, এইটাই Already registered ভুল দেখাইতো!
     let code = await sockMain.requestPairingCode(raw);
     let country = getCountryInfo(raw);
     code = code.match(/.{1,4}/g).join('-') || code;
     res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
-  }catch(e){ res.json({error:'Fail: '+e.message+' - /reset chap diya abar try koro'}); }
+  }catch(e){ console.log("PAIR ERROR:", e.message); res.json({error: e.message}); }
 });
 app.get('/qr', async function(req,res){
-  if(!qrData) return res.json({error:'no qr'});
+  if(!qrData) return res.json({error:'no qr - 10 sec wait koro'});
   let img = await QRCode.toDataURL(qrData);
   res.json({qr:img});
 });
 app.get('/reset', async function(req,res){
-  if(restartTimer) clearTimeout(restartTimer);
-  isStarting = false;
+  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; }
   try{ if(sockMain) try{ await sockMain.logout(); }catch{} }catch{}
   try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
   sockMain = null;
@@ -160,75 +162,77 @@ app.get('/reset', async function(req,res){
   setTimeout(()=> startBot(), 1000);
   res.json({ok:true});
 });
+app.get('/status', function(req,res){ res.json({connected: isConnected, hasSock: !!sockMain}); });
 
 async function startBot(){
-  // ✅ FIX 1 - ২টা startBot একসাথে চলবো না!
-  if(isStarting) return;
-  isStarting = true;
-  if(restartTimer) clearTimeout(restartTimer);
+  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; }
   try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
   sockMain = null;
-  let sd = await useMultiFileAuthState('./session');
-  let ver = await fetchLatestBaileysVersion();
-  let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
-  sockMain = sock;
-  isStarting = false;
-  sock.ev.on('creds.update', sd.saveCreds);
-  sock.ev.on('connection.update', async function(u){
-    if(u.qr) qrData = u.qr;
-    if(u.connection === 'close'){
-      isConnected = false;
-      let r = u.lastDisconnect?.error?.output?.statusCode;
-      if(r === DisconnectReason.loggedOut){
-        try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{}
-        sockMain = null; isStarting = false;
-        return;
+  try{
+    let sd = await useMultiFileAuthState('./session');
+    let ver = await fetchLatestBaileysVersion();
+    let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
+    sockMain = sock;
+    sock.ev.on('creds.update', sd.saveCreds);
+    sock.ev.on('connection.update', async function(u){
+      if(u.qr) qrData = u.qr;
+      if(u.connection === 'close'){
+        isConnected = false;
+        let r = u.lastDisconnect?.error?.output?.statusCode;
+        if(r === DisconnectReason.loggedOut){
+          try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{}
+          sockMain = null;
+          return;
+        }
+        if(!restartTimer){
+          restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
+        }
       }
-      // ✅ FIX 1 - ১ বারই restart, বারবার না!
-      if(!restartTimer && !isStarting){
-        restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
-      }
-    }
-    if(u.connection === 'open'){ isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; } console.log('RANA-X-VIP CONNECTED'); }
-  });
-  sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
-  sock.ev.on('messages.upsert', async function(m){
-    let msg = m.messages[0];
-    if(!msg.message || msg.key.fromMe) return;
-    let from = msg.key.remoteJid;
-    let body = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
-    let text = body.slice(1).trim().split(' ').slice(1).join(' ');
-    recentMsgs.push({from: from, body: body, time: new Date().toLocaleTimeString()});
-    if(recentMsgs.length > 800) recentMsgs.shift();
-    if(autoReactOn && body.startsWith('.')){ try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{} }
-    if(!body.startsWith('.')) return;
-    let args = body.slice(1).trim().split(' ');
-    let cmd = args[0].toLowerCase();
-    let arg = args[1] ? args[1].toLowerCase() : '';
-    let reply = async (t) => await sock.sendMessage(from,{text:t},{quoted:msg});
-    if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu' || cmd.endsWith('menu')){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg}); return; }
-    if(cmd === 'channel' || cmd === 'channellink' || cmd === 'viewchannel' || cmd === 'joinchannel' || cmd === 'follow'){ await reply("📢 Follow Channel:\n"+CHANNEL); return; }
-    if(cmd === 'help'){ if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+" commands\n📢 "+CHANNEL); if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ Available in "+BOT_NAME+"\n│ Total: "+ALL_CMDS.length+"\n│ Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER); return reply("❌ ."+text+" পাই নাই। .menu লেখো"); }
-    if(cmd === 'recent'){ let limit = parseInt(args[1]) || 20; if(limit > 800) limit = 800; if(recentMsgs.length === 0){ await reply('📭 0/800'); return; } let sliced = recentMsgs.slice(-limit); let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n'); await reply(txt.slice(0,4000)); return; }
-    if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed'){ let start = Date.now(); let speed = Date.now() - start + 45; let botPic = BOT_PIC; try{ botPic = await sock.profilePictureUrl(sock.user.id, 'image'); }catch{} let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nURL:'+CHANNEL+'\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard}]}}, {quoted:msg}); let txt = "🏖️ PONG: "+speed+" Ms\n━━━━━━━━━━━━━━\n👑 Bot: RANA X VIP ✔️\n👑 Owner: 01636487523\n📞 wa.me/8801636487523\n📦 Commands: "+ALL_CMDS.length+"\n⚡ Status: Online\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL; await sock.sendMessage(from, {image:{url:botPic}, caption: txt}, {quoted:msg}); return; }
-    if(cmd === 'cam' || cmd === 'pic') { await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME}); return; }
-    if(cmd === 'owner' || cmd === 'creator'){ let vcard2 = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard:vcard2}]}}, {quoted:msg}); await reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"\n💬 wa.me/8801636487523\n📢 "+CHANNEL); return; }
-    if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await reply(welcomeOn ? '✅ Welcome ON' : '❌ Welcome OFF'); return; }
-    if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await reply(autoReactOn ? '✅ Emoji ON' : '❌ Emoji OFF'); return; }
-    if(cmd === 'joke') return reply("😂 JOKE: Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣");
-    if(cmd === 'meme') return reply("😂 MEME: Amar bot er 500+ command, ar amar exam e 0 number 😭🤣");
-    if(cmd === 'quote') return reply("💡 QUOTE: Shopno dekho boro, bot chalao RANA X VIP diye! 👑");
-    if(cmd === 'quran') return reply("🕌 Quran: Bismillahir Rahmanir Rahim - Allah Mohan! 🤲");
-    if(cmd === 'couple') return reply("❤️ Couple: Tumi ar tomar crush - Best Juti! 🥰");
-    if(cmd === 'love' || cmd === 'crush') return reply("💘 Crush: Tomar crush tomakeo valobashe! 99% sure! 🥰");
-    if(cmd === 'sticker' || cmd === 's') return reply("📌 Sticker banate chao? Photo pathaiya caption e .s লেখো ভাই!");
-    if(cmd === 'play' || cmd === 'song'){ if(!text) return reply("Gaan er nam dao! Ex: .play DJ PARI"); return reply("🎵 PLAY\nTitle: "+text+"\nChannel: RANA X MUSIC\nDuration: 3:04"); }
-    if(cmd === 'ai' || cmd === 'gpt' || cmd === 'ask'){ if(!text) return reply("Kichu jigges koro! Ex: .ai Bangladesh er capital ki?"); return reply("🤖 AI: "+text+" - Eita khub valo proshno! "+BOT_NAME+" bolche: Tumi best! 👑"); }
-    if(cmd === 'imagine' || cmd === 'draw'){ if(!text) return reply("Ki banabo? Ex: .imagine cute cat"); return reply("🎨 Imagine korchi: "+text+"..."); }
-    if(cmd === 'vv' || cmd === 'vv2' || cmd === 'vv3' || cmd === 'viewonce'){ let quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage; let viewOnce = quoted?.viewOnceMessage || quoted?.viewOnceMessageV2 || quoted?.viewOnceMessageV2Extension; let inner = viewOnce?.message; let imgMsg = inner?.imageMessage || inner?.videoMessage; if(!imgMsg) return reply("❌ View Once pic/video er upore Reply diya .vv3 lekho bhai!"); try{ let type = inner?.imageMessage ? 'image' : 'video'; let stream = await downloadContentFromMessage(imgMsg, type); let buf = Buffer.concat([]); for await(let chunk of stream){ buf = Buffer.concat([buf, chunk]); } let bigCap = "╭───〔 👑 VV3 〕───╮\n│ "+BOT_NAME+"\n╰───────────────────╯\n\n✅ VIEW ONCE KHULA HOISE\n👑 Owner: "+OWNER+"\n📢 Channel: "+CHANNEL; if(type==='image') await sock.sendMessage(from,{image:buf,caption:bigCap},{quoted:msg}); else await sock.sendMessage(from,{video:buf,caption:bigCap},{quoted:msg}); }catch{ await reply("❌ VV3 khulte pari nai! Abar try koro!"); } return; }
-    if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){ try{ let meta = await sock.groupMetadata(from); let members = meta.participants.map(p=>p.id); let txt = "👥 TAG ALL\nGroup: "+meta.subject+"\nTotal: "+members.length+" Members\n━━━━━━━━━━━━━━\n"; members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n"); txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP\n📢 "+CHANNEL; await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg}); }catch{ await reply("❌ Group e use koro bhai!") } return; }
-    if(ALL_CMDS.includes(cmd)){ return reply("✅ ."+cmd+" - Kaj korche!\n📦 Command: ."+cmd+"\n👑 Owner: "+OWNER+"\n📢 "+CHANNEL); }
-  });
+      if(u.connection === 'open'){ isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; } console.log('RANA-X-VIP CONNECTED'); }
+    });
+    sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
+    sock.ev.on('messages.upsert', async function(m){
+      let msg = m.messages[0];
+      if(!msg.message || msg.key.fromMe) return;
+      let from = msg.key.remoteJid;
+      let body = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
+      let text = body.slice(1).trim().split(' ').slice(1).join(' ');
+      recentMsgs.push({from: from, body: body, time: new Date().toLocaleTimeString()});
+      if(recentMsgs.length > 800) recentMsgs.shift();
+      if(autoReactOn && body.startsWith('.')){ try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{} }
+      if(!body.startsWith('.')) return;
+      let args = body.slice(1).trim().split(' ');
+      let cmd = args[0].toLowerCase();
+      let arg = args[1] ? args[1].toLowerCase() : '';
+      let reply = async (t) => await sock.sendMessage(from,{text:t},{quoted:msg});
+      if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu' || cmd.endsWith('menu')){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg}); return; }
+      if(cmd === 'channel' || cmd === 'channellink' || cmd === 'viewchannel' || cmd === 'joinchannel' || cmd === 'follow'){ await reply("📢 Follow Channel:\n"+CHANNEL); return; }
+      if(cmd === 'help'){ if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+" commands\n📢 "+CHANNEL); if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ Available in "+BOT_NAME+"\n│ Total: "+ALL_CMDS.length+"\n│ Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER); return reply("❌ ."+text+" পাই নাই। .menu লেখো"); }
+      if(cmd === 'recent'){ let limit = parseInt(args[1]) || 20; if(limit > 800) limit = 800; if(recentMsgs.length === 0){ await reply('📭 0/800'); return; } let sliced = recentMsgs.slice(-limit); let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n'); await reply(txt.slice(0,4000)); return; }
+      if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed'){ let start = Date.now(); let speed = Date.now() - start + 45; let botPic = BOT_PIC; try{ botPic = await sock.profilePictureUrl(sock.user.id, 'image'); }catch{} let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nURL:'+CHANNEL+'\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard}]}}, {quoted:msg}); let txt = "🏖️ PONG: "+speed+" Ms\n━━━━━━━━━━━━━━\n👑 Bot: RANA X VIP ✔️\n👑 Owner: 01636487523\n📞 wa.me/8801636487523\n📦 Commands: "+ALL_CMDS.length+"\n⚡ Status: Online\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL; await sock.sendMessage(from, {image:{url:botPic}, caption: txt}, {quoted:msg}); return; }
+      if(cmd === 'cam' || cmd === 'pic') { await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME}); return; }
+      if(cmd === 'owner' || cmd === 'creator'){ let vcard2 = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard:vcard2}]}}, {quoted:msg}); await reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"\n💬 wa.me/8801636487523\n📢 "+CHANNEL); return; }
+      if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await reply(welcomeOn ? '✅ Welcome ON' : '❌ Welcome OFF'); return; }
+      if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await reply(autoReactOn ? '✅ Emoji ON' : '❌ Emoji OFF'); return; }
+      if(cmd === 'joke') return reply("😂 JOKE: Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣");
+      if(cmd === 'meme') return reply("😂 MEME: Amar bot er 500+ command, ar amar exam e 0 number 😭🤣");
+      if(cmd === 'quote') return reply("💡 QUOTE: Shopno dekho boro, bot chalao RANA X VIP diye! 👑");
+      if(cmd === 'quran') return reply("🕌 Quran: Bismillahir Rahmanir Rahim - Allah Mohan! 🤲");
+      if(cmd === 'couple') return reply("❤️ Couple: Tumi ar tomar crush - Best Juti! 🥰");
+      if(cmd === 'love' || cmd === 'crush') return reply("💘 Crush: Tomar crush tomakeo valobashe! 99% sure! 🥰");
+      if(cmd === 'sticker' || cmd === 's') return reply("📌 Sticker banate chao? Photo pathaiya caption e .s লেখো ভাই!");
+      if(cmd === 'play' || cmd === 'song'){ if(!text) return reply("Gaan er nam dao! Ex: .play DJ PARI"); return reply("🎵 PLAY\nTitle: "+text+"\nChannel: RANA X MUSIC\nDuration: 3:04"); }
+      if(cmd === 'ai' || cmd === 'gpt' || cmd === 'ask'){ if(!text) return reply("Kichu jigges koro! Ex: .ai Bangladesh er capital ki?"); return reply("🤖 AI: "+text+" - Eita khub valo proshno! "+BOT_NAME+" bolche: Tumi best! 👑"); }
+      if(cmd === 'imagine' || cmd === 'draw'){ if(!text) return reply("Ki banabo? Ex: .imagine cute cat"); return reply("🎨 Imagine korchi: "+text+"..."); }
+      if(cmd === 'vv' || cmd === 'vv2' || cmd === 'vv3' || cmd === 'viewonce'){ let quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage; let viewOnce = quoted?.viewOnceMessage || quoted?.viewOnceMessageV2 || quoted?.viewOnceMessageV2Extension; let inner = viewOnce?.message; let imgMsg = inner?.imageMessage || inner?.videoMessage; if(!imgMsg) return reply("❌ View Once pic/video er upore Reply diya .vv3 lekho bhai!"); try{ let type = inner?.imageMessage ? 'image' : 'video'; let stream = await downloadContentFromMessage(imgMsg, type); let buf = Buffer.concat([]); for await(let chunk of stream){ buf = Buffer.concat([buf, chunk]); } let bigCap = "╭───〔 👑 VV3 〕───╮\n│ "+BOT_NAME+"\n╰───────────────────╯\n\n✅ VIEW ONCE KHULA HOISE\n👑 Owner: "+OWNER+"\n📢 Channel: "+CHANNEL; if(type==='image') await sock.sendMessage(from,{image:buf,caption:bigCap},{quoted:msg}); else await sock.sendMessage(from,{video:buf,caption:bigCap},{quoted:msg}); }catch{ await reply("❌ VV3 khulte pari nai! Abar try koro!"); } return; }
+      if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){ try{ let meta = await sock.groupMetadata(from); let members = meta.participants.map(p=>p.id); let txt = "👥 TAG ALL\nGroup: "+meta.subject+"\nTotal: "+members.length+" Members\n━━━━━━━━━━━━━━\n"; members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n"); txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP\n📢 "+CHANNEL; await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg}); }catch{ await reply("❌ Group e use koro bhai!") } return; }
+      if(ALL_CMDS.includes(cmd)){ return reply("✅ ."+cmd+" - Kaj korche!\n📦 Command: ."+cmd+"\n👑 Owner: "+OWNER+"\n📢 "+CHANNEL); }
+    });
+  }catch(e){
+    console.log("START ERROR:", e.message);
+    sockMain = null;
+    if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
+  }
 }
 
 let PORT = process.env.PORT || 10000;
