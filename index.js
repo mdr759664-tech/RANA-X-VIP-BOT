@@ -1,7 +1,5 @@
 import express from 'express';
-import pkg from '@whiskeysockets/baileys';
-const makeWASocket = pkg.default || pkg.makeWASocket || pkg;
-const { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = pkg;
+import makeWASocket, { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason, Browsers } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
 import QRCode from 'qrcode';
@@ -12,15 +10,13 @@ const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-// ✅ FIX 2 - Google Chrome Browser + তোর নাম - আগের বটের মতো
 const CHROME = ["RANA X VIP BOT", "Chrome", "131.0.6778.87"];
 
 let welcomeOn = true, autoReactOn = true;
 let sockMain = null, pairSock = null;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
-// ✅ FIX 1 - Version Fixed, Latest আনবি না!
-async function getVersion(){ return [2,3000,1015901307]; }
+async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
 
 const CATS = {
   "OWNER": ["owner","creator","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
@@ -191,14 +187,6 @@ app.get('/pair', async function(req,res){
     let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined});
     pairSock = sock;
     sock.ev.on('creds.update', sd.saveCreds);
-    // ✅ FIX 3 - Socket লাগা পর্যন্ত অপেক্ষা, তারপর Code!
-    await new Promise(function(resolve){
-      let done = false;
-      let timer = setTimeout(function(){ if(!done){ done = true; resolve(); } }, 10000);
-      sock.ev.on('connection.update', function(u){
-        if(u.connection === 'connecting' && !done){ done = true; clearTimeout(timer); setTimeout(resolve, 1000); }
-      });
-    });
     sock.ev.on('connection.update', async function(u){
       if(u.connection === 'open'){
         await new Promise(r=> setTimeout(r, 2000));
@@ -211,9 +199,13 @@ app.get('/pair', async function(req,res){
         setTimeout(function(){ startBot(); }, 1000);
       }
     });
-    let code = await sock.requestPairingCode(num);
-    code = code.match(/.{1,4}/g).join('-') || code;
-    if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
+    if(!sock.authState.creds.registered){
+      let code = await sock.requestPairingCode(num);
+      code = code.match(/.{1,4}/g).join('-') || code;
+      if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
+    } else {
+      if(!res.headersSent) res.json({error:"Already registered"});
+    }
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
 });
 
