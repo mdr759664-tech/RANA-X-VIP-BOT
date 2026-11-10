@@ -11,10 +11,13 @@ const BOT_NAME = "RANA-X-VIP-BOT";
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
 
+// 🔥🔥 CHROME LAGANO - EKHAN THEKE SOB JAYGAY JABE 🔥🔥
+const CHROME = Browsers.windows('Chrome');
+console.log('BROWSER: Chrome Lagano Done ✔️');
+
 let welcomeOn = true, autoReactOn = true;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🥰","😍","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😏","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🥳","😎","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
-// FIXED - Couldn't link fix: Latest version anbe, puran version e link ney na
 async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
 
 // ============ BOT COMMANDS - SOB EKHANE ============
@@ -101,14 +104,14 @@ function getCatMenu(cat){
 function getCountryInfo(num){
   num = num.replace(/[^0-9]/g,'');
   const list = {
-    "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD", browser: Browsers.windows('Chrome')},
-    "91": {name:"India", flag:"🇮🇳", code:"IN", browser: Browsers.windows('Chrome')},
-    "92": {name:"Pakistan", flag:"🇵🇰", code:"PK", browser: Browsers.windows('Chrome')},
-    "1": {name:"USA", flag:"🇺🇸", code:"US", browser: Browsers.windows('Chrome')},
+    "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD", browser: CHROME},
+    "91": {name:"India", flag:"🇮🇳", code:"IN", browser: CHROME},
+    "92": {name:"Pakistan", flag:"🇵🇰", code:"PK", browser: CHROME},
+    "1": {name:"USA", flag:"🇺🇸", code:"US", browser: CHROME},
   };
   let keys = Object.keys(list).sort(function(a,b){ return b.length - a.length; });
   for(let k of keys){ if(num.startsWith(k)) return list[k]; }
-  return {name:"International", flag:"🌍", code:"INT", browser: Browsers.windows('Chrome')};
+  return {name:"International", flag:"🌍", code:"INT", browser: CHROME};
 }
 
 async function welcome(sock,gid,p){ 
@@ -220,13 +223,14 @@ app.get('/pair', async function(req,res){
     if(!num) return res.json({error:"Number required"});
     if(num.startsWith('0')) num = '88' + num;
     let country = getCountryInfo(num);
-    console.log('PAIR: +' + num + ' | ' + country.flag + ' ' + country.name);
+    console.log('PAIR: +' + num + ' | ' + country.flag + ' ' + country.name + ' | Browser: Chrome');
     let PAIR_DIR = './session/PAIR-TEMP';
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
     let sd = await useMultiFileAuthState(PAIR_DIR);
     let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome'), markOnlineOnConnect: false});
+    // 🔥 CHROME LAGANO - PAIR
+    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false});
     sock.ev.on('creds.update', sd.saveCreds);
     sock.ev.on('connection.update', async function(u){
       if(u.connection === 'open'){
@@ -237,11 +241,10 @@ app.get('/pair', async function(req,res){
         setTimeout(function(){ startBot(); }, 500);
       }
     });
-    // FIXED - 2000ms wait, 120 sec khola thakbe
-    await new Promise(function(r){ setTimeout(r, 2000); });
+    await new Promise(function(r){ setTimeout(r, 1000); });
     let code = await sock.requestPairingCode(num);
     code = code.match(/.{1,4}/g).join('-') || code;
-    if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code + ' Server 100% Working'});
+    if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code + ' Server 100% Working | Chrome'});
     setTimeout(function(){ try{ sock.end(); }catch{} }, 120000);
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
 });
@@ -253,7 +256,8 @@ app.get('/qr', async function(req,res){
     fs.mkdirSync(QR_DIR,{recursive:true});
     let sd = await useMultiFileAuthState(QR_DIR);
     let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome')});
+    // 🔥 CHROME LAGANO - QR
+    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME});
     sock.ev.on('creds.update', sd.saveCreds);
     let sent = false;
     sock.ev.on('connection.update', async function(u){
@@ -274,7 +278,8 @@ async function startBot(){
   if(!fs.existsSync(SESSION_DIR)) return;
   let sd = await useMultiFileAuthState(SESSION_DIR);
   let version = await getVersion();
-  let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: Browsers.windows('Chrome'), markOnlineOnConnect: false, getMessage: async function(){ return undefined; }});
+  // 🔥 CHROME LAGANO - MAIN BOT
+  let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, getMessage: async function(){ return undefined; }});
   sock.ev.on('creds.update', sd.saveCreds);
   sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
   sock.ev.on('messages.upsert', async function(m){
@@ -359,4 +364,4 @@ async function startBot(){
 }
 
 let PORT = process.env.PORT || 10000;
-app.listen(PORT,'0.0.0.0',function(){ startBot(); console.log('RANA-X VIP Running on ' + PORT + ' | ' + ALL_CMDS.length + ' Commands'); });
+app.listen(PORT,'0.0.0.0',function(){ startBot(); console.log('RANA-X VIP Running on ' + PORT + ' | ' + ALL_CMDS.length + ' Commands | Browser: Chrome'); });
