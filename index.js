@@ -10,11 +10,13 @@ const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-// ✅ ULTRA এর মত - Ubuntu Chrome, RANA নাম দিলে WhatsApp সন্দেহ করে!
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"];
 
 let welcomeOn = true, autoReactOn = true;
 let sockMain = null, isConnected = false, qrData = null;
+// ✅ FIX 1 - ২টা Socket একসাথে চলবো না!
+let isStarting = false;
+let restartTimer = null;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
 
@@ -45,7 +47,6 @@ const CATS = {
 let ALL_CMDS = [];
 for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k]);
 ALL_CMDS = [...new Set(ALL_CMDS)];
-
 function getMenuText(){
   let t = "👑 RANA X VIP 👑\n━━━━━━━━━━━━━━\n";
   t += "Owner : 01636487523\n";
@@ -73,7 +74,6 @@ async function welcome(sock,gid,p){
     await sock.sendMessage(gid,{image:{url:ppUrl},caption:txt,mentions:[p]});
   }catch{}
 }
-
 app.get('/', function(req,res){
   res.send('<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>' +
 '*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;align-items:flex-start;padding:12px}' +
@@ -128,19 +128,21 @@ app.get('/', function(req,res){
 '<\/script></body></html>');
 });
 
-// ✅ ULTRA এর মত - ১টা Socket দিয়াই Code! নতুন Socket বানাবি না!
+// ✅ FIX 2 + 3 - Code চাওয়ার সময় Socket বদলাবো না + Already registered চেক
 app.get('/pair', async function(req,res){
   try{
     let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '');
     if(raw.startsWith('8800')) raw = '880' + raw.slice(4);
     if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'});
-    if(isConnected) return res.json({error:'Bot Already Connected! Reset chap dao'});
+    if(isConnected) return res.json({error:'Bot Already Connected! /reset dao'});
     if(!sockMain) return res.json({error:'Bot starting wait 10 sec'});
+    // ✅ FIX 3 - আগে Code নেওয়া থাকলে নতুন Code দিবো না, নাইলে Couldnt link আসবো
+    if(sockMain.authState && sockMain.authState.creds && sockMain.authState.creds.registered) return res.json({error:'Already registered - /reset chap diya notun kore nao'});
     let code = await sockMain.requestPairingCode(raw);
     let country = getCountryInfo(raw);
     code = code.match(/.{1,4}/g).join('-') || code;
     res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
-  }catch(e){ res.json({error:'Fail: '+e.message+' - Reset chap diya abar try koro'}); }
+  }catch(e){ res.json({error:'Fail: '+e.message+' - /reset chap diya abar try koro'}); }
 });
 app.get('/qr', async function(req,res){
   if(!qrData) return res.json({error:'no qr'});
@@ -148,7 +150,11 @@ app.get('/qr', async function(req,res){
   res.json({qr:img});
 });
 app.get('/reset', async function(req,res){
+  if(restartTimer) clearTimeout(restartTimer);
+  isStarting = false;
   try{ if(sockMain) try{ await sockMain.logout(); }catch{} }catch{}
+  try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
+  sockMain = null;
   try{ fs.rmSync('./session', {recursive:true, force:true}); }catch{}
   isConnected = false; qrData = null;
   setTimeout(()=> startBot(), 1000);
@@ -156,20 +162,34 @@ app.get('/reset', async function(req,res){
 });
 
 async function startBot(){
+  // ✅ FIX 1 - ২টা startBot একসাথে চলবো না!
+  if(isStarting) return;
+  isStarting = true;
+  if(restartTimer) clearTimeout(restartTimer);
+  try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
+  sockMain = null;
   let sd = await useMultiFileAuthState('./session');
   let ver = await fetchLatestBaileysVersion();
   let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
   sockMain = sock;
+  isStarting = false;
   sock.ev.on('creds.update', sd.saveCreds);
   sock.ev.on('connection.update', async function(u){
     if(u.qr) qrData = u.qr;
     if(u.connection === 'close'){
       isConnected = false;
       let r = u.lastDisconnect?.error?.output?.statusCode;
-      if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{} }
-      if(r !== DisconnectReason.loggedOut) setTimeout(()=> startBot(), 3000);
+      if(r === DisconnectReason.loggedOut){
+        try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{}
+        sockMain = null; isStarting = false;
+        return;
+      }
+      // ✅ FIX 1 - ১ বারই restart, বারবার না!
+      if(!restartTimer && !isStarting){
+        restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
+      }
     }
-    if(u.connection === 'open'){ isConnected = true; console.log('RANA-X-VIP CONNECTED'); }
+    if(u.connection === 'open'){ isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; } console.log('RANA-X-VIP CONNECTED'); }
   });
   sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
   sock.ev.on('messages.upsert', async function(m){
