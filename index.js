@@ -1,5 +1,7 @@
 import express from 'express';
-import { default as makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } from '@whiskeysockets/baileys';
+import pkg from '@whiskeysockets/baileys';
+const makeWASocket = pkg.default || pkg.makeWASocket || pkg;
+const { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = pkg;
 import pino from 'pino';
 import fs from 'fs';
 import QRCode from 'qrcode';
