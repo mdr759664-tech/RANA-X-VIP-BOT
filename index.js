@@ -142,7 +142,7 @@ app.get('/', function(req,res){
 '}' +
 'function checkNum(){' +
 '  let c=document.getElementById("c").value.replace(/[^0-9]/g,"");' +
-'  let n=document.getElementById("num").value.replace(/[^0-9]/g,"");' +
+'  let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, "");' +
 '  let full=c+n; let v=document.getElementById("valid");' +
 '  let info="";' +
 '  if(full.startsWith("880")) info="🇧🇩 Bangladesh";' +
@@ -153,10 +153,9 @@ app.get('/', function(req,res){
 '}' +
 'async function getPair(){' +
 'let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880";' +
-'let n=document.getElementById("num").value.replace(/[^0-9]/g,"");' +
+'let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, "");' +
 'let full=c+n;' +
 'let b=document.getElementById("box");let r=document.getElementById("res");' +
-'if(n.startsWith("0")){alert("0 ছাড়া লেখো");return;}' +
 'if(full.length<10){alert("Valid number dao");return;}' +
 'b.style.display="none";r.style.display="block";r.innerText="⚡ Connecting...";r.style.background="#1a1a1a";r.style.color="#ff8c00";' +
 'try{' +
@@ -173,12 +172,11 @@ app.get('/', function(req,res){
 
 app.get('/pair', async function(req,res){
   try{
-    let num = (req.query.number || '').replace(/[^0-9]/g,'');
+    let num = (req.query.number || '').replace(/[^0-9]/g,'').replace(/^0+/, '');
+    if(num.startsWith('8800')) num = '880' + num.slice(4);
     if(!num) return res.json({error:"Number required"});
-    if(num.startsWith('0')) num = '88' + num;
     let country = getCountryInfo(num);
     try{ if(pairSock) pairSock.end(); }catch{}
-    try{ if(sockMain) sockMain.end(); sockMain = null; }catch{}
     let PAIR_DIR = './session/PAIR-TEMP';
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
@@ -187,6 +185,10 @@ app.get('/pair', async function(req,res){
     let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined});
     pairSock = sock;
     sock.ev.on('creds.update', sd.saveCreds);
+    let closed = false;
+    sock.ev.on('connection.update', function(u){ if(u.connection === 'close') closed = true; });
+    await new Promise(function(resolve){ setTimeout(resolve, 4000); });
+    if(closed){ if(!res.headersSent) return res.json({error:"Connection Closed - Abar Try Koro"}); }
     sock.ev.on('connection.update', async function(u){
       if(u.connection === 'open'){
         await new Promise(r=> setTimeout(r, 2000));
@@ -206,7 +208,7 @@ app.get('/pair', async function(req,res){
     } else {
       if(!res.headersSent) res.json({error:"Already registered"});
     }
-  }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
+  }catch(e){ console.log("PAIR ERROR:", e.message); if(!res.headersSent) res.json({error: e.message}); }
 });
 
 app.get('/qr', async function(req,res){
