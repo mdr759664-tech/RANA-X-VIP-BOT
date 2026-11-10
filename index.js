@@ -10,7 +10,7 @@ const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-const CHROME = ["Windows", "Chrome", "131.0.6778.87"];
+const CHROME = ["RANA X VIP BOT", "Chrome", "131.0.6778.87"];
 
 let welcomeOn = true, autoReactOn = true;
 let sockMain = null, pairSock = null;
@@ -178,6 +178,7 @@ app.get('/pair', async function(req,res){
     if(num.startsWith('0')) num = '88' + num;
     let country = getCountryInfo(num);
     try{ if(pairSock) pairSock.end(); }catch{}
+    try{ if(sockMain) sockMain.end(); sockMain = null; }catch{}
     let PAIR_DIR = './session/PAIR-TEMP';
     if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
     fs.mkdirSync(PAIR_DIR,{recursive:true});
@@ -188,18 +189,20 @@ app.get('/pair', async function(req,res){
     sock.ev.on('creds.update', sd.saveCreds);
     sock.ev.on('connection.update', async function(u){
       if(u.connection === 'open'){
+        await new Promise(r=> setTimeout(r, 2000));
         let MAIN = './session/RANA-SESSION';
         if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
         fs.mkdirSync(MAIN,{recursive:true});
         try{ fs.readdirSync(PAIR_DIR).forEach(function(f){ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        setTimeout(function(){ startBot(); }, 500);
+        try{ sock.end(); }catch{}
+        pairSock = null;
+        setTimeout(function(){ startBot(); }, 1000);
       }
     });
-    await new Promise(function(r){ setTimeout(r, 1500); });
+    await new Promise(function(r){ setTimeout(r, 2000); });
     let code = await sock.requestPairingCode(num);
     code = code.match(/.{1,4}/g).join('-') || code;
     if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
-    setTimeout(function(){ try{ sock.end(); }catch{} }, 180000);
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
 });
 
@@ -216,11 +219,13 @@ app.get('/qr', async function(req,res){
     sock.ev.on('connection.update', async function(u){
       if(u.qr && !sent){ sent = true; let qr = await QRCode.toDataURL(u.qr); if(!res.headersSent) res.json({qr: qr}); }
       if(u.connection === 'open'){
+        await new Promise(r=> setTimeout(r, 2000));
         let MAIN = './session/RANA-SESSION';
         if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
         fs.mkdirSync(MAIN,{recursive:true});
         try{ fs.readdirSync(QR_DIR).forEach(function(f){ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        setTimeout(function(){ startBot(); }, 500);
+        try{ sock.end(); }catch{}
+        setTimeout(function(){ startBot(); }, 1000);
       }
     });
   }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
