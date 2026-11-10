@@ -1,5 +1,5 @@
 import express from 'express';
-import makeWASocket, { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason, Browsers } from '@whiskeysockets/baileys';
+import makeWASocket, { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } from '@whiskeysockets/baileys';
 import pino from 'pino';
 import fs from 'fs';
 import QRCode from 'qrcode';
@@ -10,13 +10,13 @@ const OWNER = "8801636487523";
 const BOT_NAME = "RANA-X-VIP-BOT";
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-const CHROME = ["RANA X VIP BOT", "Chrome", "131.0.6778.87"];
+// ✅ ULTRA এর মত - Ubuntu Chrome, RANA নাম দিলে WhatsApp সন্দেহ করে!
+const CHROME = ["Ubuntu", "Chrome", "20.0.04"];
 
 let welcomeOn = true, autoReactOn = true;
-let sockMain = null, pairSock = null;
+let sockMain = null, isConnected = false, qrData = null;
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
 const recentMsgs = [];
-async function getVersion(){ try{ const v = await fetchLatestBaileysVersion(); return v.version; }catch{ return [2,3000,1015901307]; } }
 
 const CATS = {
   "OWNER": ["owner","creator","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
@@ -57,17 +57,11 @@ function getMenuText(){
 }
 function getCountryInfo(num){
   num = num.replace(/[^0-9]/g,'');
-  const list = {
-    "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD"},
-    "91": {name:"India", flag:"🇮🇳", code:"IN"},
-    "92": {name:"Pakistan", flag:"🇵🇰", code:"PK"},
-    "1": {name:"USA", flag:"🇺🇸", code:"US"},
-  };
+  const list = { "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD"}, "91": {name:"India", flag:"🇮🇳", code:"IN"}, "92": {name:"Pakistan", flag:"🇵🇰", code:"PK"}, "1": {name:"USA", flag:"🇺🇸", code:"US"} };
   let keys = Object.keys(list).sort(function(a,b){ return b.length - a.length; });
   for(let k of keys){ if(num.startsWith(k)) return list[k]; }
   return {name:"International", flag:"🌍", code:"INT"};
 }
-
 async function welcome(sock,gid,p){
   if(!welcomeOn) return;
   try{
@@ -75,16 +69,7 @@ async function welcome(sock,gid,p){
     let meta = await sock.groupMetadata(gid);
     let e1 = EMOJI[Math.floor(Math.random()*EMOJI.length)];
     let e2 = EMOJI[Math.floor(Math.random()*EMOJI.length)];
-    let txt = '╭───❰ ' + e1 + ' WELCOME ' + e2 + ' ❱───╮\n' +
-'│  👑 BOT: ' + BOT_NAME + ' 👑\n' +
-'│  💖 Hello @' + p.split('@')[0] + ' 💖\n' +
-'│  🌸 আপনাকে স্বাগতম আমাদের পরিবারে 🌸\n' +
-'┣━━━━━━━━━━━━━━━━━━━━━━┫\n' +
-'┃  🏰 GROUP: ' + meta.subject + '\n' +
-'┃  👥 MEMBER: ' + meta.participants.length + ' তম সদস্য\n' +
-'┃  ⏰ JOIN: ' + new Date().toLocaleTimeString() + '\n' +
-'┃  📅 DATE: ' + new Date().toLocaleDateString() + '\n' +
-'╰───❰ 🌍 Enjoy 🌍 ❱───╯\n\n' + EMOJI.slice(0,10).join('');
+    let txt = '╭───❰ ' + e1 + ' WELCOME ' + e2 + ' ❱───╮\n' + '│  👑 BOT: ' + BOT_NAME + ' 👑\n' + '│  💖 Hello @' + p.split('@')[0] + ' 💖\n' + '│  🌸 আপনাকে স্বাগতম আমাদের পরিবারে 🌸\n' + '┣━━━━━━━━━━━━━━━━━━━━━━┫\n' + '┃  🏰 GROUP: ' + meta.subject + '\n' + '┃  👥 MEMBER: ' + meta.participants.length + ' তম সদস্য\n' + '┃  ⏰ JOIN: ' + new Date().toLocaleTimeString() + '\n' + '┃  📅 DATE: ' + new Date().toLocaleDateString() + '\n' + '╰───❰ 🌍 Enjoy 🌍 ❱───╯\n\n' + EMOJI.slice(0,10).join('');
     await sock.sendMessage(gid,{image:{url:ppUrl},caption:txt,mentions:[p]});
   }catch{}
 }
@@ -134,127 +119,57 @@ app.get('/', function(req,res){
 '<div id=qrbox class=qrbox><img id=qimg src=""><p style="font-size:11px;color:#ff8c00;margin-top:8px">Scan within 60 sec</p></div>' +
 '</div>' +
 '<script>' +
-'function sel(n){' +
-'  document.getElementById("s1").classList.toggle("active", n==1);' +
-'  document.getElementById("s2").classList.toggle("active", n==2);' +
-'  document.querySelectorAll(".dot")[0].innerText=n==1?"●":"○";' +
-'  document.querySelectorAll(".dot")[1].innerText=n==2?"●":"○";' +
-'}' +
-'function checkNum(){' +
-'  let c=document.getElementById("c").value.replace(/[^0-9]/g,"");' +
-'  let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, "");' +
-'  let full=c+n; let v=document.getElementById("valid");' +
-'  let info="";' +
-'  if(full.startsWith("880")) info="🇧🇩 Bangladesh";' +
-'  else if(full.startsWith("91")) info="🇮🇳 India";' +
-'  else if(full.startsWith("92")) info="🇵🇰 Pakistan";' +
-'  if(n.length>=8){v.className="valid ok"; v.innerText="✓ "+info; document.getElementById("connTxt").innerText="● "+info+" CONNECTED"; document.getElementById("s1Name").innerText=info+" • heroku"; document.getElementById("st1").classList.add("active"); document.getElementById("st2").classList.add("active");}' +
-'  else if(n.length>0){v.className="valid err"; v.innerText="✗ Invalid number";} else{v.className="valid";}' +
-'}' +
-'async function getPair(){' +
-'let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880";' +
-'let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, "");' +
-'let full=c+n;' +
-'let b=document.getElementById("box");let r=document.getElementById("res");' +
-'if(full.length<10){alert("Valid number dao");return;}' +
-'b.style.display="none";r.style.display="block";r.innerText="⚡ Connecting...";r.style.background="#1a1a1a";r.style.color="#ff8c00";' +
-'try{' +
-'  let d=await (await fetch("/pair?number="+full)).json();' +
-'  if(d.code){document.getElementById("code").innerText=d.code; try{navigator.clipboard.writeText(d.code);}catch(e){} let v=document.getElementById("valid"); v.className="valid ok"; v.innerText="✓ "+d.country; b.style.display="flex"; r.style.display="none"; document.getElementById("st3").classList.add("active"); if(document.getElementById("sound").checked){let a=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_b9bd4170e8.mp3"); a.play().catch(()=>{});} }' +
-'  else{r.innerText="❌ "+d.error; r.style.background="#2a0000";}' +
-'}catch(e){r.innerText="❌ Server Error";}' +
-'}' +
+'function sel(n){ document.getElementById("s1").classList.toggle("active", n==1); document.getElementById("s2").classList.toggle("active", n==2); document.querySelectorAll(".dot")[0].innerText=n==1?"●":"○"; document.querySelectorAll(".dot")[1].innerText=n==2?"●":"○"; }' +
+'function checkNum(){ let c=document.getElementById("c").value.replace(/[^0-9]/g,""); let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let v=document.getElementById("valid"); let info=""; if(full.startsWith("880")) info="🇧🇩 Bangladesh"; else if(full.startsWith("91")) info="🇮🇳 India"; else if(full.startsWith("92")) info="🇵🇰 Pakistan"; if(n.length>=8){v.className="valid ok"; v.innerText="✓ "+info; document.getElementById("connTxt").innerText="● "+info+" CONNECTED"; document.getElementById("s1Name").innerText=info+" • heroku"; document.getElementById("st1").classList.add("active"); document.getElementById("st2").classList.add("active");} else if(n.length>0){v.className="valid err"; v.innerText="✗ Invalid number";} else{v.className="valid";} }' +
+'async function getPair(){ let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880"; let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let b=document.getElementById("box");let r=document.getElementById("res"); if(full.length<10){alert("Valid number dao");return;} b.style.display="none";r.style.display="block";r.innerText="⚡ Connecting...";r.style.background="#1a1a1a";r.style.color="#ff8c00"; try{ let d=await (await fetch("/pair?number="+full)).json(); if(d.code){document.getElementById("code").innerText=d.code; try{navigator.clipboard.writeText(d.code);}catch(e){} let v=document.getElementById("valid"); v.className="valid ok"; v.innerText="✓ "+d.country; b.style.display="flex"; r.style.display="none"; document.getElementById("st3").classList.add("active"); if(document.getElementById("sound").checked){let a=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_b9bd4170e8.mp3"); a.play().catch(()=>{});} } else{r.innerText="❌ "+d.error; r.style.background="#2a0000";} }catch(e){r.innerText="❌ Server Error";} }' +
 'function copyCode(){let t=document.getElementById("code").innerText; if(!t) return; let btn=document.getElementById("copyBtn"); navigator.clipboard.writeText(t).then(()=>{ let old=btn.innerText; btn.innerText="Copied!"; btn.style.background="#22c55e"; setTimeout(()=>{btn.innerText=old; btn.style.background="#ff5a00";},1500); }).catch(()=>{ let ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); btn.innerText="Copied!"; setTimeout(()=>{btn.innerText="Copy";},1500); });}' +
 'function showQR(){document.getElementById("qrbox").style.display="block"; getQR();}' +
 'async function getQR(){let img=document.getElementById("qimg"); let r=document.getElementById("res"); r.style.display="block"; r.innerText="Generating QR..."; try{let d=await (await fetch("/qr")).json(); if(d.qr){img.src=d.qr; document.getElementById("qrbox").style.display="block"; r.innerText="Scan Now!"; r.style.background="#001a00"; r.style.color="#22c55e";}}catch(e){r.innerText="❌ QR Error";}}' +
 '<\/script></body></html>');
 });
 
+// ✅ ULTRA এর মত - ১টা Socket দিয়াই Code! নতুন Socket বানাবি না!
 app.get('/pair', async function(req,res){
   try{
-    let num = (req.query.number || '').replace(/[^0-9]/g,'').replace(/^0+/, '');
-    if(num.startsWith('8800')) num = '880' + num.slice(4);
-    if(!num) return res.json({error:"Number required"});
-    let country = getCountryInfo(num);
-    try{ if(pairSock) pairSock.end(); }catch{}
-    let PAIR_DIR = './session/PAIR-TEMP';
-    if(fs.existsSync(PAIR_DIR)) fs.rmSync(PAIR_DIR,{recursive:true,force:true});
-    fs.mkdirSync(PAIR_DIR,{recursive:true});
-    let sd = await useMultiFileAuthState(PAIR_DIR);
-    let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined});
-    pairSock = sock;
-    sock.ev.on('creds.update', sd.saveCreds);
-    let closed = false;
-    sock.ev.on('connection.update', function(u){ if(u.connection === 'close') closed = true; });
-    await new Promise(function(resolve){ setTimeout(resolve, 4000); });
-    if(closed){ if(!res.headersSent) return res.json({error:"Connection Closed - Abar Try Koro"}); }
-    sock.ev.on('connection.update', async function(u){
-      if(u.connection === 'open'){
-        await new Promise(r=> setTimeout(r, 2000));
-        let MAIN = './session/RANA-SESSION';
-        if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
-        fs.mkdirSync(MAIN,{recursive:true});
-        try{ fs.readdirSync(PAIR_DIR).forEach(function(f){ fs.copyFileSync(path.join(PAIR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        try{ sock.end(); }catch{}
-        pairSock = null;
-        setTimeout(function(){ startBot(); }, 1000);
-      }
-    });
-    if(!sock.authState.creds.registered){
-      let code = await sock.requestPairingCode(num);
-      code = code.match(/.{1,4}/g).join('-') || code;
-      if(!res.headersSent) res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
-    } else {
-      if(!res.headersSent) res.json({error:"Already registered"});
-    }
-  }catch(e){ console.log("PAIR ERROR:", e.message); if(!res.headersSent) res.json({error: e.message}); }
+    let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '');
+    if(raw.startsWith('8800')) raw = '880' + raw.slice(4);
+    if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'});
+    if(isConnected) return res.json({error:'Bot Already Connected! Reset chap dao'});
+    if(!sockMain) return res.json({error:'Bot starting wait 10 sec'});
+    let code = await sockMain.requestPairingCode(raw);
+    let country = getCountryInfo(raw);
+    code = code.match(/.{1,4}/g).join('-') || code;
+    res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
+  }catch(e){ res.json({error:'Fail: '+e.message+' - Reset chap diya abar try koro'}); }
 });
-
 app.get('/qr', async function(req,res){
-  try{
-    let QR_DIR = './session/QR-TEMP';
-    if(fs.existsSync(QR_DIR)) fs.rmSync(QR_DIR,{recursive:true,force:true});
-    fs.mkdirSync(QR_DIR,{recursive:true});
-    let sd = await useMultiFileAuthState(QR_DIR);
-    let version = await getVersion();
-    let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, syncFullHistory: false});
-    sock.ev.on('creds.update', sd.saveCreds);
-    let sent = false;
-    sock.ev.on('connection.update', async function(u){
-      if(u.qr && !sent){ sent = true; let qr = await QRCode.toDataURL(u.qr); if(!res.headersSent) res.json({qr: qr}); }
-      if(u.connection === 'open'){
-        await new Promise(r=> setTimeout(r, 2000));
-        let MAIN = './session/RANA-SESSION';
-        if(fs.existsSync(MAIN)) fs.rmSync(MAIN,{recursive:true,force:true});
-        fs.mkdirSync(MAIN,{recursive:true});
-        try{ fs.readdirSync(QR_DIR).forEach(function(f){ fs.copyFileSync(path.join(QR_DIR,f), path.join(MAIN,f)); }); }catch{}
-        try{ sock.end(); }catch{}
-        setTimeout(function(){ startBot(); }, 1000);
-      }
-    });
-  }catch(e){ if(!res.headersSent) res.json({error: e.message}); }
+  if(!qrData) return res.json({error:'no qr'});
+  let img = await QRCode.toDataURL(qrData);
+  res.json({qr:img});
+});
+app.get('/reset', async function(req,res){
+  try{ if(sockMain) try{ await sockMain.logout(); }catch{} }catch{}
+  try{ fs.rmSync('./session', {recursive:true, force:true}); }catch{}
+  isConnected = false; qrData = null;
+  setTimeout(()=> startBot(), 1000);
+  res.json({ok:true});
 });
 
 async function startBot(){
-  let SESSION_DIR = './session/RANA-SESSION';
-  if(!fs.existsSync(SESSION_DIR)) return;
-  try{ if(sockMain) sockMain.end(); }catch{}
-  let sd = await useMultiFileAuthState(SESSION_DIR);
-  let version = await getVersion();
-  let sock = makeWASocket({version: version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
+  let sd = await useMultiFileAuthState('./session');
+  let ver = await fetchLatestBaileysVersion();
+  let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
   sockMain = sock;
   sock.ev.on('creds.update', sd.saveCreds);
   sock.ev.on('connection.update', async function(u){
+    if(u.qr) qrData = u.qr;
     if(u.connection === 'close'){
+      isConnected = false;
       let r = u.lastDisconnect?.error?.output?.statusCode;
-      if(r === DisconnectReason.loggedOut){
-        try{ fs.rmSync(SESSION_DIR,{recursive:true,force:true}); }catch{}
-      } else {
-        setTimeout(()=> startBot(), 3000);
-      }
+      if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{} }
+      if(r !== DisconnectReason.loggedOut) setTimeout(()=> startBot(), 3000);
     }
-    if(u.connection === 'open') console.log('RANA-X-VIP CONNECTED');
+    if(u.connection === 'open'){ isConnected = true; console.log('RANA-X-VIP CONNECTED'); }
   });
   sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
   sock.ev.on('messages.upsert', async function(m){
@@ -271,43 +186,13 @@ async function startBot(){
     let cmd = args[0].toLowerCase();
     let arg = args[1] ? args[1].toLowerCase() : '';
     let reply = async (t) => await sock.sendMessage(from,{text:t},{quoted:msg});
-
-    if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu' || cmd.endsWith('menu')){
-      await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg});
-      return;
-    }
+    if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu' || cmd.endsWith('menu')){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg}); return; }
     if(cmd === 'channel' || cmd === 'channellink' || cmd === 'viewchannel' || cmd === 'joinchannel' || cmd === 'follow'){ await reply("📢 Follow Channel:\n"+CHANNEL); return; }
-    if(cmd === 'help'){
-      if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+" commands\n📢 "+CHANNEL);
-      if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ Available in "+BOT_NAME+"\n│ Total: "+ALL_CMDS.length+"\n│ Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER);
-      return reply("❌ ."+text+" পাই নাই। .menu লেখো");
-    }
-    if(cmd === 'recent'){
-      let limit = parseInt(args[1]) || 20;
-      if(limit > 800) limit = 800;
-      if(recentMsgs.length === 0){ await reply('📭 0/800'); return; }
-      let sliced = recentMsgs.slice(-limit);
-      let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n');
-      await reply(txt.slice(0,4000)); return;
-    }
-    if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed'){
-      let start = Date.now();
-      let speed = Date.now() - start + 45;
-      let botPic = BOT_PIC;
-      try{ botPic = await sock.profilePictureUrl(sock.user.id, 'image'); }catch{}
-      let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nURL:'+CHANNEL+'\nEND:VCARD';
-      await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard}]}}, {quoted:msg});
-      let txt = "🏖️ PONG: "+speed+" Ms\n━━━━━━━━━━━━━━\n👑 Bot: RANA X VIP ✔️\n👑 Owner: 01636487523\n📞 wa.me/8801636487523\n📦 Commands: "+ALL_CMDS.length+"\n⚡ Status: Online\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL;
-      await sock.sendMessage(from, {image:{url:botPic}, caption: txt}, {quoted:msg});
-      return;
-    }
+    if(cmd === 'help'){ if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+" commands\n📢 "+CHANNEL); if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ Available in "+BOT_NAME+"\n│ Total: "+ALL_CMDS.length+"\n│ Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER); return reply("❌ ."+text+" পাই নাই। .menu লেখো"); }
+    if(cmd === 'recent'){ let limit = parseInt(args[1]) || 20; if(limit > 800) limit = 800; if(recentMsgs.length === 0){ await reply('📭 0/800'); return; } let sliced = recentMsgs.slice(-limit); let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n'); await reply(txt.slice(0,4000)); return; }
+    if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed'){ let start = Date.now(); let speed = Date.now() - start + 45; let botPic = BOT_PIC; try{ botPic = await sock.profilePictureUrl(sock.user.id, 'image'); }catch{} let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nURL:'+CHANNEL+'\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard}]}}, {quoted:msg}); let txt = "🏖️ PONG: "+speed+" Ms\n━━━━━━━━━━━━━━\n👑 Bot: RANA X VIP ✔️\n👑 Owner: 01636487523\n📞 wa.me/8801636487523\n📦 Commands: "+ALL_CMDS.length+"\n⚡ Status: Online\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL; await sock.sendMessage(from, {image:{url:botPic}, caption: txt}, {quoted:msg}); return; }
     if(cmd === 'cam' || cmd === 'pic') { await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME}); return; }
-    if(cmd === 'owner' || cmd === 'creator'){
-      let vcard2 = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD';
-      await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard:vcard2}]}}, {quoted:msg});
-      await reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"\n💬 wa.me/8801636487523\n📢 "+CHANNEL);
-      return;
-    }
+    if(cmd === 'owner' || cmd === 'creator'){ let vcard2 = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard:vcard2}]}}, {quoted:msg}); await reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"\n💬 wa.me/8801636487523\n📢 "+CHANNEL); return; }
     if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await reply(welcomeOn ? '✅ Welcome ON' : '❌ Welcome OFF'); return; }
     if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await reply(autoReactOn ? '✅ Emoji ON' : '❌ Emoji OFF'); return; }
     if(cmd === 'joke') return reply("😂 JOKE: Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣");
@@ -320,34 +205,8 @@ async function startBot(){
     if(cmd === 'play' || cmd === 'song'){ if(!text) return reply("Gaan er nam dao! Ex: .play DJ PARI"); return reply("🎵 PLAY\nTitle: "+text+"\nChannel: RANA X MUSIC\nDuration: 3:04"); }
     if(cmd === 'ai' || cmd === 'gpt' || cmd === 'ask'){ if(!text) return reply("Kichu jigges koro! Ex: .ai Bangladesh er capital ki?"); return reply("🤖 AI: "+text+" - Eita khub valo proshno! "+BOT_NAME+" bolche: Tumi best! 👑"); }
     if(cmd === 'imagine' || cmd === 'draw'){ if(!text) return reply("Ki banabo? Ex: .imagine cute cat"); return reply("🎨 Imagine korchi: "+text+"..."); }
-    if(cmd === 'vv' || cmd === 'vv2' || cmd === 'vv3' || cmd === 'viewonce'){
-      let quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage;
-      let viewOnce = quoted?.viewOnceMessage || quoted?.viewOnceMessageV2 || quoted?.viewOnceMessageV2Extension;
-      let inner = viewOnce?.message;
-      let imgMsg = inner?.imageMessage || inner?.videoMessage;
-      if(!imgMsg) return reply("❌ View Once pic/video er upore Reply diya .vv3 lekho bhai!");
-      try{
-        let type = inner?.imageMessage ? 'image' : 'video';
-        let stream = await downloadContentFromMessage(imgMsg, type);
-        let buf = Buffer.concat([]);
-        for await(let chunk of stream){ buf = Buffer.concat([buf, chunk]); }
-        let bigCap = "╭───〔 👑 VV3 〕───╮\n│ "+BOT_NAME+"\n╰───────────────────╯\n\n✅ VIEW ONCE KHULA HOISE\n👑 Owner: "+OWNER+"\n📢 Channel: "+CHANNEL;
-        if(type==='image') await sock.sendMessage(from,{image:buf,caption:bigCap},{quoted:msg});
-        else await sock.sendMessage(from,{video:buf,caption:bigCap},{quoted:msg});
-      }catch{ await reply("❌ VV3 khulte pari nai! Abar try koro!"); }
-      return;
-    }
-    if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){
-      try{
-        let meta = await sock.groupMetadata(from);
-        let members = meta.participants.map(p=>p.id);
-        let txt = "👥 TAG ALL\nGroup: "+meta.subject+"\nTotal: "+members.length+" Members\n━━━━━━━━━━━━━━\n";
-        members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n");
-        txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP\n📢 "+CHANNEL;
-        await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg});
-      }catch{ await reply("❌ Group e use koro bhai!") }
-      return;
-    }
+    if(cmd === 'vv' || cmd === 'vv2' || cmd === 'vv3' || cmd === 'viewonce'){ let quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage; let viewOnce = quoted?.viewOnceMessage || quoted?.viewOnceMessageV2 || quoted?.viewOnceMessageV2Extension; let inner = viewOnce?.message; let imgMsg = inner?.imageMessage || inner?.videoMessage; if(!imgMsg) return reply("❌ View Once pic/video er upore Reply diya .vv3 lekho bhai!"); try{ let type = inner?.imageMessage ? 'image' : 'video'; let stream = await downloadContentFromMessage(imgMsg, type); let buf = Buffer.concat([]); for await(let chunk of stream){ buf = Buffer.concat([buf, chunk]); } let bigCap = "╭───〔 👑 VV3 〕───╮\n│ "+BOT_NAME+"\n╰───────────────────╯\n\n✅ VIEW ONCE KHULA HOISE\n👑 Owner: "+OWNER+"\n📢 Channel: "+CHANNEL; if(type==='image') await sock.sendMessage(from,{image:buf,caption:bigCap},{quoted:msg}); else await sock.sendMessage(from,{video:buf,caption:bigCap},{quoted:msg}); }catch{ await reply("❌ VV3 khulte pari nai! Abar try koro!"); } return; }
+    if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){ try{ let meta = await sock.groupMetadata(from); let members = meta.participants.map(p=>p.id); let txt = "👥 TAG ALL\nGroup: "+meta.subject+"\nTotal: "+members.length+" Members\n━━━━━━━━━━━━━━\n"; members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n"); txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP\n📢 "+CHANNEL; await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg}); }catch{ await reply("❌ Group e use koro bhai!") } return; }
     if(ALL_CMDS.includes(cmd)){ return reply("✅ ."+cmd+" - Kaj korche!\n📦 Command: ."+cmd+"\n👑 Owner: "+OWNER+"\n📢 "+CHANNEL); }
   });
 }
