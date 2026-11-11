@@ -23,7 +23,6 @@ const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","
 const recentMsgs = [], recentCmds = []
 let userBal = {}, userXp = {}
 
-// ===== 💾 DB - Warning Save থাকবে, Restart দিলেও মুছবে না =====
 let DB = { groups:{}, warns:{} }
 try{ if(fs.existsSync('./ultra_db.json')) DB = JSON.parse(fs.readFileSync('./ultra_db.json')) }catch{}
 function saveDB(){ try{ fs.writeFileSync('./ultra_db.json', JSON.stringify(DB)) }catch{} }
@@ -48,7 +47,6 @@ function vBox(txt, thumb){
 async function getSenderThumb(sock, sender){
   try{ let url = await sock.profilePictureUrl(sender, 'image'); let res = await axios.get(url, { responseType: 'arraybuffer' }); return Buffer.from(res.data) }catch{ return null }
 }
-// ===== 🔥 সুন্দর Menu - আগেরটার চেয়ে সুন্দর =====
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let menuTxt = ""
   try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
@@ -62,7 +60,6 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
     }
   }, {quoted: msg})
 }
-// ===== ⚠️ 1-2-3 WARNING SYSTEM =====
 async function doWarn(sock, from, sender, reason){
   let key = from+"_"+sender; DB.warns[key] = (DB.warns[key]||0)+1; let count = DB.warns[key]; saveDB()
   let num = sender.split('@')[0]
@@ -75,7 +72,60 @@ async function doWarn(sock, from, sender, reason){
   }
 }
 
-app.get('/', (req,res)=> res.send('<h1 style="text-align:center;font-family:sans-serif">👑 RANA-X-VIP-BOT<br><br>Commands: '+ALL_CMDS.length+'</h1>'))
+// ===== 🌐 সুন্দর Website - কালো + কমলা - আগেরটা =====
+app.get('/', function(req,res){
+  res.send('<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>' +
+'*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;align-items:flex-start;padding:12px}' +
+'.card{background:#121212;border:1px solid #242424;border-radius:28px;padding:22px 18px;width:100%;max-width:420px;box-shadow:0 0 60px #000}' +
+'.icon{width:80px;height:80px;margin:6px auto 12px;border-radius:20px;background:linear-gradient(135deg,#ff3a00,#ff8c00);display:flex;align-items:center;justify-content:center;overflow:hidden} .icon img{width:100%;height:100%;object-fit:cover}' +
+'h1{margin:0;text-align:center;font-size:26px} .w{color:#fff} .o{color:#ff6a00}' +
+'.sub{text-align:center;color:#777;font-size:12.5px;margin:8px 0 14px;line-height:1.5}' +
+'.conn{display:flex;justify-content:center;margin:8px 0 16px} .conn span{font-size:10px;color:#555;background:#1a1a1a;border:1px solid #222;padding:5px 12px;border-radius:20px;letter-spacing:1px}' +
+'.row{display:flex;justify-content:space-between;align-items:center;margin:14px 2px 8px} .row b{font-size:10px;color:#555;letter-spacing:1.5px} .row button{background:none;border:none;color:#ff6a00;font-size:10px;cursor:pointer}' +
+'.servers{display:flex;flex-direction:column;gap:10px} .srv{padding:14px 14px;border-radius:16px;border:1.5px solid #2a2a2a;background:#181818;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.2s} .srv.active{border-color:#ff5a00;background:#1f150f;box-shadow:0 0 15px #ff5a001a} .srv .left{display:flex;align-items:center;gap:10px} .dot{width:22px;height:22px;border-radius:50%;background:#222;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:12px} .srv.active .dot{background:#ff5a00;border-color:#ff5a00} .srv b{font-size:13px} .srv small{font-size:10px;color:#666} .srv .count{font-size:11px;color:#555}' +
+'.steps{display:flex;justify-content:center;gap:0;margin:20px 0;align-items:center} .step{width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1.5px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#555;z-index:2} .step.active{background:#ff5a00;color:#fff;border-color:#ff5a00;box-shadow:0 0 12px #ff5a00aa} .line{width:40px;height:1.5px;background:#2a2a2a;margin:0 -2px}' +
+'.label{font-size:10px;color:#666;letter-spacing:1.2px;margin:0 2px 8px;font-weight:700}' +
+'.phoneBox{display:flex;gap:8px} .cc{width:78px;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff;font-weight:700;text-align:center} .num{flex:1;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff;font-weight:600;outline:none} .num:focus,.cc:focus{border-color:#ff5a00}' +
+'.valid{font-size:11px;margin:8px 2px;display:none} .valid.ok{color:#22c55e;display:block} .valid.err{color:#ef4444;display:block}' +
+'.opts{display:flex;gap:12px;margin:12px 2px;flex-wrap:wrap} .opt{display:flex;align-items:center;gap:6px;font-size:11px;color:#777} .opt input{accent-color:#ff5a00}' +
+'.remember{display:flex;align-items:center;gap:8px;margin:10px 2px;font-size:11px;color:#666} .remember input{accent-color:#ff5a00}' +
+'.btn{width:100%;margin-top:12px;padding:15px;background:linear-gradient(135deg,#ff4500,#ff8c00);border:none;border-radius:14px;color:#fff;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 6px 22px #ff5a0040}' +
+'.box{margin-top:14px;padding:14px;border-radius:14px;display:none;justify-content:space-between;align-items:center;background:#0e0e0e;border:1.5px dashed #ff5a00} .code{font-size:28px;font-weight:900;color:#ff8c00;letter-spacing:3px}' +
+'.qrbox{margin-top:14px;padding:14px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:16px;display:none;text-align:center} .qrbox img{width:230px;height:230px;background:#fff;padding:8px;border-radius:12px}' +
+'#res{margin-top:10px;padding:10px;border-radius:10px;display:none;font-weight:700;font-size:12px}' +
+'.footer{margin-top:16px;border-top:1px solid #1e1e1e;padding-top:12px;display:flex;justify-content:space-between} .footer button,.footer a{background:none;border:none;color:#555;font-size:11px;text-decoration:none;font-weight:700;cursor:pointer} .footer a{color:#ff6a00}' +
+'</style></head><body><div class=card>' +
+'<div class=icon><img src="' + BOT_PIC + '"></div>' +
+'<h1><span class=w>RANA-</span><span class=o>X-VIP-</span><span class=w>BOT</span></h1>' +
+'<p class=sub>Enter your WhatsApp number to link your device.</p>' +
+'<div class=conn><span id=connTxt>● CONNECTING...</span></div>' +
+'<div class=row><b>SELECT SERVER</b><button onclick="location.reload()">↻ refresh</button></div>' +
+'<div class=servers>' +
+'<div class="srv active" id=s1 onclick="sel(1)"><div class=left><div class=dot>●</div><div><b id=s1Name>heroku</b><br><small id=s1Desc>Fast • Recommended</small></div></div><div class=count>-/100</div></div>' +
+'<div class=srv id=s2 onclick="sel(2)"><div class=left><div class=dot>○</div><div><b>railway</b><br><small>Backup Server</small></div></div><div class=count>-/100</div></div>' +
+'</div>' +
+'<div class=steps><div class="step active" id=st1>1</div><div class=line></div><div class=step id=st2>2</div><div class=line></div><div class=step id=st3>3</div></div>' +
+'<p class=label>STEP 1 - YOUR NUMBER</p>' +
+'<p style="font-size:11px;color:#444;margin:0 2px 8px">WhatsApp number, with country code</p>' +
+'<div class=phoneBox><input id=c class=cc value="+880" placeholder="+880"><input id=num class=num placeholder="16XXXXXXXX" oninput="checkNum()"></div>' +
+'<div id=valid class=valid></div>' +
+'<div class=opts><label class=opt><input type=checkbox id=sound checked> Enable sound</label><label class=opt><input type=checkbox id=video> Video on</label></div>' +
+'<label class=remember><input type=checkbox id=remember checked> Remember this number on this device</label>' +
+'<button class=btn onclick="getPair()">⚡ Get Pair Code</button>' +
+'<div id=box class=box><span id=code class=code></span><button id=copyBtn onclick="copyCode()" style="padding:8px 14px;background:#ff5a00;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div>' +
+'<div id=res></div>' +
+'<div class=footer><button onclick="showQR()">📷 Use QR Code</button><a href="' + CHANNEL + '" target="_blank">📢 Join Channel</a></div>' +
+'<div id=qrbox class=qrbox><img id=qimg src=""><p style="font-size:11px;color:#ff8c00;margin-top:8px">Scan within 60 sec</p></div>' +
+'</div>' +
+'<script>' +
+'function sel(n){ document.getElementById("s1").classList.toggle("active", n==1); document.getElementById("s2").classList.toggle("active", n==2); document.querySelectorAll(".dot")[0].innerText=n==1?"●":"○"; document.querySelectorAll(".dot")[1].innerText=n==2?"●":"○"; }' +
+'function checkNum(){ let c=document.getElementById("c").value.replace(/[^0-9]/g,""); let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let v=document.getElementById("valid"); let info=""; if(full.startsWith("880")) info="🇧🇩 Bangladesh"; else if(full.startsWith("91")) info="🇮🇳 India"; else if(full.startsWith("92")) info="🇵🇰 Pakistan"; if(n.length>=8){v.className="valid ok"; v.innerText="✓ "+info; document.getElementById("connTxt").innerText="● "+info+" CONNECTED"; document.getElementById("s1Name").innerText=info+" • heroku"; document.getElementById("st1").classList.add("active"); document.getElementById("st2").classList.add("active");} else if(n.length>0){v.className="valid err"; v.innerText="✗ Invalid number";} else{v.className="valid";} }' +
+'async function getPair(){ let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880"; let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let b=document.getElementById("box");let r=document.getElementById("res"); if(full.length<10){alert("Valid number dao");return;} b.style.display="none";r.style.display="block";r.innerText="⚡ Connecting...";r.style.background="#1a1a1a";r.style.color="#ff8c00"; try{ let d=await (await fetch("/pair?number="+full)).json(); if(d.code){document.getElementById("code").innerText=d.code; try{navigator.clipboard.writeText(d.code);}catch(e){} let v=document.getElementById("valid"); v.className="valid ok"; v.innerText="✓ "+d.country; b.style.display="flex"; r.style.display="none"; document.getElementById("st3").classList.add("active"); if(document.getElementById("sound").checked){let a=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_b9bd4170e8.mp3"); a.play().catch(()=>{});} } else{r.innerText="❌ "+d.error; r.style.background="#2a0000";} }catch(e){r.innerText="❌ Server Error";} }' +
+'function copyCode(){let t=document.getElementById("code").innerText; if(!t) return; let btn=document.getElementById("copyBtn"); navigator.clipboard.writeText(t).then(()=>{ let old=btn.innerText; btn.innerText="Copied!"; btn.style.background="#22c55e"; setTimeout(()=>{btn.innerText=old; btn.style.background="#ff5a00";},1500); }).catch(()=>{ let ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); btn.innerText="Copied!"; setTimeout(()=>{btn.innerText="Copy";},1500); });}' +
+'function showQR(){document.getElementById("qrbox").style.display="block"; getQR();}' +
+'async function getQR(){let img=document.getElementById("qimg"); let r=document.getElementById("res"); r.style.display="block"; r.innerText="Generating QR..."; try{let d=await (await fetch("/qr")).json(); if(d.qr){img.src=d.qr; document.getElementById("qrbox").style.display="block"; r.innerText="Scan Now!"; r.style.background="#001a00"; r.style.color="#22c55e";}}catch(e){r.innerText="❌ QR Error";}}' +
+'<\/script></body></html>')
+})
 app.get('/pair', async (req,res)=>{
   try{
     let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '')
@@ -170,7 +220,6 @@ async function startBot(){
         if(recentMsgs.length>30) recentMsgs.shift()
       }
 
-      // ===== 🛡️ LINK / BAD WORD / SPAM - Command ছাড়া মেসেজেও ধরবে =====
       if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
         let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
         if(!admin && !owner){
@@ -195,7 +244,6 @@ async function startBot(){
       const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
 
-      // ===== 🛡️ Antilink / Warn Commands =====
       if(cmd==='antilink'){
         if(!await needAdmin()) return
         if(text==='on'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink ON - Link দিলে Warning 1/2/3"); return }
