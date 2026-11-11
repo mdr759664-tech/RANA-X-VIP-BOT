@@ -44,10 +44,16 @@ function getCountryInfo(num){
 function vBox(txt, thumb){
   return { text: txt, contextInfo: { externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb || null, mediaType: 1, sourceUrl: "https://whatsapp.com", renderLargerThumbnail: false, showAdAttribution: true } } }
 }
-async function getSenderThumb(sock, sender){
-  try{ let url = await sock.profilePictureUrl(sender, 'image'); let res = await axios.get(url, { responseType: 'arraybuffer' }); return Buffer.from(res.data) }catch{ return null }
+// ✅ BOT PIC - Link থেকে আনবে, Sender DP না
+let _botPicCache = null
+async function getBotThumb(){
+  if(_botPicCache) return _botPicCache
+  try{ let res = await axios.get(BOT_PIC, { responseType: 'arraybuffer' }); _botPicCache = Buffer.from(res.data); return _botPicCache }catch{ return null }
 }
+async function getSenderThumb(sock, sender){ return await getBotThumb() }
+
 async function sendMenuWithChannel(sock, from, msg, thumb){
+  let botPic = await getBotThumb()
   let menuTxt = ""
   try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
   let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
@@ -56,7 +62,7 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
     contextInfo: {
       forwardingScore: 999, isForwarded: true,
       forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 },
-      externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
+      externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: botPic, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
     }
   }, {quoted: msg})
 }
@@ -72,7 +78,6 @@ async function doWarn(sock, from, sender, reason){
   }
 }
 
-// ===== 🌐 সুন্দর Website - কালো + কমলা - আগেরটা =====
 app.get('/', function(req,res){
   res.send('<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>' +
 '*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;align-items:flex-start;padding:12px}' +
@@ -187,7 +192,7 @@ async function startBot(){
         let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true })
         for(let num of anu.participants){
           let userName = num.split('@')[0]
-          let pp; try{ pp = await sock.profilePictureUrl(num, 'image') }catch{ pp = BOT_PIC }
+          let pp = BOT_PIC
           if(anu.action == 'add' && welcomeOn){
             let t = getWelcomeMenu ? getWelcomeMenu(num, gName, memberCount, OWNER_NAME) : `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
             await sock.sendMessage(anu.id, { image: { url: pp }, caption: t, mentions: [num] })
@@ -208,7 +213,7 @@ async function startBot(){
       const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || ""
       const qCtx = m.message.extendedTextMessage?.contextInfo
       const mentioned = qCtx?.mentionedJid || []
-      const senderThumb = await getSenderThumb(sock, sender)
+      const senderThumb = await getBotThumb()
       const sendV = async (txt) => sock.sendMessage(from, vBox(txt, senderThumb), {quoted:m})
       const success = async (txt) => sock.sendMessage(from, vBox(txt.startsWith("✅")||txt.startsWith("❌") ? txt : "✅ "+txt, senderThumb), {quoted:m})
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
