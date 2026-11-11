@@ -16,12 +16,15 @@ const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
 let CHANNEL_JID = ""
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
 
-let welcomeOn = true, goodbyeOn = true, recentOn = true
+let welcomeOn = true, goodbyeOn = true, autoReactOn = true, recentOn = true
 let sockMain = null, isConnected = false, qrData = null
 let restartTimer = null, lastPairTime = 0, isStarting = false
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖"]
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜"]
 const recentMsgs = [], recentCmds = []
 let userBal = {}, userXp = {}
+// ✅ UNLIMITED - প্রত্যেক নাম্বারের আলাদা Bot
+const sessions = new Map() // number -> { sock, connected, qr, starting }
+const pairCooldown = new Map() // number -> lastTime
 
 let DB = { groups:{}, warns:{} }
 try{ if(fs.existsSync('./ultra_db.json')) DB = JSON.parse(fs.readFileSync('./ultra_db.json')) }catch{}
@@ -41,36 +44,22 @@ function getCountryInfo(num){
   for(let k of keys){ if(num.startsWith(k)) return list[k] }
   return {name:"International", flag:"🌍", code:"INT"}
 }
-function vBox(txt, thumb){ return { text: txt } }
-let _botPicCache = null
-async function getBotThumb(){
-  if(_botPicCache) return _botPicCache
-  try{ let res = await axios.get(BOT_PIC, { responseType: 'arraybuffer' }); _botPicCache = Buffer.from(res.data); return _botPicCache }catch{ return null }
+function vBox(txt, thumb){
+  return { text: txt, contextInfo: { externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb || null, mediaType: 1, sourceUrl: "https://whatsapp.com", renderLargerThumbnail: false, showAdAttribution: true } } }
 }
-async function getSenderThumb(sock, sender){ return await getBotThumb() }
-
-// ✅ MENU FINAL - Pic + Message via ad - 2টাই একসাথে
+async function getSenderThumb(sock, sender){
+  try{ let url = await sock.profilePictureUrl(sender, 'image'); let res = await axios.get(url, { responseType: 'arraybuffer' }); return Buffer.from(res.data) }catch{ return null }
+}
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let menuTxt = ""
-  try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 Owner: ${OWNER_NAME}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands` }
-  let pretty = `┌───💜───┐\n│ 👑 RANA-X-VIP 👑 │\n└───💜───┘\n\n👑 Owner: ${OWNER_NAME}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands\n\n━━━━━━━━━━━━━━━\n\n${menuTxt}\n\n━━━━━━━━━━━━━━━\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
-  let picBuffer = thumb
-  if(!picBuffer){
-    try{ let r = await axios.get(BOT_PIC, {responseType: 'arraybuffer'}); picBuffer = Buffer.from(r.data) }catch{}
-  }
+  try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
+  let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
   await sock.sendMessage(from, {
-    image: { url: BOT_PIC },
-    caption: pretty,
+    text: pretty,
     contextInfo: {
-      externalAdReply: {
-        title: "WhatsApp",
-        body: "01636487523 • Status | Contact: RANA",
-        thumbnail: picBuffer,
-        mediaType: 1,
-        sourceUrl: CHANNEL,
-        renderLargerThumbnail: false,
-        showAdAttribution: true
-      }
+      forwardingScore: 999, isForwarded: true,
+      forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 },
+      externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
     }
   }, {quoted: msg})
 }
@@ -110,8 +99,8 @@ app.get('/', function(req,res){
 '</style></head><body><div class=card>' +
 '<div class=icon><img src="' + BOT_PIC + '"></div>' +
 '<h1><span class=w>RANA-</span><span class=o>X-VIP-</span><span class=w>BOT</span></h1>' +
-'<p class=sub>Enter your WhatsApp number to link your device.</p>' +
-'<div class=conn><span id=connTxt>● CONNECTING...</span></div>' +
+'<p class=sub>Enter your WhatsApp number to link your device. Unlimited - sobai nijer number diye bot calate parbe.</p>' +
+'<div class=conn><span id=connTxt>● UNLIMITED PUBLIC BOT - '+sessions.size+' CONNECTED</span></div>' +
 '<div class=row><b>SELECT SERVER</b><button onclick="location.reload()">↻ refresh</button></div>' +
 '<div class=servers>' +
 '<div class="srv active" id=s1 onclick="sel(1)"><div class=left><div class=dot>●</div><div><b id=s1Name>heroku</b><br><small id=s1Desc>Fast • Recommended</small></div></div><div class=count>-/100</div></div>' +
@@ -119,7 +108,7 @@ app.get('/', function(req,res){
 '</div>' +
 '<div class=steps><div class="step active" id=st1>1</div><div class=line></div><div class=step id=st2>2</div><div class=line></div><div class=step id=st3>3</div></div>' +
 '<p class=label>STEP 1 - YOUR NUMBER</p>' +
-'<p style="font-size:11px;color:#444;margin:0 2px 8px">WhatsApp number, with country code</p>' +
+'<p style="font-size:11px;color:#444;margin:0 2px 8px">WhatsApp number, with country code - je kono number cholbe</p>' +
 '<div class=phoneBox><input id=c class=cc value="+880" placeholder="+880"><input id=num class=num placeholder="16XXXXXXXX" oninput="checkNum()"></div>' +
 '<div id=valid class=valid></div>' +
 '<div class=opts><label class=opt><input type=checkbox id=sound checked> Enable sound</label><label class=opt><input type=checkbox id=video> Video on</label></div>' +
@@ -139,56 +128,71 @@ app.get('/', function(req,res){
 'async function getQR(){let img=document.getElementById("qimg"); let r=document.getElementById("res"); r.style.display="block"; r.innerText="Generating QR..."; try{let d=await (await fetch("/qr")).json(); if(d.qr){img.src=d.qr; document.getElementById("qrbox").style.display="block"; r.innerText="Scan Now!"; r.style.background="#001a00"; r.style.color="#22c55e";}}catch(e){r.innerText="❌ QR Error";}}' +
 '<\/script></body></html>')
 })
+
+// ✅ UNLIMITED PAIR - age isConnected diye block chilo, ekhon nai
 app.get('/pair', async (req,res)=>{
   try{
     let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '')
     if(raw.startsWith('8800')) raw = '880' + raw.slice(4)
     if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'})
-    if(isConnected) return res.json({error:'Bot Already Connected! /reset dao'})
-    if(Date.now() - lastPairTime < 20000) return res.json({error:'20 sec wait koro - Cooldown cholche!'})
-    if(!sockMain){
-      if(isStarting) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
-      await startBot(); await new Promise(r=> setTimeout(r, 3000))
-      if(!sockMain) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
+    // ✅ Per-number cooldown - ek number 20 sec por por, onno number atkano jabe na
+    let last = pairCooldown.get(raw) || 0
+    if(Date.now() - last < 20000) return res.json({error:'20 sec wait koro - Cooldown cholche!'})
+    let sess = sessions.get(raw)
+    if(sess && sess.connected) return res.json({error:'Ei number already connected! Onno number diye try koro'})
+    if(!sess){
+      sess = await startBot(raw)
+      if(!sess || !sess.sock) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
     }
-    lastPairTime = Date.now()
-    let code = await sockMain.requestPairingCode(raw); code = code.replace(/-/g,'')
+    pairCooldown.set(raw, Date.now())
+    let code = await sess.sock.requestPairingCode(raw); code = code.replace(/-/g,'')
     let country = getCountryInfo(raw)
     res.json({code, country: country.flag+' '+country.name, server: country.code})
-  }catch(e){ console.log("PAIR ERROR:", e.message); lastPairTime = 0; res.json({error: e.message}) }
+  }catch(e){ console.log("PAIR ERROR:", e.message); res.json({error: e.message}) }
 })
-app.get('/qr', async (req,res)=>{ if(!qrData) return res.json({error:'no qr'}); res.json({qr: await QRCode.toDataURL(qrData)}) })
+app.get('/qr', async (req,res)=>{ let num = (req.query.number||'').replace(/[^0-9]/g,''); let sess = sessions.get(num); let q = sess?.qr || qrData; if(!q) return res.json({error:'no qr'}); res.json({qr: await QRCode.toDataURL(q)}) })
 app.get('/reset', async (req,res)=>{
+  let raw = (req.query.number||'').replace(/[^0-9]/g,'')
+  if(raw){
+    let sess = sessions.get(raw)
+    if(sess){ try{ await sess.sock.logout() }catch{}; try{ sess.sock.end() }catch{}; sessions.delete(raw) }
+    try{ fs.rmSync('./sessions/'+raw, {recursive:true, force:true}) }catch{}
+    return res.json({ok:true, number: raw})
+  }
   if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
   lastPairTime = 0
   try{ if(sockMain) try{ await sockMain.logout() }catch{} }catch{}
   try{ if(sockMain) try{ sockMain.end() }catch{} }catch{}
   sockMain = null; try{ fs.rmSync('./session', {recursive:true, force:true}) }catch{}
-  isConnected = false; qrData = null; setTimeout(()=> startBot(), 1000); res.json({ok:true})
+  isConnected = false; qrData = null; res.json({ok:true})
 })
-app.get('/status', (req,res)=> res.json({connected: isConnected, hasSock: !!sockMain}))
+app.get('/status', (req,res)=> res.json({connected: sessions.size, totalBots: sessions.size, bots: [...sessions.keys()], hasSock: !!sockMain}))
 
-async function startBot(){
-  if(isStarting) return; isStarting = true
-  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
-  try{ if(sockMain) try{ sockMain.end() }catch{} }catch{}; sockMain = null
+// ✅ startBot(number) - prottek number er alada session
+async function startBot(number){
+  let numKey = number || OWNER
+  let existing = sessions.get(numKey)
+  if(existing && existing.sock) return existing
+  let sess = { sock: null, connected: false, qr: null, starting: true }
+  sessions.set(numKey, sess)
   try{
-    let sd = await useMultiFileAuthState('./session')
+    if(!fs.existsSync('./sessions')) fs.mkdirSync('./sessions', {recursive:true})
+    let sd = await useMultiFileAuthState('./sessions/'+numKey)
     let ver = await fetchLatestBaileysVersion()
     let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, P({level:'silent'}))}, logger: P({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined})
-    sockMain = sock; isStarting = false
+    sess.sock = sock; sess.starting = false; sockMain = sock
     sock.ev.on('creds.update', sd.saveCreds)
     sock.ev.on('connection.update', async (u)=>{
-      if(u.qr) qrData = u.qr
+      if(u.qr){ sess.qr = u.qr; qrData = u.qr }
       if(u.connection === 'close'){
-        isConnected = false
+        sess.connected = false; isConnected = false
         let r = u.lastDisconnect?.error?.output?.statusCode
-        if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./session',{recursive:true,force:true}) }catch{}; sockMain = null; return }
-        if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot() }, 5000)
+        if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./sessions/'+numKey,{recursive:true,force:true}) }catch{}; sessions.delete(numKey); return }
+        setTimeout(()=>{ if(!sessions.has(numKey)) return; startBot(numKey) }, 5000)
       }
       if(u.connection === 'open'){
-        isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
-        console.log('RANA-X-VIP CONNECTED')
+        sess.connected = true; isConnected = true
+        console.log('RANA-X-VIP CONNECTED: '+numKey)
         try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id }catch{}
       }
     })
@@ -200,9 +204,9 @@ async function startBot(){
         let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true })
         for(let num of anu.participants){
           let userName = num.split('@')[0]
-          let pp = BOT_PIC
+          let pp; try{ pp = await sock.profilePictureUrl(num, 'image') }catch{ pp = BOT_PIC }
           if(anu.action == 'add' && welcomeOn){
-            let t = `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
+            let t = getWelcomeMenu ? getWelcomeMenu(num, gName, memberCount, OWNER_NAME) : `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
             await sock.sendMessage(anu.id, { image: { url: pp }, caption: t, mentions: [num] })
           }
           if(anu.action == 'remove' && goodbyeOn){
@@ -221,15 +225,20 @@ async function startBot(){
       const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || ""
       const qCtx = m.message.extendedTextMessage?.contextInfo
       const mentioned = qCtx?.mentionedJid || []
-      const senderThumb = await getBotThumb()
+      const senderThumb = await getSenderThumb(sock, sender)
       const sendV = async (txt) => sock.sendMessage(from, vBox(txt, senderThumb), {quoted:m})
       const success = async (txt) => sock.sendMessage(from, vBox(txt.startsWith("✅")||txt.startsWith("❌") ? txt : "✅ "+txt, senderThumb), {quoted:m})
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro bhai!"); return false } let a = await isAdminCheck(sock, from, sender); if(!a && !isOwnerNum(sender)){ await sendV("❌ শুধু Group Admin ব্যবহার করতে পারবে!"); return false } return true }
-      if(body && !m.key.fromMe){
-        recentMsgs.push({ emoji: EMOJI[Math.floor(Math.random()*EMOJI.length)], user: sender.split('@')[0], txt: body.slice(0,60) })
-        if(recentMsgs.length > 30) recentMsgs.shift()
+
+      // ✅ FIX: React er emoji tai Recent e jabe
+      if(recentOn && body && !m.key.fromMe){
+        let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]
+        try{ await sock.sendMessage(from, { react: { text: e, key: m.key } }) }catch{}
+        recentMsgs.push({ txt: body.slice(0,60), user: sender.split('@')[0], emoji: e })
+        if(recentMsgs.length>30) recentMsgs.shift()
       }
+
       if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
         let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
         if(!admin && !owner){
@@ -253,11 +262,7 @@ async function startBot(){
       const cmd = args[0].toLowerCase()
       const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
-      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
-      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
-      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online - PUBLIC`); return }
-      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON - PUBLIC":"❌ Welcome: OFF"); return }
-      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
+
       if(cmd==='antilink'){
         if(!await needAdmin()) return
         if(text==='on'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink ON - Link দিলে Warning 1/2/3"); return }
@@ -272,28 +277,35 @@ async function startBot(){
       if(cmd==='warn'){ if(!await needAdmin()) return; let t=getTarget(); if(!t) return sendV("❌ কাকে Warn করবো? Reply / Tag করো"); await doWarn(sock, from, t, "Admin দিছে Warn"); return }
       if(cmd==='resetwarn'){ if(!await needAdmin()) return; let t=getTarget(); if(t){ delete DB.warns[from+"_"+t]; saveDB() } await success("Warn Clear!"); return }
       if(cmd==='warns'){ let t=getTarget()||sender; await sendV("⚠️ @"+t.split('@')[0]+" এর Warn: "+(DB.warns[from+"_"+t]||0)+"/3"); return }
-      if(cmd==='welcome' && text==='on'){ if(!await needAdmin()) return; welcomeOn=true; await success("Welcome ON"); return }
-      if(cmd==='welcome' && text==='off'){ if(!await needAdmin()) return; welcomeOn=false; await success("Welcome OFF"); return }
-      if(cmd==='goodbye' && text==='on'){ if(!await needAdmin()) return; goodbyeOn=true; await success("Goodbye ON"); return }
-      if(cmd==='goodbye' && text==='off'){ if(!await needAdmin()) return; goodbyeOn=false; await success("Goodbye OFF"); return }
-      if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON - এখন থেকে সব SMS জমা হবে"); return }
+
+      if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); return }
+      if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); return }
+      if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); return }
+      if(cmd==='goodbye' && text==='off'){ goodbyeOn=false; await success("Goodbye OFF"); return }
+      if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON"); return }
       if(cmd==='recent' && text==='off'){ recentOn=false; await sendV("❌ Recent OFF"); return }
+      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); return }
+      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
       if(cmd==='recent' || cmd==='trending'){
-        if(recentMsgs.length===0){ await sendV(`🔥 *RECENT*\n\nএখনো কোনো SMS জমা হয় নাই\n\n💡 আগে গ্রুপে ২-৩ টা SMS পাঠাও, তারপর .recent লিখো\n\n💜 ${BOT_NAME}`); return }
-        let r = [...recentMsgs].slice(-10).map((x,i)=> `${i+1}. ${x.emoji} @${x.user}: ${x.txt}`).join("\n")
-        await sendV(`🔥 *RECENT - লাস্ট 10 SMS*\n\n${r}\n\n💜 ${BOT_NAME}`)
+        let r = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
+        await sendV(`🔥 *RECENT*\n\n${r||"No recent yet"}\n\n💜 ${BOT_NAME}`)
         return
       }
+      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
+      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
+      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online`); return }
+
       let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, axios, getCatMenu: null, getWelcomeMenu })
       if(done) return
       if(ALL_CMDS.includes(cmd)){ await success("."+cmd+" Successful!"); return }
     })
+    return sess
   }catch(e){
     console.log("START ERROR:", e.message)
-    sockMain = null; isStarting = false
-    if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot() }, 5000)
+    sessions.delete(numKey)
+    return null
   }
 }
 
 let PORT = process.env.PORT || 10000
-app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC | PIC + AD') })
+app.listen(PORT,'0.0.0.0',()=>{ console.log('RANA-X VIP UNLIMITED Running on '+PORT+' | '+ALL_CMDS.length+' Commands | View Channel + Recent + Unlimited Pair') })
