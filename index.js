@@ -44,7 +44,6 @@ function getCountryInfo(num){
 function vBox(txt, thumb){
   return { text: txt, contextInfo: { externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb || null, mediaType: 1, sourceUrl: "https://whatsapp.com", renderLargerThumbnail: false, showAdAttribution: true } } }
 }
-// ✅ BOT PIC - Link থেকে আনবে, Sender DP না
 let _botPicCache = null
 async function getBotThumb(){
   if(_botPicCache) return _botPicCache
@@ -52,6 +51,7 @@ async function getBotThumb(){
 }
 async function getSenderThumb(sock, sender){ return await getBotThumb() }
 
+// ✅ FIX 1 - MENU: Forward / Newsletter মুছে দিছি, Waiting আসবে না, Channel শুধু Menu তে থাকবে
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let botPic = await getBotThumb()
   let menuTxt = ""
@@ -60,8 +60,6 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
   await sock.sendMessage(from, {
     text: pretty,
     contextInfo: {
-      forwardingScore: 999, isForwarded: true,
-      forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 },
       externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: botPic, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
     }
   }, {quoted: msg})
@@ -194,7 +192,8 @@ async function startBot(){
           let userName = num.split('@')[0]
           let pp = BOT_PIC
           if(anu.action == 'add' && welcomeOn){
-            let t = getWelcomeMenu ? getWelcomeMenu(num, gName, memberCount, OWNER_NAME) : `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
+            // ✅ FIX 2 - Welcome এ Channel Link নাই, খালি Menu তে থাকবে
+            let t = `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
             await sock.sendMessage(anu.id, { image: { url: pp }, caption: t, mentions: [num] })
           }
           if(anu.action == 'remove' && goodbyeOn){
