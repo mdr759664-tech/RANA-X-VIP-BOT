@@ -16,7 +16,7 @@ const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
 let CHANNEL_JID = ""
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
 
-let welcomeOn = true, goodbyeOn = true, recentOn = false
+let welcomeOn = true, goodbyeOn = true, recentOn = true
 let sockMain = null, isConnected = false, qrData = null
 let restartTimer = null, lastPairTime = 0, isStarting = false
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖"]
@@ -49,30 +49,22 @@ async function getBotThumb(){
 }
 async function getSenderThumb(sock, sender){ return await getBotThumb() }
 
-// ✅ MENU - Pic + View Channel Button - FINAL
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let menuTxt = ""
   try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
   let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┃ 🌍 PUBLIC - সবাই Use করতে পারবে\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
+  if(!CHANNEL_JID){
+    try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id }catch{}
+  }
   try{
     await sock.sendMessage(from, {
       image: { url: BOT_PIC },
       caption: pretty,
       contextInfo: {
-        externalAdReply: {
-          title: "RANA-X-VIP-BOT 👑",
-          body: "01636487523 • Tap to View Channel",
-          thumbnailUrl: BOT_PIC,
-          mediaType: 1,
-          sourceUrl: CHANNEL,
-          renderLargerThumbnail: false,
-          showAdAttribution: true
-        },
-        forwardedNewsletterMessageInfo: {
-          newsletterJid: CHANNEL_JID || "120207000000000000@newsletter",
-          newsletterName: "RANA-X-VIP-BOT",
-          serverMessageId: 1
-        }
+        isForwarded: true,
+        forwardingScore: 999,
+        forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: "RANA-X-VIP-BOT", serverMessageId: 1 },
+        externalAdReply: { title: "RANA-X-VIP-BOT 👑", body: "01636487523 • Tap to View Channel", thumbnailUrl: BOT_PIC, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
       }
     }, {quoted: msg})
   }catch(e){
@@ -232,6 +224,12 @@ async function startBot(){
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro bhai!"); return false } let a = await isAdminCheck(sock, from, sender); if(!a && !isOwnerNum(sender)){ await sendV("❌ শুধু Group Admin ব্যবহার করতে পারবে!"); return false } return true }
 
+      // ✅ RECENT FIX - সব SMS জমা হবে, . দিয়ে শুরু হইলেও, Bot এর টা বাদে
+      if(body && !m.key.fromMe){
+        recentMsgs.push({ emoji: EMOJI[Math.floor(Math.random()*EMOJI.length)], user: sender.split('@')[0], txt: body.slice(0,60) })
+        if(recentMsgs.length > 30) recentMsgs.shift()
+      }
+
       if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
         let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
         if(!admin && !owner){
@@ -281,11 +279,12 @@ async function startBot(){
       if(cmd==='welcome' && text==='off'){ if(!await needAdmin()) return; welcomeOn=false; await success("Welcome OFF"); return }
       if(cmd==='goodbye' && text==='on'){ if(!await needAdmin()) return; goodbyeOn=true; await success("Goodbye ON"); return }
       if(cmd==='goodbye' && text==='off'){ if(!await needAdmin()) return; goodbyeOn=false; await success("Goodbye OFF"); return }
-      if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON"); return }
+      if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON - এখন থেকে সব SMS জমা হবে"); return }
       if(cmd==='recent' && text==='off'){ recentOn=false; await sendV("❌ Recent OFF"); return }
       if(cmd==='recent' || cmd==='trending'){
-        let r = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
-        await sendV(`🔥 *RECENT*\n\n${r||"No recent yet"}\n\n💜 ${BOT_NAME}`)
+        if(recentMsgs.length===0){ await sendV(`🔥 *RECENT*\n\nএখনো কোনো SMS জমা হয় নাই\n\n💡 আগে গ্রুপে ২-৩ টা SMS পাঠাও, তারপর .recent লিখো\n\n💜 ${BOT_NAME}`); return }
+        let r = [...recentMsgs].slice(-10).map((x,i)=> `${i+1}. ${x.emoji} @${x.user}: ${x.txt}`).join("\n")
+        await sendV(`🔥 *RECENT - লাস্ট 10 SMS*\n\n${r}\n\n💜 ${BOT_NAME}`)
         return
       }
 
@@ -301,4 +300,4 @@ async function startBot(){
 }
 
 let PORT = process.env.PORT || 10000
-app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC | PIC + VIEW CHANNEL FIXED') })
+app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC | RECENT FIXED') })
