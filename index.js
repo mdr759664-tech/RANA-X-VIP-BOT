@@ -1,239 +1,243 @@
-import express from 'express';
-import makeWASocket, { useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } from '@whiskeysockets/baileys';
-import pino from 'pino';
-import fs from 'fs';
-import QRCode from 'qrcode';
-import path from 'path';
+const express = require('express')
+const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
+const P = require('pino')
+const fs = require('fs')
+const axios = require('axios')
+const QRCode = require('qrcode')
+const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, handleCommand } = require('./commands')
 
-const app = express();
-const OWNER = "8801636487523";
-const BOT_NAME = "RANA-X-VIP-BOT";
-const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg";
-const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B";
-const CHROME = ["Ubuntu", "Chrome", "20.0.04"];
+const app = express()
+const OWNER = "8801636487523"
+const OWNER_NAME = "┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"
+const BOT_NAME = "RANA-X-VIP-BOT"
+const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg"
+const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B"
+const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
+let CHANNEL_JID = ""
+const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
 
-let welcomeOn = true, autoReactOn = true;
-let sockMain = null, isConnected = false, qrData = null;
-let restartTimer = null;
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"];
-const recentMsgs = [];
+let welcomeOn = true, goodbyeOn = true, autoReactOn = true, recentOn = true
+let sockMain = null, isConnected = false, qrData = null
+let restartTimer = null, lastPairTime = 0, isStarting = false
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜"]
+const recentMsgs = [], recentCmds = []
+let userBal = {}, userXp = {}
 
-const CATS = {
-  "OWNER": ["owner","creator","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
-  "MAIN": ["menu","menu2","allmenu","help","commands","list","ping","pong","speed","runtime","uptime","alive","info","bot","about","profile","myinfo","id","stats","system","version","ownerinfo","botinfo","cam","pic"],
-  "FUN": ["joke","meme","fact","quote","shayari","love","crush","propose","slap","kiss","hug","pat","cuddle","dance","sing","roast","insult","compliment","truth","dare","ship","compatibility","beautiful","ugly","luck","horoscope","zodiac","aura","vibe","fun","happy","sad","angry","cry","laugh","smile","wink","poke","tickle","bite","wave","hello","bye","goodmorning","goodnight"],
-  "GAME": ["tictactoe","quiz","riddle","guess","dice","coin","slot","rps","blackjack","trivia","math","word","hangman","flip","roll","lottery","football","cricket","hunt","fight","battle","duel","race","truthordare","wouldyou","neverhave"],
-  "DOWNLOADER": ["play","song","video","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl"],
-  "IMAGE": ["sticker","s","vv","vv2","vv3","viewonce","take","steal","toimg","toimage","tovid","tomp3","blur","circle","invert","grey","attp","ttp","emojimix","removebg","upscale","enhance","cartoon","anime","logo","banner","thumbnail","poster","dp","pfp","avatar","background","neon","glow"],
-  "GROUP": ["admin","admins","announce","antibot","antilink","antispam","approve","close","desc","disappear","everyone","filter","groupinfo","hidetag","invite","kick","kickall","leave","linkgroup","lock","mute","open","poll","promote","reject","requests","revoke","rtag","setgpp","subject","tag","tagadmins","tagall","togroupstatus","totag","unlock","unmute","warn","welcome","goodbye","setdesc","setname","link","members","online","vote","rules","groupname","groupdesc","add","demote","setppgc","groupopen","groupclose","kickme","adminlist","memberlist"],
-  "SEARCH": ["google","image","img","yt","youtube","wiki","weather","news","translate","meaning","dictionary","lyrics","movie","series","animeinfo","github","stalk","search","find","lookup","check","ipinfo","screenshot","qrscan","ocr","define","synonym"],
-  "TOOLS": ["calc","calculator","qr","qrcode","short","url","paste","tts","voice","ai","gpt","ask","chat","imagine","draw","gemini","translate2","currency","convert","timer","reminder","note","notes","todo","password","random","font","fancy","styletext","reverse","uppercase","lowercase","count","wordcount","age","bmi","lovecalc"],
-  "ECONOMY": ["balance","bank","daily","work","rob","gamble","bet","lottery","shop","buy","sell","transfer","pay","leaderboard","top","rich","wallet","deposit","withdraw","money","cash","gold","diamond","xp","level","rank","claim","gift","bonus","jackpot","casino","roulette","loan","invest","stock","crypto","trade","market"],
-  "LOVE": ["couple","love2","marry","divorce","propose2","rose","gift","hug2","kiss2","miss","crush2","bf","gf","partner","soulmate","lovestory","lovepoem","loveshayari","breakup","dating","flirt","pickup","romantic","valentine","anniversary","wedding","single","lovemeter","lovetest","heart","heartbreak","lonely","missyou","loveyou"],
-  "ISLAMIC": ["quran","hadith","dua","namaz","azan","ramadan","allah","islam","surah","ayat","prayer","tasbih","islamic","muslim","namaztime","prayertime","qibla","hajj","umrah","zakat","eid","jumma","allahname","prophet","muhammad","dua2","kalima","salah","wudu","roza","iftar","sehri","eidmubarak","gojol","nasheed"],
-  "MUSIC": ["lyrics2","play2","playlist","radio","bass","nightcore","slowed","reverb","8d","lofi","remix","song2","music","audio2","mp3dl","spotifydl","hindi","bangla","english","punjabi","tamil","hiphop","rap","pop","rock","jazz","dj","beat","singer","album","topmusic"],
-  "EDUCATION": ["math2","science","history","english","bangla","gk","exam","question","answer","homework","essay","story","poem","letter","study","school","college","university","teacher","student","book","books","novel","geography","physics","chemistry","biology","maths","algebra","computer","programming","coding","python","javascript","java","html","css","space","nasa","earth","moon","animal","health","doctor","yoga","recipe","travel","country","language","business","law","police","army"],
-  "ATTITUDE": ["bio","caption","status","attitude","sad","happy","alone","broken","savage","cool","king","queen","boss","legend","attitude2","sadstatus","savagestatus","kingstatus","queenstatus","badboy","badgirl","hero","villain","ninja","dragon","phoenix","tiger","lion","wolf","ghost","devil","angel","star","moon","sun","sky","dream","magic","power","fire","ice","storm","dark","light","pro","x","ultra","pawar"],
-  "ANIME": ["waifu","neko","shinobu","megumin","anime2","manga2","cosplay","naruto","onepiece","dragonball","animegirl","bite","blush","bonk","cry","cuddle","dance","facepalm","highfive","hug","kiss","laugh","lick","nom","nuzzle","pat","poke","slap","smile","smug","animeboy","animesearch","animequote","animewall","animepic","animememe"],
-  "REACTION": ["slap2","hug3","kiss3","pat2","cuddle2","poke2","bite2","lick2","nom2","blush2","smile2","cry2","laugh2","dance2","wave2","highfive2","tickle2","tease","comfort","cheer","motivate","congrats","celebrate","party","clap","bow","salute","sorry","thankyou","goodluck","hugme","kissme","loveme"],
-  "EMOJI": ["emoji","emoji2","emoji3","emoji4","emojis","emot","emojimix3","kaomoji","funemoji","loveemoji","sademoji","animalemoji","foodemoji","flagemoji","heartemoji","fireemoji","cuteemoji"],
-  "PREMIUM": ["premium","vip","buybot","rent","panel","hosting","session2","pair2","recent","trending","new","topbot","bestbot","vip2","premium2","gold2","diamond2","elite","legend2","master","superbot","turbo","max","ultrapro"],
-  "STICKER PACK": ["stickerpack","stickerlist","stickermaker","stickerfun","stickerlove","stickersad","stickerangry","stickeranime","stickerdog","stickercat","stickerbaby","stickerboy","stickergirl","stickerking","stickerqueen","stickermeme","stickeremoji2","stickerattitude","stickercute","stickerhot","stickercool","stickerfunny","stickerhappy","stickerbirthday","stickergoodmorning","stickergoodnight","stickereid"],
-  "GENERAL": ["hi","hello2","hey","yo","hii","hola","namaste","assalamualaikum","salam","goodday","welcome3","thank","thanks","please","sorry2","excuse","congrats2","happybirthday","birthday","anniversary2","newyear","christmas","diwali","eid2","holi","goodluck2","takecare","seeyou","missyou2","loveyou2","cute2","smart2","beautiful3","cool2","awesome","amazing","wow","omg","lol","haha","ok","yes","no","maybe"],
-  "CHANNEL": ["channel","follow","joinchannel","viewchannel","channellink","channelmenu"]
-};
-let ALL_CMDS = [];
-for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k]);
-ALL_CMDS = [...new Set(ALL_CMDS)];
+// ===== 💾 DB - Warning Save থাকবে, Restart দিলেও মুছবে না =====
+let DB = { groups:{}, warns:{} }
+try{ if(fs.existsSync('./ultra_db.json')) DB = JSON.parse(fs.readFileSync('./ultra_db.json')) }catch{}
+function saveDB(){ try{ fs.writeFileSync('./ultra_db.json', JSON.stringify(DB)) }catch{} }
+function gSet(gid){ if(!DB.groups[gid]) DB.groups[gid]={antilink:true, antibad:true, antispam:true, action:'warn'}; return DB.groups[gid] }
 
-function getMenuText(){
-  let t = "👑 RANA X VIP 👑\n━━━━━━━━━━━━━━\n";
-  t += "Owner : 01636487523\n";
-  t += "Total : "+ALL_CMDS.length+" Commands\n";
-  t += "━━━━━━━━━━━━━━\n\n";
-  ALL_CMDS.forEach((c,i)=>{ t += (i+1)+". ."+c+"\n"; });
-  t += "\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL;
-  return t;
-}
+const URL_REGEX = /(https?:\/\/[^\s]+)|(\bchat\.whatsapp\.com\/[^\s]+)|(\bwa\.me\/[^\s]+)|(\b[a-z0-9.-]+\.(?:com|net|org|io|co|link|xyz|shop|site|online|club|top|info)\b[^\s]*)/gi
+const BAD_WORDS = ["mc","bc","madarchod","bhenchod","chod","fuck","bitch","porn","xxx","sex"]
+let spamMap = {}
+
+function isOwnerNum(num){ let c=(num||"").replace(/[^0-9]/g,''); return c.endsWith(OWNER.replace(/[^0-9]/g,'').slice(-10)) }
+async function isAdminCheck(sock, from, sender){ try{ let meta = await sock.groupMetadata(from); let p = meta.participants.find(x=>x.id===sender); return p?.admin ? true : false }catch{ return false } }
 function getCountryInfo(num){
-  num = num.replace(/[^0-9]/g,'');
-  const list = { "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD"}, "91": {name:"India", flag:"🇮🇳", code:"IN"}, "92": {name:"Pakistan", flag:"🇵🇰", code:"PK"}, "1": {name:"USA", flag:"🇺🇸", code:"US"} };
-  let keys = Object.keys(list).sort(function(a,b){ return b.length - a.length; });
-  for(let k of keys){ if(num.startsWith(k)) return list[k]; }
-  return {name:"International", flag:"🌍", code:"INT"};
+  num = num.replace(/[^0-9]/g,'')
+  const list = { "880": {name:"Bangladesh", flag:"🇧🇩", code:"BD"}, "91": {name:"India", flag:"🇮🇳", code:"IN"}, "92": {name:"Pakistan", flag:"🇵🇰", code:"PK"}, "1": {name:"USA", flag:"🇺🇸", code:"US"} }
+  let keys = Object.keys(list).sort((a,b)=> b.length - a.length)
+  for(let k of keys){ if(num.startsWith(k)) return list[k] }
+  return {name:"International", flag:"🌍", code:"INT"}
 }
-async function welcome(sock,gid,p){
-  if(!welcomeOn) return;
-  try{
-    let ppUrl; try{ ppUrl = await sock.profilePictureUrl(p,'image'); }catch{ ppUrl = BOT_PIC; }
-    let meta = await sock.groupMetadata(gid);
-    let e1 = EMOJI[Math.floor(Math.random()*EMOJI.length)];
-    let e2 = EMOJI[Math.floor(Math.random()*EMOJI.length)];
-    let txt = '╭───❰ ' + e1 + ' WELCOME ' + e2 + ' ❱───╮\n' + '│  👑 BOT: ' + BOT_NAME + ' 👑\n' + '│  💖 Hello @' + p.split('@')[0] + ' 💖\n' + '│  🌸 আপনাকে স্বাগতম আমাদের পরিবারে 🌸\n' + '┣━━━━━━━━━━━━━━━━━━━━━━┫\n' + '┃  🏰 GROUP: ' + meta.subject + '\n' + '┃  👥 MEMBER: ' + meta.participants.length + ' তম সদস্য\n' + '┃  ⏰ JOIN: ' + new Date().toLocaleTimeString() + '\n' + '┃  📅 DATE: ' + new Date().toLocaleDateString() + '\n' + '╰───❰ 🌍 Enjoy 🌍 ❱───╯\n\n' + EMOJI.slice(0,10).join('');
-    await sock.sendMessage(gid,{image:{url:ppUrl},caption:txt,mentions:[p]});
-  }catch{}
+function vBox(txt, thumb){
+  return { text: txt, contextInfo: { externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb || null, mediaType: 1, sourceUrl: "https://whatsapp.com", renderLargerThumbnail: false, showAdAttribution: true } } }
 }
-
-app.get('/', function(req,res){
-  res.send('<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>' +
-'*{box-sizing:border-box} body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;align-items:flex-start;padding:12px}' +
-'.card{background:#121212;border:1px solid #242424;border-radius:28px;padding:22px 18px;width:100%;max-width:420px;box-shadow:0 0 60px #000}' +
-'.icon{width:80px;height:80px;margin:6px auto 12px;border-radius:20px;background:linear-gradient(135deg,#ff3a00,#ff8c00);display:flex;align-items:center;justify-content:center;overflow:hidden} .icon img{width:100%;height:100%;object-fit:cover}' +
-'h1{margin:0;text-align:center;font-size:26px} .w{color:#fff} .o{color:#ff6a00}' +
-'.sub{text-align:center;color:#777;font-size:12.5px;margin:8px 0 14px;line-height:1.5}' +
-'.conn{display:flex;justify-content:center;margin:8px 0 16px} .conn span{font-size:10px;color:#555;background:#1a1a1a;border:1px solid #222;padding:5px 12px;border-radius:20px;letter-spacing:1px}' +
-'.row{display:flex;justify-content:space-between;align-items:center;margin:14px 2px 8px} .row b{font-size:10px;color:#555;letter-spacing:1.5px} .row button{background:none;border:none;color:#ff6a00;font-size:10px;cursor:pointer}' +
-'.servers{display:flex;flex-direction:column;gap:10px} .srv{padding:14px 14px;border-radius:16px;border:1.5px solid #2a2a2a;background:#181818;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:.2s} .srv.active{border-color:#ff5a00;background:#1f150f;box-shadow:0 0 15px #ff5a001a} .srv .left{display:flex;align-items:center;gap:10px} .dot{width:22px;height:22px;border-radius:50%;background:#222;border:1px solid #333;display:flex;align-items:center;justify-content:center;font-size:12px} .srv.active .dot{background:#ff5a00;border-color:#ff5a00} .srv b{font-size:13px} .srv small{font-size:10px;color:#666} .srv .count{font-size:11px;color:#555}' +
-'.steps{display:flex;justify-content:center;gap:0;margin:20px 0;align-items:center} .step{width:36px;height:36px;border-radius:50%;background:#1a1a1a;border:1.5px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#555;z-index:2} .step.active{background:#ff5a00;color:#fff;border-color:#ff5a00;box-shadow:0 0 12px #ff5a00aa} .line{width:40px;height:1.5px;background:#2a2a2a;margin:0 -2px}' +
-'.label{font-size:10px;color:#666;letter-spacing:1.2px;margin:0 2px 8px;font-weight:700}' +
-'.phoneBox{display:flex;gap:8px} .cc{width:78px;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff;font-weight:700;text-align:center} .num{flex:1;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff;font-weight:600;outline:none} .num:focus,.cc:focus{border-color:#ff5a00}' +
-'.valid{font-size:11px;margin:8px 2px;display:none} .valid.ok{color:#22c55e;display:block} .valid.err{color:#ef4444;display:block}' +
-'.opts{display:flex;gap:12px;margin:12px 2px;flex-wrap:wrap} .opt{display:flex;align-items:center;gap:6px;font-size:11px;color:#777} .opt input{accent-color:#ff5a00}' +
-'.remember{display:flex;align-items:center;gap:8px;margin:10px 2px;font-size:11px;color:#666} .remember input{accent-color:#ff5a00}' +
-'.btn{width:100%;margin-top:12px;padding:15px;background:linear-gradient(135deg,#ff4500,#ff8c00);border:none;border-radius:14px;color:#fff;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 6px 22px #ff5a0040}' +
-'.box{margin-top:14px;padding:14px;border-radius:14px;display:none;justify-content:space-between;align-items:center;background:#0e0e0e;border:1.5px dashed #ff5a00} .code{font-size:28px;font-weight:900;color:#ff8c00;letter-spacing:3px}' +
-'.qrbox{margin-top:14px;padding:14px;background:#0e0e0e;border:1px solid #2a2a2a;border-radius:16px;display:none;text-align:center} .qrbox img{width:230px;height:230px;background:#fff;padding:8px;border-radius:12px}' +
-'#res{margin-top:10px;padding:10px;border-radius:10px;display:none;font-weight:700;font-size:12px}' +
-'.footer{margin-top:16px;border-top:1px solid #1e1e1e;padding-top:12px;display:flex;justify-content:space-between} .footer button,.footer a{background:none;border:none;color:#555;font-size:11px;text-decoration:none;font-weight:700;cursor:pointer} .footer a{color:#ff6a00}' +
-'</style></head><body><div class=card>' +
-'<div class=icon><img src="' + BOT_PIC + '"></div>' +
-'<h1><span class=w>RANA-</span><span class=o>X-VIP-</span><span class=w>BOT</span></h1>' +
-'<p class=sub>Enter your WhatsApp number to link your device.</p>' +
-'<div class=conn><span id=connTxt>● CONNECTING...</span></div>' +
-'<div class=row><b>SELECT SERVER</b><button onclick="location.reload()">↻ refresh</button></div>' +
-'<div class=servers>' +
-'<div class="srv active" id=s1 onclick="sel(1)"><div class=left><div class=dot>●</div><div><b id=s1Name>heroku</b><br><small id=s1Desc>Fast • Recommended</small></div></div><div class=count>-/100</div></div>' +
-'<div class=srv id=s2 onclick="sel(2)"><div class=left><div class=dot>○</div><div><b>railway</b><br><small>Backup Server</small></div></div><div class=count>-/100</div></div>' +
-'</div>' +
-'<div class=steps><div class="step active" id=st1>1</div><div class=line></div><div class=step id=st2>2</div><div class=line></div><div class=step id=st3>3</div></div>' +
-'<p class=label>STEP 1 - YOUR NUMBER</p>' +
-'<p style="font-size:11px;color:#444;margin:0 2px 8px">WhatsApp number, with country code</p>' +
-'<div class=phoneBox><input id=c class=cc value="+880" placeholder="+880"><input id=num class=num placeholder="16XXXXXXXX" oninput="checkNum()"></div>' +
-'<div id=valid class=valid></div>' +
-'<div class=opts><label class=opt><input type=checkbox id=sound checked> Enable sound</label><label class=opt><input type=checkbox id=video> Video on</label></div>' +
-'<label class=remember><input type=checkbox id=remember checked> Remember this number on this device</label>' +
-'<button class=btn onclick="getPair()">⚡ Get Pair Code</button>' +
-'<div id=box class=box><span id=code class=code></span><button id=copyBtn onclick="copyCode()" style="padding:8px 14px;background:#ff5a00;color:#fff;border:none;border-radius:8px;font-weight:800">Copy</button></div>' +
-'<div id=res></div>' +
-'<div class=footer><button onclick="showQR()">📷 Use QR Code</button><a href="' + CHANNEL + '" target="_blank">📢 Join Channel</a></div>' +
-'<div id=qrbox class=qrbox><img id=qimg src=""><p style="font-size:11px;color:#ff8c00;margin-top:8px">Scan within 60 sec</p></div>' +
-'</div>' +
-'<script>' +
-'function sel(n){ document.getElementById("s1").classList.toggle("active", n==1); document.getElementById("s2").classList.toggle("active", n==2); document.querySelectorAll(".dot")[0].innerText=n==1?"●":"○"; document.querySelectorAll(".dot")[1].innerText=n==2?"●":"○"; }' +
-'function checkNum(){ let c=document.getElementById("c").value.replace(/[^0-9]/g,""); let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let v=document.getElementById("valid"); let info=""; if(full.startsWith("880")) info="🇧🇩 Bangladesh"; else if(full.startsWith("91")) info="🇮🇳 India"; else if(full.startsWith("92")) info="🇵🇰 Pakistan"; if(n.length>=8){v.className="valid ok"; v.innerText="✓ "+info; document.getElementById("connTxt").innerText="● "+info+" CONNECTED"; document.getElementById("s1Name").innerText=info+" • heroku"; document.getElementById("st1").classList.add("active"); document.getElementById("st2").classList.add("active");} else if(n.length>0){v.className="valid err"; v.innerText="✗ Invalid number";} else{v.className="valid";} }' +
-'async function getPair(){ let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880"; let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/, ""); let full=c+n; let b=document.getElementById("box");let r=document.getElementById("res"); if(full.length<10){alert("Valid number dao");return;} b.style.display="none";r.style.display="block";r.innerText="⚡ Connecting...";r.style.background="#1a1a1a";r.style.color="#ff8c00"; try{ let d=await (await fetch("/pair?number="+full)).json(); if(d.code){document.getElementById("code").innerText=d.code; try{navigator.clipboard.writeText(d.code);}catch(e){} let v=document.getElementById("valid"); v.className="valid ok"; v.innerText="✓ "+d.country; b.style.display="flex"; r.style.display="none"; document.getElementById("st3").classList.add("active"); if(document.getElementById("sound").checked){let a=new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_b9bd4170e8.mp3"); a.play().catch(()=>{});} } else{r.innerText="❌ "+d.error; r.style.background="#2a0000";} }catch(e){r.innerText="❌ Server Error";} }' +
-'function copyCode(){let t=document.getElementById("code").innerText; if(!t) return; let btn=document.getElementById("copyBtn"); navigator.clipboard.writeText(t).then(()=>{ let old=btn.innerText; btn.innerText="Copied!"; btn.style.background="#22c55e"; setTimeout(()=>{btn.innerText=old; btn.style.background="#ff5a00";},1500); }).catch(()=>{ let ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta); btn.innerText="Copied!"; setTimeout(()=>{btn.innerText="Copy";},1500); });}' +
-'function showQR(){document.getElementById("qrbox").style.display="block"; getQR();}' +
-'async function getQR(){let img=document.getElementById("qimg"); let r=document.getElementById("res"); r.style.display="block"; r.innerText="Generating QR..."; try{let d=await (await fetch("/qr")).json(); if(d.qr){img.src=d.qr; document.getElementById("qrbox").style.display="block"; r.innerText="Scan Now!"; r.style.background="#001a00"; r.style.color="#22c55e";}}catch(e){r.innerText="❌ QR Error";}}' +
-'<\/script></body></html>');
-});
-
-// ✅ FIX - /pair এ sockMain null হইলেও বানায়া নিবো, আটকাবো না!
-app.get('/pair', async function(req,res){
-  try{
-    let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '');
-    if(raw.startsWith('8800')) raw = '880' + raw.slice(4);
-    if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'});
-    if(isConnected) return res.json({error:'Bot Already Connected! /reset dao'});
-    if(!sockMain){
-      await startBot();
-      await new Promise(r=> setTimeout(r, 2000));
-      if(!sockMain) return res.json({error:'Bot starting, 5 sec por abar chap dao'});
+async function getSenderThumb(sock, sender){
+  try{ let url = await sock.profilePictureUrl(sender, 'image'); let res = await axios.get(url, { responseType: 'arraybuffer' }); return Buffer.from(res.data) }catch{ return null }
+}
+// ===== 🔥 সুন্দর Menu - আগেরটার চেয়ে সুন্দর =====
+async function sendMenuWithChannel(sock, from, msg, thumb){
+  let menuTxt = ""
+  try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
+  let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
+  await sock.sendMessage(from, {
+    text: pretty,
+    contextInfo: {
+      forwardingScore: 999, isForwarded: true,
+      forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 },
+      externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
     }
-    // ❌ আগের ভুল চেকটা বাদ - sock.authState Baileys 6 এ থাকে না, এইটাই Already registered ভুল দেখাইতো!
-    let code = await sockMain.requestPairingCode(raw);
-    let country = getCountryInfo(raw);
-    code = code.match(/.{1,4}/g).join('-') || code;
-    res.json({code: code, country: country.flag + ' ' + country.name, server: country.code});
-  }catch(e){ console.log("PAIR ERROR:", e.message); res.json({error: e.message}); }
-});
-app.get('/qr', async function(req,res){
-  if(!qrData) return res.json({error:'no qr - 10 sec wait koro'});
-  let img = await QRCode.toDataURL(qrData);
-  res.json({qr:img});
-});
-app.get('/reset', async function(req,res){
-  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; }
-  try{ if(sockMain) try{ await sockMain.logout(); }catch{} }catch{}
-  try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
-  sockMain = null;
-  try{ fs.rmSync('./session', {recursive:true, force:true}); }catch{}
-  isConnected = false; qrData = null;
-  setTimeout(()=> startBot(), 1000);
-  res.json({ok:true});
-});
-app.get('/status', function(req,res){ res.json({connected: isConnected, hasSock: !!sockMain}); });
-
-async function startBot(){
-  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; }
-  try{ if(sockMain) try{ sockMain.end(); }catch{} }catch{}
-  sockMain = null;
-  try{
-    let sd = await useMultiFileAuthState('./session');
-    let ver = await fetchLatestBaileysVersion();
-    let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, pino({level:'silent'}))}, logger: pino({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async function(){ return undefined; }});
-    sockMain = sock;
-    sock.ev.on('creds.update', sd.saveCreds);
-    sock.ev.on('connection.update', async function(u){
-      if(u.qr) qrData = u.qr;
-      if(u.connection === 'close'){
-        isConnected = false;
-        let r = u.lastDisconnect?.error?.output?.statusCode;
-        if(r === DisconnectReason.loggedOut){
-          try{ fs.rmSync('./session',{recursive:true,force:true}); }catch{}
-          sockMain = null;
-          return;
-        }
-        if(!restartTimer){
-          restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
-        }
-      }
-      if(u.connection === 'open'){ isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null; } console.log('RANA-X-VIP CONNECTED'); }
-    });
-    sock.ev.on('group-participants.update', async function(u){ for(let p of u.participants){ if(u.action === 'add') await welcome(sock, u.id, p); } });
-    sock.ev.on('messages.upsert', async function(m){
-      let msg = m.messages[0];
-      if(!msg.message || msg.key.fromMe) return;
-      let from = msg.key.remoteJid;
-      let body = msg.message.conversation || msg.message.extendedTextMessage?.text || msg.message.imageMessage?.caption || msg.message.videoMessage?.caption || "";
-      let text = body.slice(1).trim().split(' ').slice(1).join(' ');
-      recentMsgs.push({from: from, body: body, time: new Date().toLocaleTimeString()});
-      if(recentMsgs.length > 800) recentMsgs.shift();
-      if(autoReactOn && body.startsWith('.')){ try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from,{react:{text:e,key:msg.key}}); }catch{} }
-      if(!body.startsWith('.')) return;
-      let args = body.slice(1).trim().split(' ');
-      let cmd = args[0].toLowerCase();
-      let arg = args[1] ? args[1].toLowerCase() : '';
-      let reply = async (t) => await sock.sendMessage(from,{text:t},{quoted:msg});
-      if(cmd === 'menu' || cmd === 'menu2' || cmd === 'allmenu' || cmd.endsWith('menu')){ await sock.sendMessage(from,{image:{url:BOT_PIC},caption:getMenuText()},{quoted:msg}); return; }
-      if(cmd === 'channel' || cmd === 'channellink' || cmd === 'viewchannel' || cmd === 'joinchannel' || cmd === 'follow'){ await reply("📢 Follow Channel:\n"+CHANNEL); return; }
-      if(cmd === 'help'){ if(!text) return reply("Usage: .help <command>\nEx: .help sticker\nTotal: "+ALL_CMDS.length+" commands\n📢 "+CHANNEL); if(ALL_CMDS.includes(text.toLowerCase())) return reply("╭── ."+text.toLowerCase()+"\n│ Available in "+BOT_NAME+"\n│ Total: "+ALL_CMDS.length+"\n│ Use: ."+text.toLowerCase()+"\n╰── Owner: "+OWNER); return reply("❌ ."+text+" পাই নাই। .menu লেখো"); }
-      if(cmd === 'recent'){ let limit = parseInt(args[1]) || 20; if(limit > 800) limit = 800; if(recentMsgs.length === 0){ await reply('📭 0/800'); return; } let sliced = recentMsgs.slice(-limit); let txt = '📜 Recent ' + sliced.length + '/800\n\n' + sliced.map(function(r,i){ return (i+1) + '. ' + r.from.split('@')[0] + ': ' + r.body.slice(0,80); }).join('\n'); await reply(txt.slice(0,4000)); return; }
-      if(cmd === 'ping' || cmd === 'pong' || cmd === 'speed'){ let start = Date.now(); let speed = Date.now() - start + 45; let botPic = BOT_PIC; try{ botPic = await sock.profilePictureUrl(sock.user.id, 'image'); }catch{} let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nURL:'+CHANNEL+'\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard}]}}, {quoted:msg}); let txt = "🏖️ PONG: "+speed+" Ms\n━━━━━━━━━━━━━━\n👑 Bot: RANA X VIP ✔️\n👑 Owner: 01636487523\n📞 wa.me/8801636487523\n📦 Commands: "+ALL_CMDS.length+"\n⚡ Status: Online\n━━━━━━━━━━━━━━\n📢 Channel:\n"+CHANNEL; await sock.sendMessage(from, {image:{url:botPic}, caption: txt}, {quoted:msg}); return; }
-      if(cmd === 'cam' || cmd === 'pic') { await sock.sendMessage(from,{image:{url:BOT_PIC},caption: BOT_NAME}); return; }
-      if(cmd === 'owner' || cmd === 'creator'){ let vcard2 = 'BEGIN:VCARD\nVERSION:3.0\nFN:RANA X VIP ✔️\nORG:RANA X VIP BOT\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'; await sock.sendMessage(from, {contacts:{displayName:'RANA X VIP ✔️', contacts:[{displayName:'RANA X VIP ✔️', vcard:vcard2}]}}, {quoted:msg}); await reply("👑 OWNER: "+BOT_NAME+"\n📞 Number: "+OWNER+"\n📦 Commands: "+ALL_CMDS.length+"\n💬 wa.me/8801636487523\n📢 "+CHANNEL); return; }
-      if(cmd === 'welcome'){ if(arg === 'on') welcomeOn = true; else if(arg === 'off') welcomeOn = false; await reply(welcomeOn ? '✅ Welcome ON' : '❌ Welcome OFF'); return; }
-      if(cmd === 'emoji'){ if(arg === 'on') autoReactOn = true; else if(arg === 'off') autoReactOn = false; await reply(autoReactOn ? '✅ Emoji ON' : '❌ Emoji OFF'); return; }
-      if(cmd === 'joke') return reply("😂 JOKE: Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣");
-      if(cmd === 'meme') return reply("😂 MEME: Amar bot er 500+ command, ar amar exam e 0 number 😭🤣");
-      if(cmd === 'quote') return reply("💡 QUOTE: Shopno dekho boro, bot chalao RANA X VIP diye! 👑");
-      if(cmd === 'quran') return reply("🕌 Quran: Bismillahir Rahmanir Rahim - Allah Mohan! 🤲");
-      if(cmd === 'couple') return reply("❤️ Couple: Tumi ar tomar crush - Best Juti! 🥰");
-      if(cmd === 'love' || cmd === 'crush') return reply("💘 Crush: Tomar crush tomakeo valobashe! 99% sure! 🥰");
-      if(cmd === 'sticker' || cmd === 's') return reply("📌 Sticker banate chao? Photo pathaiya caption e .s লেখো ভাই!");
-      if(cmd === 'play' || cmd === 'song'){ if(!text) return reply("Gaan er nam dao! Ex: .play DJ PARI"); return reply("🎵 PLAY\nTitle: "+text+"\nChannel: RANA X MUSIC\nDuration: 3:04"); }
-      if(cmd === 'ai' || cmd === 'gpt' || cmd === 'ask'){ if(!text) return reply("Kichu jigges koro! Ex: .ai Bangladesh er capital ki?"); return reply("🤖 AI: "+text+" - Eita khub valo proshno! "+BOT_NAME+" bolche: Tumi best! 👑"); }
-      if(cmd === 'imagine' || cmd === 'draw'){ if(!text) return reply("Ki banabo? Ex: .imagine cute cat"); return reply("🎨 Imagine korchi: "+text+"..."); }
-      if(cmd === 'vv' || cmd === 'vv2' || cmd === 'vv3' || cmd === 'viewonce'){ let quoted = msg.message.extendedTextMessage?.contextInfo?.quotedMessage; let viewOnce = quoted?.viewOnceMessage || quoted?.viewOnceMessageV2 || quoted?.viewOnceMessageV2Extension; let inner = viewOnce?.message; let imgMsg = inner?.imageMessage || inner?.videoMessage; if(!imgMsg) return reply("❌ View Once pic/video er upore Reply diya .vv3 lekho bhai!"); try{ let type = inner?.imageMessage ? 'image' : 'video'; let stream = await downloadContentFromMessage(imgMsg, type); let buf = Buffer.concat([]); for await(let chunk of stream){ buf = Buffer.concat([buf, chunk]); } let bigCap = "╭───〔 👑 VV3 〕───╮\n│ "+BOT_NAME+"\n╰───────────────────╯\n\n✅ VIEW ONCE KHULA HOISE\n👑 Owner: "+OWNER+"\n📢 Channel: "+CHANNEL; if(type==='image') await sock.sendMessage(from,{image:buf,caption:bigCap},{quoted:msg}); else await sock.sendMessage(from,{video:buf,caption:bigCap},{quoted:msg}); }catch{ await reply("❌ VV3 khulte pari nai! Abar try koro!"); } return; }
-      if(cmd === 'tagall' || cmd === 'hidetag' || cmd === 'everyone'){ try{ let meta = await sock.groupMetadata(from); let members = meta.participants.map(p=>p.id); let txt = "👥 TAG ALL\nGroup: "+meta.subject+"\nTotal: "+members.length+" Members\n━━━━━━━━━━━━━━\n"; members.forEach((id)=> txt += "@"+id.split('@')[0]+"\n"); txt += "━━━━━━━━━━━━━━\n👑 RANA X VIP\n📢 "+CHANNEL; await sock.sendMessage(from, {text: txt, mentions: members}, {quoted:msg}); }catch{ await reply("❌ Group e use koro bhai!") } return; }
-      if(ALL_CMDS.includes(cmd)){ return reply("✅ ."+cmd+" - Kaj korche!\n📦 Command: ."+cmd+"\n👑 Owner: "+OWNER+"\n📢 "+CHANNEL); }
-    });
-  }catch(e){
-    console.log("START ERROR:", e.message);
-    sockMain = null;
-    if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot(); }, 5000);
+  }, {quoted: msg})
+}
+// ===== ⚠️ 1-2-3 WARNING SYSTEM =====
+async function doWarn(sock, from, sender, reason){
+  let key = from+"_"+sender; DB.warns[key] = (DB.warns[key]||0)+1; let count = DB.warns[key]; saveDB()
+  let num = sender.split('@')[0]
+  if(count >= 3){
+    await sock.sendMessage(from, { text: `╭─━─━─🚫─━─━─╮\n┃ ❌ REMOVED ❌ ┃\n╰─━─━─🚫─━─━─╯\n\n🚫 @${num} কে Remove করা হইছে!\n📛 কারণ: ${reason}\n⚠️ Warning: 3/3\n\n👑 ${BOT_NAME}` }, { mentions:[sender] })
+    try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{}
+    delete DB.warns[key]; saveDB()
+  } else {
+    await sock.sendMessage(from, { text: `╭─━─⚠️─━─╮\n┃ ⚠️ WARNING ${count}/3 ┃\n╰─━─⚠️─━─╯\n\n⚠️ @${num} - ${reason}\n📌 Warning: ${count}/3\n📛 3 বার হইলে Kick!\n\n👑 ${BOT_NAME}` }, { mentions:[sender] })
   }
 }
 
-let PORT = process.env.PORT || 10000;
-app.listen(PORT,'0.0.0.0',function(){ startBot(); console.log('RANA-X VIP Running on ' + PORT + ' | ' + ALL_CMDS.length + ' Commands'); });
+app.get('/', (req,res)=> res.send('<h1 style="text-align:center;font-family:sans-serif">👑 RANA-X-VIP-BOT<br><br>Commands: '+ALL_CMDS.length+'</h1>'))
+app.get('/pair', async (req,res)=>{
+  try{
+    let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '')
+    if(raw.startsWith('8800')) raw = '880' + raw.slice(4)
+    if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'})
+    if(isConnected) return res.json({error:'Bot Already Connected! /reset dao'})
+    if(Date.now() - lastPairTime < 20000) return res.json({error:'20 sec wait koro - Cooldown cholche!'})
+    if(!sockMain){
+      if(isStarting) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
+      await startBot(); await new Promise(r=> setTimeout(r, 3000))
+      if(!sockMain) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
+    }
+    lastPairTime = Date.now()
+    let code = await sockMain.requestPairingCode(raw); code = code.replace(/-/g,'')
+    let country = getCountryInfo(raw)
+    res.json({code, country: country.flag+' '+country.name, server: country.code})
+  }catch(e){ console.log("PAIR ERROR:", e.message); lastPairTime = 0; res.json({error: e.message}) }
+})
+app.get('/qr', async (req,res)=>{ if(!qrData) return res.json({error:'no qr'}); res.json({qr: await QRCode.toDataURL(qrData)}) })
+app.get('/reset', async (req,res)=>{
+  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
+  lastPairTime = 0
+  try{ if(sockMain) try{ await sockMain.logout() }catch{} }catch{}
+  try{ if(sockMain) try{ sockMain.end() }catch{} }catch{}
+  sockMain = null; try{ fs.rmSync('./session', {recursive:true, force:true}) }catch{}
+  isConnected = false; qrData = null; setTimeout(()=> startBot(), 1000); res.json({ok:true})
+})
+app.get('/status', (req,res)=> res.json({connected: isConnected, hasSock: !!sockMain}))
+
+async function startBot(){
+  if(isStarting) return; isStarting = true
+  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
+  try{ if(sockMain) try{ sockMain.end() }catch{} }catch{}; sockMain = null
+  try{
+    let sd = await useMultiFileAuthState('./session')
+    let ver = await fetchLatestBaileysVersion()
+    let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, P({level:'silent'}))}, logger: P({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined})
+    sockMain = sock; isStarting = false
+    sock.ev.on('creds.update', sd.saveCreds)
+    sock.ev.on('connection.update', async (u)=>{
+      if(u.qr) qrData = u.qr
+      if(u.connection === 'close'){
+        isConnected = false
+        let r = u.lastDisconnect?.error?.output?.statusCode
+        if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./session',{recursive:true,force:true}) }catch{}; sockMain = null; return }
+        if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot() }, 5000)
+      }
+      if(u.connection === 'open'){
+        isConnected = true; if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
+        console.log('RANA-X-VIP CONNECTED')
+        try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id }catch{}
+      }
+    })
+    sock.ev.on('group-participants.update', async (anu)=>{
+      try{
+        let meta = await sock.groupMetadata(anu.id)
+        let gName = meta.subject, memberCount = meta.participants.length
+        let date = new Date().toLocaleDateString('en-BD', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'long', year: 'numeric' })
+        let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true })
+        for(let num of anu.participants){
+          let userName = num.split('@')[0]
+          let pp; try{ pp = await sock.profilePictureUrl(num, 'image') }catch{ pp = BOT_PIC }
+          if(anu.action == 'add' && welcomeOn){
+            let t = getWelcomeMenu ? getWelcomeMenu(num, gName, memberCount, OWNER_NAME) : `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
+            await sock.sendMessage(anu.id, { image: { url: pp }, caption: t, mentions: [num] })
+          }
+          if(anu.action == 'remove' && goodbyeOn){
+            await sock.sendMessage(anu.id, { image: { url: pp }, caption: `💔 @${userName} চলে গেলো...\n🥺 মিস করবো!\n👥 এখন ${memberCount} জন\n╰─➤ *${BOT_NAME}* 👑`, mentions: [num] })
+          }
+          if(anu.action == 'promote'){ await sock.sendMessage(anu.id, { image: { url: pp }, caption: `🎉 অভিনন্দন @${userName}! তুমি এখন Admin! 👑`, mentions: [num] }) }
+          if(anu.action == 'demote'){ await sock.sendMessage(anu.id, { text: `😢 @${userName} কে Admin থেকে সরানো হইছে।`, mentions: [num] }) }
+        }
+      }catch(e){ console.log('Welcome Err:'+e.message) }
+    })
+    sock.ev.on('messages.upsert', async ({messages})=>{
+      const m = messages[0]; if(!m.message) return
+      const from = m.key.remoteJid
+      const isGroup = from.endsWith('@g.us')
+      const sender = m.key.participant || m.key.remoteJid
+      const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || ""
+      const qCtx = m.message.extendedTextMessage?.contextInfo
+      const mentioned = qCtx?.mentionedJid || []
+      const senderThumb = await getSenderThumb(sock, sender)
+      const sendV = async (txt) => sock.sendMessage(from, vBox(txt, senderThumb), {quoted:m})
+      const success = async (txt) => sock.sendMessage(from, vBox(txt.startsWith("✅")||txt.startsWith("❌") ? txt : "✅ "+txt, senderThumb), {quoted:m})
+      const getTarget = () => mentioned[0] || (qCtx?.participant) || null
+      const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro bhai!"); return false } let a = await isAdminCheck(sock, from, sender); if(!a && !isOwnerNum(sender)){ await sendV("❌ শুধু Group Admin ব্যবহার করতে পারবে!"); return false } return true }
+
+      if(recentOn && body){
+        try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from, { react: { text: e, key: m.key } }) }catch{}
+        recentMsgs.push({ txt: body.slice(0,60), user: sender.split('@')[0], emoji: "🔥" })
+        if(recentMsgs.length>30) recentMsgs.shift()
+      }
+
+      // ===== 🛡️ LINK / BAD WORD / SPAM - Command ছাড়া মেসেজেও ধরবে =====
+      if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
+        let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
+        if(!admin && !owner){
+          URL_REGEX.lastIndex=0
+          if(s.antilink && URL_REGEX.test(body)){
+            try{ await sock.sendMessage(from, {delete: m.key}) }catch{}
+            if(s.action==='kick'){
+              try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{}
+              await sock.sendMessage(from, { text: `🚫 @${sender.split('@')[0]} kicked - Antilink` }, {mentions:[sender]})
+            } else { await doWarn(sock, from, sender, "Link দিছে (Antilink)") }
+            return
+          }
+          let low = body.toLowerCase()
+          if(s.antibad && BAD_WORDS.some(w=> low.includes(w))){ try{ await sock.sendMessage(from, {delete: m.key}) }catch{}; await doWarn(sock, from, sender, "Bad Word"); return }
+          if(s.antispam){ let now=Date.now(); let k=from+"_"+sender; spamMap[k]=(spamMap[k]||[]).filter(t=> now-t<10000); spamMap[k].push(now); if(spamMap[k].length>=6){ spamMap[k]=[]; await doWarn(sock, from, sender, "Spam (6 msgs / 10s)"); return } }
+        }
+        return
+      }
+      if(!body.startsWith('.')) return
+      const args = body.slice(1).trim().split(/ +/)
+      const cmd = args[0].toLowerCase()
+      const text = args.slice(1).join(' ')
+      if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
+
+      // ===== 🛡️ Antilink / Warn Commands =====
+      if(cmd==='antilink'){
+        if(!await needAdmin()) return
+        if(text==='on'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink ON - Link দিলে Warning 1/2/3"); return }
+        if(text==='off'){ gSet(from).antilink=false; saveDB(); await success("❌ AntiLink OFF"); return }
+        if(text==='kick'){ gSet(from).antilink=true; gSet(from).action='kick'; saveDB(); await success("AntiLink action = kick"); return }
+        if(text==='warn'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink action = warn (1/2/3)"); return }
+        if(text==='delete'){ gSet(from).antilink=true; gSet(from).action='delete'; saveDB(); await success("AntiLink action = delete"); return }
+        await sendV("❌ Usage: .antilink on/off/kick/warn/delete\n📌 এখন: "+(gSet(from).antilink?"ON":"OFF")+" | Action: "+gSet(from).action); return
+      }
+      if(cmd==='antibadword'||cmd==='antibad'){ if(!await needAdmin()) return; if(text==='on'){ gSet(from).antibad=true; saveDB(); await success("Antibadword ON"); return } if(text==='off'){ gSet(from).antibad=false; saveDB(); await success("❌ Antibadword OFF"); return } await sendV(gSet(from).antibad?"✅ Antibadword: ON":"❌ Antibadword: OFF"); return }
+      if(cmd==='antispam'){ if(!await needAdmin()) return; if(text==='on'){ gSet(from).antispam=true; saveDB(); await success("Antispam ON"); return } if(text==='off'){ gSet(from).antispam=false; saveDB(); await success("❌ Antispam OFF"); return } await sendV(gSet(from).antispam?"✅ Antispam: ON":"❌ Antispam: OFF"); return }
+      if(cmd==='warn'){ if(!await needAdmin()) return; let t=getTarget(); if(!t) return sendV("❌ কাকে Warn করবো? Reply / Tag করো"); await doWarn(sock, from, t, "Admin দিছে Warn"); return }
+      if(cmd==='resetwarn'){ if(!await needAdmin()) return; let t=getTarget(); if(t){ delete DB.warns[from+"_"+t]; saveDB() } await success("Warn Clear!"); return }
+      if(cmd==='warns'){ let t=getTarget()||sender; await sendV("⚠️ @"+t.split('@')[0]+" এর Warn: "+(DB.warns[from+"_"+t]||0)+"/3"); return }
+
+      if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); return }
+      if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); return }
+      if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); return }
+      if(cmd==='goodbye' && text==='off'){ goodbyeOn=false; await success("Goodbye OFF"); return }
+      if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON"); return }
+      if(cmd==='recent' && text==='off'){ recentOn=false; await sendV("❌ Recent OFF"); return }
+      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); return }
+      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
+      if(cmd==='recent' || cmd==='trending'){
+        let r = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
+        await sendV(`🔥 *RECENT*\n\n${r||"No recent yet"}\n\n💜 ${BOT_NAME}`)
+        return
+      }
+      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
+      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
+      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online`); return }
+
+      let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, axios, getCatMenu: null, getWelcomeMenu })
+      if(done) return
+      if(ALL_CMDS.includes(cmd)){ await success("."+cmd+" Successful!"); return }
+    })
+  }catch(e){
+    console.log("START ERROR:", e.message)
+    sockMain = null; isStarting = false
+    if(!restartTimer) restartTimer = setTimeout(()=>{ restartTimer = null; startBot() }, 5000)
+  }
+}
+
+let PORT = process.env.PORT || 10000
+app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands') })
