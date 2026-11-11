@@ -41,7 +41,6 @@ function getCountryInfo(num){
   for(let k of keys){ if(num.startsWith(k)) return list[k] }
   return {name:"International", flag:"🌍", code:"INT"}
 }
-// ✅ vBox সাদা - Thumbnail নাই, Waiting আসবে না
 function vBox(txt, thumb){ return { text: txt } }
 let _botPicCache = null
 async function getBotThumb(){
@@ -50,17 +49,34 @@ async function getBotThumb(){
 }
 async function getSenderThumb(sock, sender){ return await getBotThumb() }
 
-// ✅ MENU - Pic সহ, Image + Caption, Thumbnail না
+// ✅ MENU - Pic + View Channel Button - FINAL
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let menuTxt = ""
   try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
   let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┃ 🌍 PUBLIC - সবাই Use করতে পারবে\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
-  // Pic সহ Menu - BOT_PIC দিয়ে Image পাঠাই, externalAdReply দিয়ে না
   try{
-    await sock.sendMessage(from, { image: { url: BOT_PIC }, caption: pretty }, {quoted: msg})
+    await sock.sendMessage(from, {
+      image: { url: BOT_PIC },
+      caption: pretty,
+      contextInfo: {
+        externalAdReply: {
+          title: "RANA-X-VIP-BOT 👑",
+          body: "01636487523 • Tap to View Channel",
+          thumbnailUrl: BOT_PIC,
+          mediaType: 1,
+          sourceUrl: CHANNEL,
+          renderLargerThumbnail: false,
+          showAdAttribution: true
+        },
+        forwardedNewsletterMessageInfo: {
+          newsletterJid: CHANNEL_JID || "120207000000000000@newsletter",
+          newsletterName: "RANA-X-VIP-BOT",
+          serverMessageId: 1
+        }
+      }
+    }, {quoted: msg})
   }catch(e){
-    // Pic না আসলে খালি Text পাঠাবে, Bot মরবে না
-    await sock.sendMessage(from, { text: pretty }, {quoted: msg})
+    await sock.sendMessage(from, { image: { url: BOT_PIC }, caption: pretty }, {quoted: msg})
   }
 }
 async function doWarn(sock, from, sender, reason){
@@ -240,7 +256,6 @@ async function startBot(){
       const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
 
-      // PUBLIC - সবাই Use করতে পারবে
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online - PUBLIC`); return }
@@ -286,4 +301,4 @@ async function startBot(){
 }
 
 let PORT = process.env.PORT || 10000
-app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC | PIC FIXED') })
+app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC | PIC + VIEW CHANNEL FIXED') })
