@@ -22,9 +22,8 @@ let restartTimer = null, lastPairTime = 0, isStarting = false
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜"]
 const recentMsgs = [], recentCmds = []
 let userBal = {}, userXp = {}
-// ✅ UNLIMITED - প্রত্যেক নাম্বারের আলাদা Bot
-const sessions = new Map() // number -> { sock, connected, qr, starting }
-const pairCooldown = new Map() // number -> lastTime
+// ✅ UNLIMITED - prottek number er alada Bot, kono limit nai
+const sessions = new Map()
 
 let DB = { groups:{}, warns:{} }
 try{ if(fs.existsSync('./ultra_db.json')) DB = JSON.parse(fs.readFileSync('./ultra_db.json')) }catch{}
@@ -129,23 +128,24 @@ app.get('/', function(req,res){
 '<\/script></body></html>')
 })
 
-// ✅ UNLIMITED PAIR - age isConnected diye block chilo, ekhon nai
+// ✅ UNLIMITED PAIR - kono cooldown nai, kono already-connected block nai
 app.get('/pair', async (req,res)=>{
   try{
     let raw = (req.query.number||'').replace(/[^0-9]/g,'').replace(/^0+/, '')
     if(raw.startsWith('8800')) raw = '880' + raw.slice(4)
     if(!raw || raw.length < 8) return res.json({error:'Sothik number dao!'})
-    // ✅ Per-number cooldown - ek number 20 sec por por, onno number atkano jabe na
-    let last = pairCooldown.get(raw) || 0
-    if(Date.now() - last < 20000) return res.json({error:'20 sec wait koro - Cooldown cholche!'})
     let sess = sessions.get(raw)
-    if(sess && sess.connected) return res.json({error:'Ei number already connected! Onno number diye try koro'})
     if(!sess){
       sess = await startBot(raw)
-      if(!sess || !sess.sock) return res.json({error:'Bot starting, 5 sec por abar chap dao'})
+      if(!sess || !sess.sock) return res.json({error:'Bot starting, abar chap dao'})
+      await new Promise(r=> setTimeout(r, 4000))
     }
-    pairCooldown.set(raw, Date.now())
-    let code = await sess.sock.requestPairingCode(raw); code = code.replace(/-/g,'')
+    let code = ""
+    for(let i=0;i<3;i++){
+      try{ code = await sess.sock.requestPairingCode(raw); break }catch(e){ await new Promise(r=> setTimeout(r, 2000)) }
+    }
+    if(!code) return res.json({error:'Abar chap dao'})
+    code = code.replace(/-/g,'')
     let country = getCountryInfo(raw)
     res.json({code, country: country.flag+' '+country.name, server: country.code})
   }catch(e){ console.log("PAIR ERROR:", e.message); res.json({error: e.message}) }
@@ -159,7 +159,6 @@ app.get('/reset', async (req,res)=>{
     try{ fs.rmSync('./sessions/'+raw, {recursive:true, force:true}) }catch{}
     return res.json({ok:true, number: raw})
   }
-  if(restartTimer){ clearTimeout(restartTimer); restartTimer = null }
   lastPairTime = 0
   try{ if(sockMain) try{ await sockMain.logout() }catch{} }catch{}
   try{ if(sockMain) try{ sockMain.end() }catch{} }catch{}
@@ -168,7 +167,6 @@ app.get('/reset', async (req,res)=>{
 })
 app.get('/status', (req,res)=> res.json({connected: sessions.size, totalBots: sessions.size, bots: [...sessions.keys()], hasSock: !!sockMain}))
 
-// ✅ startBot(number) - prottek number er alada session
 async function startBot(number){
   let numKey = number || OWNER
   let existing = sessions.get(numKey)
@@ -188,7 +186,9 @@ async function startBot(number){
         sess.connected = false; isConnected = false
         let r = u.lastDisconnect?.error?.output?.statusCode
         if(r === DisconnectReason.loggedOut){ try{ fs.rmSync('./sessions/'+numKey,{recursive:true,force:true}) }catch{}; sessions.delete(numKey); return }
-        setTimeout(()=>{ if(!sessions.has(numKey)) return; startBot(numKey) }, 5000)
+        // ✅ reconnect - puran sess delete kore notun kore
+        sessions.delete(numKey)
+        setTimeout(()=>{ startBot(numKey) }, 5000)
       }
       if(u.connection === 'open'){
         sess.connected = true; isConnected = true
@@ -230,15 +230,12 @@ async function startBot(number){
       const success = async (txt) => sock.sendMessage(from, vBox(txt.startsWith("✅")||txt.startsWith("❌") ? txt : "✅ "+txt, senderThumb), {quoted:m})
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro bhai!"); return false } let a = await isAdminCheck(sock, from, sender); if(!a && !isOwnerNum(sender)){ await sendV("❌ শুধু Group Admin ব্যবহার করতে পারবে!"); return false } return true }
-
-      // ✅ FIX: React er emoji tai Recent e jabe
       if(recentOn && body && !m.key.fromMe){
         let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]
         try{ await sock.sendMessage(from, { react: { text: e, key: m.key } }) }catch{}
         recentMsgs.push({ txt: body.slice(0,60), user: sender.split('@')[0], emoji: e })
         if(recentMsgs.length>30) recentMsgs.shift()
       }
-
       if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
         let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
         if(!admin && !owner){
@@ -262,7 +259,6 @@ async function startBot(number){
       const cmd = args[0].toLowerCase()
       const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
-
       if(cmd==='antilink'){
         if(!await needAdmin()) return
         if(text==='on'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink ON - Link দিলে Warning 1/2/3"); return }
@@ -277,7 +273,6 @@ async function startBot(number){
       if(cmd==='warn'){ if(!await needAdmin()) return; let t=getTarget(); if(!t) return sendV("❌ কাকে Warn করবো? Reply / Tag করো"); await doWarn(sock, from, t, "Admin দিছে Warn"); return }
       if(cmd==='resetwarn'){ if(!await needAdmin()) return; let t=getTarget(); if(t){ delete DB.warns[from+"_"+t]; saveDB() } await success("Warn Clear!"); return }
       if(cmd==='warns'){ let t=getTarget()||sender; await sendV("⚠️ @"+t.split('@')[0]+" এর Warn: "+(DB.warns[from+"_"+t]||0)+"/3"); return }
-
       if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); return }
       if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); return }
       if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); return }
@@ -294,7 +289,6 @@ async function startBot(number){
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online`); return }
-
       let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, axios, getCatMenu: null, getWelcomeMenu })
       if(done) return
       if(ALL_CMDS.includes(cmd)){ await success("."+cmd+" Successful!"); return }
@@ -308,4 +302,11 @@ async function startBot(number){
 }
 
 let PORT = process.env.PORT || 10000
-app.listen(PORT,'0.0.0.0',()=>{ console.log('RANA-X VIP UNLIMITED Running on '+PORT+' | '+ALL_CMDS.length+' Commands | View Channel + Recent + Unlimited Pair') })
+app.listen(PORT,'0.0.0.0',()=>{
+  console.log('RANA-X VIP UNLIMITED Running on '+PORT+' | '+ALL_CMDS.length+' Commands')
+  try{
+    if(fs.existsSync('./sessions')){
+      for(let f of fs.readdirSync('./sessions')){ startBot(f) }
+    }
+  }catch{}
+})
