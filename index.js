@@ -16,10 +16,11 @@ const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
 let CHANNEL_JID = ""
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
 
-let welcomeOn = true, goodbyeOn = true, autoReactOn = true, recentOn = true
+// PUBLIC MODE - সবাই Use করতে পারবে
+let welcomeOn = true, goodbyeOn = true, recentOn = false
 let sockMain = null, isConnected = false, qrData = null
 let restartTimer = null, lastPairTime = 0, isStarting = false
-const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜"]
+const EMOJI = ["❤️","🔥","👑","😎","✨","💖"]
 const recentMsgs = [], recentCmds = []
 let userBal = {}, userXp = {}
 
@@ -41,9 +42,8 @@ function getCountryInfo(num){
   for(let k of keys){ if(num.startsWith(k)) return list[k] }
   return {name:"International", flag:"🌍", code:"INT"}
 }
-function vBox(txt, thumb){
-  return { text: txt, contextInfo: { externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: thumb || null, mediaType: 1, sourceUrl: "https://whatsapp.com", renderLargerThumbnail: false, showAdAttribution: true } } }
-}
+// ✅ PUBLIC FIX - vBox সাদা, কোনো Thumbnail / Box নাই, Waiting আসবে না
+function vBox(txt, thumb){ return { text: txt } }
 let _botPicCache = null
 async function getBotThumb(){
   if(_botPicCache) return _botPicCache
@@ -51,18 +51,12 @@ async function getBotThumb(){
 }
 async function getSenderThumb(sock, sender){ return await getBotThumb() }
 
-// ✅ FIX 1 - MENU: Forward / Newsletter মুছে দিছি, Waiting আসবে না, Channel শুধু Menu তে থাকবে
+// ✅ PUBLIC FIX - MENU: সাদা, Channel খালি Menu তে, Forward/Newsletter নাই
 async function sendMenuWithChannel(sock, from, msg, thumb){
-  let botPic = await getBotThumb()
   let menuTxt = ""
   try{ menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL) }catch{ menuTxt = `👑 ${BOT_NAME} 👑\nTotal: ${ALL_CMDS.length} Commands\nOwner: 01636487523` }
-  let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
-  await sock.sendMessage(from, {
-    text: pretty,
-    contextInfo: {
-      externalAdReply: { title: "WhatsApp ✅", body: "01636487523 • Status | Contact: RANA", thumbnail: botPic, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true }
-    }
-  }, {quoted: msg})
+  let pretty = `╭─━─━─━─💜─━─━─━─╮\n┃ 👑 𝗥𝗔𝗡𝗔-𝗫-𝗩𝗜𝗣 👑 ┃\n╰─━─━─━─💜─━─━─━─╯\n\n${menuTxt}\n\n┏━━━━━━━━━━━━━━┓\n┃ 👑 Owner: ${OWNER_NAME}\n┃ 📞 01636487523\n┃ 📦 ${ALL_CMDS.length}+ Commands\n┃ 🔥 Status: Online\n┃ 🌍 PUBLIC - সবাই Use করতে পারবে\n┗━━━━━━━━━━━━━━┛\n\n📢 *Channel:* ${CHANNEL}\n╰─➤ *POWERED BY RANA X VIP* 👑💜`
+  await sock.sendMessage(from, { text: pretty }, {quoted: msg})
 }
 async function doWarn(sock, from, sender, reason){
   let key = from+"_"+sender; DB.warns[key] = (DB.warns[key]||0)+1; let count = DB.warns[key]; saveDB()
@@ -192,7 +186,7 @@ async function startBot(){
           let userName = num.split('@')[0]
           let pp = BOT_PIC
           if(anu.action == 'add' && welcomeOn){
-            // ✅ FIX 2 - Welcome এ Channel Link নাই, খালি Menu তে থাকবে
+            // ✅ Welcome - Channel নাই, খালি Menu তে আছে, PUBLIC
             let t = `╭─━─💜─━─╮\n┃ ✨ WELCOME ✨ ┃\n╰─━─💜─━─╯\n\n🌸 হ্যালো @${userName} !\n💖 *${gName}* এ স্বাগতম!\n👥 মোট: ${memberCount} জন\n📅 ${date} | 🕒 ${time}\n👑 Owner: ${OWNER_NAME}\n\n💡 .menu লিখে সব দেখো`
             await sock.sendMessage(anu.id, { image: { url: pp }, caption: t, mentions: [num] })
           }
@@ -218,11 +212,8 @@ async function startBot(){
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro bhai!"); return false } let a = await isAdminCheck(sock, from, sender); if(!a && !isOwnerNum(sender)){ await sendV("❌ শুধু Group Admin ব্যবহার করতে পারবে!"); return false } return true }
 
-      if(recentOn && body){
-        try{ let e = EMOJI[Math.floor(Math.random()*EMOJI.length)]; await sock.sendMessage(from, { react: { text: e, key: m.key } }) }catch{}
-        recentMsgs.push({ txt: body.slice(0,60), user: sender.split('@')[0], emoji: "🔥" })
-        if(recentMsgs.length>30) recentMsgs.shift()
-      }
+      // ✅ PUBLIC FIX - React একদম বন্ধ, Waiting এর আসল কারণ ছিল এইটা
+      // আগে এখানে react ছিল, এখন নাই
 
       if(isGroup && body && !body.startsWith('.') && !m.key.fromMe){
         let s = gSet(from); let admin = await isAdminCheck(sock, from, sender); let owner = isOwnerNum(sender)
@@ -248,6 +239,14 @@ async function startBot(){
       const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
 
+      // ✅ PUBLIC - এই কমান্ড গুলা সবাই Use করতে পারবে, Admin লাগবে না
+      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
+      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
+      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online - PUBLIC`); return }
+      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON - PUBLIC":"❌ Welcome: OFF"); return }
+      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
+
+      // Admin কমান্ড - খালি Admin / Owner
       if(cmd==='antilink'){
         if(!await needAdmin()) return
         if(text==='on'){ gSet(from).antilink=true; gSet(from).action='warn'; saveDB(); await success("AntiLink ON - Link দিলে Warning 1/2/3"); return }
@@ -263,22 +262,17 @@ async function startBot(){
       if(cmd==='resetwarn'){ if(!await needAdmin()) return; let t=getTarget(); if(t){ delete DB.warns[from+"_"+t]; saveDB() } await success("Warn Clear!"); return }
       if(cmd==='warns'){ let t=getTarget()||sender; await sendV("⚠️ @"+t.split('@')[0]+" এর Warn: "+(DB.warns[from+"_"+t]||0)+"/3"); return }
 
-      if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); return }
-      if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); return }
-      if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); return }
-      if(cmd==='goodbye' && text==='off'){ goodbyeOn=false; await success("Goodbye OFF"); return }
+      if(cmd==='welcome' && text==='on'){ if(!await needAdmin()) return; welcomeOn=true; await success("Welcome ON"); return }
+      if(cmd==='welcome' && text==='off'){ if(!await needAdmin()) return; welcomeOn=false; await success("Welcome OFF"); return }
+      if(cmd==='goodbye' && text==='on'){ if(!await needAdmin()) return; goodbyeOn=true; await success("Goodbye ON"); return }
+      if(cmd==='goodbye' && text==='off'){ if(!await needAdmin()) return; goodbyeOn=false; await success("Goodbye OFF"); return }
       if(cmd==='recent' && text==='on'){ recentOn=true; await success("Recent ON"); return }
       if(cmd==='recent' && text==='off'){ recentOn=false; await sendV("❌ Recent OFF"); return }
-      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); return }
-      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
       if(cmd==='recent' || cmd==='trending'){
         let r = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
         await sendV(`🔥 *RECENT*\n\n${r||"No recent yet"}\n\n💜 ${BOT_NAME}`)
         return
       }
-      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
-      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sendV("📢 Follow Channel:\n"+CHANNEL); return }
-      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online`); return }
 
       let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, axios, getCatMenu: null, getWelcomeMenu })
       if(done) return
@@ -292,4 +286,4 @@ async function startBot(){
 }
 
 let PORT = process.env.PORT || 10000
-app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands') })
+app.listen(PORT,'0.0.0.0',()=>{ startBot(); console.log('RANA-X VIP Running on '+PORT+' | '+ALL_CMDS.length+' Commands | PUBLIC') })
