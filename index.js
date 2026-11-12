@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - DESIGN 2 - SERVER SELECT + SONG + VIDEO + ROMANTIC + DJ + FUNNY + PUBLIC/PRIVATE =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FIXED - DESIGN 2 + BOT ID VIEW + SONG FIX =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -44,7 +44,6 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
   }catch{}
   await sock.sendMessage(from, { text: menuTxt+"\n\n📢 *Channel:* "+CHANNEL, contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 }, externalAdReply: { title: "📢 View Channel", body: "RANA X VIP - Tap to View Channel", thumbnail: picBuf, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: msg})
 }
-// ✅ DESIGN 2 - SELECT SERVER + STEP 1 - ETAI THAKBO
 app.get('/', function(req,res){
   res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;padding:12px}.card{background:#121212;border:1px solid #242424;border-radius:28px;padding:22px 18px;width:100%;max-width:420px}.icon{width:80px;height:80px;margin:6px auto 12px;border-radius:20px;overflow:hidden}.icon img{width:100%;height:100%;object-fit:cover}h1{text-align:center;font-size:26px;margin:4px 0}.o{color:#ff6a00}.sub{text-align:center;color:#777;font-size:13px;margin:8px 0 14px}.status{text-align:center}.pill{display:inline-block;background:#1e1e1e;color:#666;font-size:11px;padding:6px 14px;border-radius:20px;letter-spacing:1px}.label{font-size:11px;color:#666;letter-spacing:1.5px;display:flex;justify-content:space-between;margin:16px 0 8px}.label b{color:#ff6a00;font-weight:400;cursor:pointer}.server{border:1.5px solid #2a2a2a;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer}.server.active{border-color:#ff5a00;background:#1a0f08}.dot{width:28px;height:28px;border-radius:50%;border:2px solid #333;display:flex;align-items:center;justify-content:center;flex-shrink:0}.server.active .dot{border-color:#ff5a00}.server.active .dot:after{content:'';width:12px;height:12px;background:#ff5a00;border-radius:50%;display:block}.sname{font-weight:800;font-size:16px}.ssub{font-size:12px;color:#666}.scount{margin-left:auto;color:#555;font-size:13px}.steps{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px 0}.step{width:38px;height:38px;border-radius:50%;background:#1e1e1e;color:#666;display:flex;align-items:center;justify-content:center;font-weight:800}.step.active{background:linear-gradient(135deg,#ff4500,#ff8c00);color:#fff}.line{width:40px;height:2px;background:#2a2a2a}.stitle{font-size:11px;color:#888;letter-spacing:1.5px}.ssub2{font-size:12px;color:#555;margin:2px 0 10px}.phoneBox{display:flex;gap:8px}.cc{width:78px;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff}.num{flex:1;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff}.check{display:flex;gap:18px;margin:14px 0;flex-wrap:wrap}.check label{font-size:13px;color:#888;display:flex;gap:8px;align-items:center}.check input{accent-color:#ff5a00;width:18px;height:18px}.btn{width:100%;margin-top:6px;padding:15px;background:linear-gradient(135deg,#ff4500,#ff8c00);border:none;border-radius:14px;color:#fff;font-weight:900;font-size:15px}.box{margin-top:14px;padding:14px;border-radius:14px;display:none;justify-content:space-between;background:#0e0e0e;border:1.5px dashed #ff5a00}.code{font-size:28px;font-weight:900;color:#ff8c00}.qrbox{margin-top:14px;padding:14px;background:#0e0e0e;border-radius:16px;display:none;text-align:center}.qrbox img{width:230px;height:230px;background:#fff;padding:8px;border-radius:12px}.foot{margin-top:14px;display:flex;justify-content:space-between}.foot a,.foot button{background:none;border:none;color:#ff6a00;font-size:13px}</style></head><body><div class=card><div class=icon><img src="${BOT_PIC}"></div><h1>RANA-<span class=o>X-VIP-</span>BOT</h1><p class=sub>Enter your WhatsApp number to link your device.</p><div class=status><span class=pill>● CONNECTING...</span></div><div class=label><span>SELECT SERVER</span><b onclick="location.reload()">↻ refresh</b></div><div class="server active" onclick="selServer(this,'heroku')"><div class=dot></div><div><div class=sname>heroku</div><div class=ssub>Fast • Recommended</div></div><div class=scount>-/100</div></div><div class="server" onclick="selServer(this,'railway')"><div class=dot></div><div><div class=sname>railway</div><div class=ssub>Backup Server</div></div><div class=scount>-/100</div></div><div class=steps><div class="step active">1</div><div class=line></div><div class=step>2</div><div class=line></div><div class=step>3</div></div><div class=stitle>STEP 1 - YOUR NUMBER</div><div class=ssub2>WhatsApp number, with country code</div><div class=phoneBox><input id=c class=cc value="+880"><input id=num class=num placeholder="16XXXXXXXX"></div><div class=check><label><input type=checkbox checked> Enable sound</label><label><input type=checkbox> Video on</label></div><label style="font-size:13px;color:#888;display:flex;gap:8px;align-items:center"><input type=checkbox checked style="accent-color:#ff5a00;width:18px;height:18px"> Remember this number on this device</label><button class=btn onclick="getPair()">⚡ Get Pair Code</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:8px 14px;background:#ff5a00;color:#fff;border:none;border-radius:8px">Copy</button></div><div id=res style="margin-top:10px;text-align:center"></div><div style="margin-top:12px;padding:12px;border-radius:14px;background:#0e1a2a;text-align:center"><b>✈️ TELEGRAM থেকে Pair Code নাও</b><br><small>Telegram এ <b>@RanaXVIPBot</b> কে <b>/pair 88016XXXXXXXX</b> লিখো</small></div><div class=foot><button onclick="showQR()">📷 Use QR Code</button><a href="${CHANNEL}" target="_blank">📢 Join Channel</a></div><div id=qrbox class=qrbox><img id=qimg src=""></div></div><script>let server='heroku';function selServer(el,s){server=s;document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));el.classList.add('active');}async function getPair(){let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880";let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/,"");let full=c+n;if(full.length<10){alert("Valid number dao");return;}let r=document.getElementById("res");r.innerText="⚡ Connecting...";try{let d=await (await fetch("/pair?number="+full)).json();if(d.code){document.getElementById("code").innerText=d.code;document.getElementById("box").style.display="flex";r.innerText="";}else{r.innerText="❌ "+d.error;}}catch(e){r.innerText="❌ Server Error";}}function copyCode(){let t=document.getElementById("code").innerText;navigator.clipboard.writeText(t);}function showQR(){document.getElementById("qrbox").style.display="block";getQR();}async function getQR(){let d=await (await fetch("/qr")).json();if(d.qr)document.getElementById("qimg").src=d.qr;}</script></body></html>`)
 })
@@ -73,7 +72,7 @@ async function startBot(number){
     if(!fs.existsSync('./sessions')) fs.mkdirSync('./sessions', {recursive:true})
     let sd = await useMultiFileAuthState('./sessions/'+numKey)
     let ver = await fetchLatestBaileysVersion()
-    let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, P({level:'silent'}))}, logger: P({level:'silent'}), browser: CHROME, markOnlineOnConnect: false, syncFullHistory: false, getMessage: async ()=> undefined})
+    let sock = makeWASocket({version: ver.version, auth: {creds: sd.state.creds, keys: makeCacheableSignalKeyStore(sd.state.keys, P({level:'silent'}))}, logger: P({level:'silent'}), browser: CHROME, markOnlineOnConnect: true, syncFullHistory: true, getMessage: async ()=> undefined})
     sess.sock = sock; sockMain = sock
     sock.ev.on('creds.update', sd.saveCreds)
     sock.ev.on('connection.update', async (u)=>{
@@ -114,13 +113,15 @@ async function startBot(number){
         let r1 = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
         await sendV(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`); continue
       }
-      if(globalThis.BOT_STATE.autoReactOn && globalThis.BOT_STATE.recentOn && hasAnyMsg && (!m.key.fromMe || isGroup)){
+      if(globalThis.BOT_STATE.autoReactOn && globalThis.BOT_STATE.recentOn && hasAnyMsg && !m.key.fromMe && body && !body.startsWith('.')){
         try{
-          let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
-          await sock.sendMessage(from, { react: { text: randomEmoji, key: m.key } })
-          let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message")
-          recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], emoji: randomEmoji })
-          if(recentMsgs.length>30) recentMsgs.shift()
+          if(Math.random() < 0.4){
+            let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
+            await sock.sendMessage(from, { react: { text: randomEmoji, key: m.key } })
+            let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message")
+            recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], emoji: randomEmoji })
+            if(recentMsgs.length>30) recentMsgs.shift()
+          }
         }catch(e){ console.log("React Err:", e.message) }
       }
       if(isGroup && globalThis.BOT_STATE.antilinkOn && body && !m.key.fromMe){
@@ -240,29 +241,34 @@ async function startBot(number){
       }
       if(cmd==='song' || cmd==='play' || cmd==='gan' || cmd==='music' || cmd==='gaan' || cmd==='gana'){
         if(!text){ await sendV("❌ গানের নাম দে ভাই!\nEx: .song Ami Tomake Valobashi"); continue }
+        let searchQ = text.replace(/balobasi/gi, "Bhalobashi").replace(/valobashi/gi, "Valobashi")
         await sendV("🔍 খুঁজতেছি... *"+text+"*")
         let found = false
-        try{
-          let servers = ["https://piped.video", "https://pipedapi.kavin.rocks", "https://pipedapi-libre.kavin.rocks", "https://pipedapi.adminforge.de", "https://pipedapi.leptons.xyz", "https://pipedapi.reallyaweso.me", "https://inv.nadeko.net"]
-          let v = null, svUsed = ""
-          for(let sv of servers){
-            try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{}
-          }
-          if(v){
-            let vid = (v.url || "").split("watch?v=")[1] || v.id
-            let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
-            let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]
-            audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-            let audioUrl = audios[0]?.url
-            if(audioUrl){
-              let aud = await axios.get(audioUrl, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-              if(aud.data.byteLength < 500000) throw new Error("Too short")
-              await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", ptt: false, contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - FULL SONG", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
-              await sock.sendMessage(from, { image: botThumb, caption: `🎵 *${v.title || text}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ উপরের Audio তে চাপ দিলেই গ্রুপে ফুল গান বাজবো!` }, {quoted: m})
-              found = true
+        let tries = [searchQ, searchQ+" song", searchQ+" official"]
+        for(let q of tries){
+          if(found) break
+          try{
+            let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video","https://inv.nadeko.net","https://invidious.0011.lt"]
+            let v = null, svUsed = ""
+            for(let sv of servers){
+              try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{}
             }
-          }
-        }catch(e){ console.log("Piped song fail:", e.message) }
+            if(v){
+              let vid = (v.url || "").split("watch?v=")[1] || v.id
+              let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
+              let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]
+              audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+              let audioUrl = audios[0]?.url
+              if(audioUrl){
+                let aud = await axios.get(audioUrl, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+                if(aud.data.byteLength < 500000) continue
+                await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", ptt: false, contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - FULL SONG", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+                await sock.sendMessage(from, { image: botThumb, caption: `🎵 *${v.title || text}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ উপরের Audio তে চাপ দিলেই গ্রুপে ফুল গান বাজবো!` }, {quoted: m})
+                found = true
+              }
+            }
+          }catch(e){ console.log("Piped song fail:", e.message) }
+        }
         if(!found) await sendV("❌ ফুল গান পাইলাম না! ২ মিনিট পরে আবার লেখ:\nEx: .song Ami Tomake Valobashi")
         continue
       }
@@ -271,9 +277,10 @@ async function startBot(number){
         if(['romantic','romanticvideo','lovevideo'].includes(cmd)) query = text || "romantic bangla song"
         if(['dj','djbangla','djsong','djvideo'].includes(cmd)) query = text || "dj bangla song"
         if(['funny','funnyvideo','comedy','fany'].includes(cmd)) query = text || "funny bangla video"
+        query = query.replace(/balobasi/gi, "Bhalobashi")
         await sendV("🎬 খুঁজতেছি... *"+query+"*")
         try{
-          let servers = ["https://piped.video", "https://pipedapi.kavin.rocks", "https://pipedapi.adminforge.de", "https://pipedapi.leptons.xyz"]
+          let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video"]
           let v = null, svUsed = ""
           for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
           if(!v){ await sendV("❌ ভিডিও পাইলাম না!"); continue }
@@ -297,7 +304,7 @@ async function startBot(number){
         if(!text){ await sendV("❌ ভিডিও গানের নাম দে!\nEx: .video Ami Tomake Valobashi"); continue }
         await sendV("🎬 ভিডিও খুঁজতেছি... *"+text+"*")
         try{
-          let servers = ["https://piped.video", "https://pipedapi.kavin.rocks", "https://pipedapi.adminforge.de"]
+          let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://piped.video"]
           let v = null, svUsed = ""
           for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 15000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
           if(!v){ await sendV("❌ ভিডিও পাইলাম না!"); continue }
@@ -323,7 +330,7 @@ async function startBot(number){
           if(text){
             await sendV("🔍 খুঁজতেছি... *"+text+"* (Audio)")
             try{
-              let servers = ["https://piped.video", "https://pipedapi.kavin.rocks"]
+              let servers = ["https://pipedapi.kavin.rocks","https://piped.video"]
               let v=null, svUsed=""
               for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 12000}); let items = r.data?.items||[]; v=items[0]; if(v){svUsed=sv;break} }catch{} }
               if(v){
