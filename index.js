@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - RANDOM EMOJI REACT FIXED =====
+// ===== RANA-X-VIP-BOT - FULL index.js - BODY FIXED =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -19,7 +19,6 @@ let welcomeOn = true, goodbyeOn = true, recentOn = true, autoReactOn = true
 let antilinkOn = true
 let warnCount = {}
 let sockMain = null, isConnected = false, qrData = null
-// ✅ RANDOM EMOJI - অনেক গুলা, প্রতিবার আলাদা আসবো
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","😘","😗","🤗","🤩","😋","🤫","🤭","🫣","🤔","😌","🥺","😭","😤","👋","🤚","👌","✌️","🤞","🫰","🤟","👍","👎","👊","👏","🙌","🫶","🤝","🙏","💪","😃","😄","😆","😉","😜","🤪","😇","🥰","😻","🙈","🙉","🙊","🐶","🐱","🦁","🐯","🦊","🐼","🌹","🌻","🍓","🍒","🍕","🍔","⚽","🎮","🎲","🎸","🎧","🚀","💎","👑","🦋","🌈","☀️","🌙","⭐","🔥","💥","🎊","🎁"]
 const recentMsgs = [], recentCmds = []
 const sessions = new Map()
@@ -140,10 +139,11 @@ async function startBot(number){
       }catch(e){ console.log('Welcome Err:'+e.message) }
     })
     sock.ev.on('messages.upsert', async ({messages})=>{
-      const m = messages[0]; if(!m.message || !m.key) return
+      for(const m of messages){
+      if(!m.message || !m.key) continue
       const from = m.key.remoteJid; const isGroup = from.endsWith('@g.us'); const sender = m.key.participant || m.key.remoteJid
-      // ✅ BODY - সব টাইপের মেসেজ ধরবো
-      const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || m.message.buttonsResponseMessage?.selectedButtonId || m.message.templateButtonReplyMessage?.selectedId || m.message.stickerMessage ? "sticker" : "" || m.message.audioMessage ? "audio" : "" || m.message.documentMessage ? "doc" : ""
+      // ✅ FIXED BODY - আগের ভুল লাইন ঠিক করা, এখন .menu কে .menu ই ভাববো
+      const body = m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || m.message.videoMessage?.caption || m.message.buttonsResponseMessage?.selectedButtonId || m.message.templateButtonReplyMessage?.selectedId || ""
       const hasAnyMsg = !!m.message
       const qCtx = m.message.extendedTextMessage?.contextInfo; const mentioned = qCtx?.mentionedJid || []
       const senderThumb = await getSenderThumb(sock, sender)
@@ -151,28 +151,26 @@ async function startBot(number){
       const success = async (txt) => sock.sendMessage(from, vBox(txt.startsWith("✅")||txt.startsWith("❌") ? txt : "✅ "+txt, senderThumb), {quoted:m})
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Group e use koro!"); return false } return true }
-      // ✅ BUTTON CLICK
       let btnId = m.message?.buttonsResponseMessage?.selectedButtonId || m.message?.templateButtonReplyMessage?.selectedId || ""
       if(btnId === "viewchannel"){
-        await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 নিচের লিংকে চাপ দাও:\n"+CHANNEL+"\n\n💜 Follow করো!", contextInfo: { externalAdReply: { title: "📢 View Channel", body: "RANA X VIP Channel", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); return
+        await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 নিচের লিংকে চাপ দাও:\n"+CHANNEL+"\n\n💜 Follow করো!", contextInfo: { externalAdReply: { title: "📢 View Channel", body: "RANA X VIP Channel", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); continue
       }
-      if(btnId === "menu"){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
+      if(btnId === "menu"){ await sendMenuWithChannel(sock, from, m, senderThumb); continue }
       if(btnId === "recent"){
         let r1 = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
-        await sendV(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`); return
+        await sendV(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`); continue
       }
-      // ✅ RANDOM EMOJI REACT + RECENT - সবার আগে, সব মেসেজে - এটাই আসল ফিক্স!
-      if(autoReactOn && hasAnyMsg && !m.key.fromMe){
+      // ✅ REACT - Group এ নিজের মেসেজেও React দিবো, DM এ অন্যের মেসেজে
+      if(autoReactOn && hasAnyMsg && (!m.key.fromMe || isGroup)){
         try{
           let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
           await sock.sendMessage(from, { react: { text: randomEmoji, key: m.key } })
-          // Recent এ save - Emoji সহ
           let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message")
           recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], emoji: randomEmoji })
           if(recentMsgs.length>30) recentMsgs.shift()
         }catch(e){ console.log("React Err:", e.message) }
       }
-      // ✅ ANTI-LINK - 3 বার Warning -> Kick
+      // ✅ ANTI-LINK - নিজের মেসেজ বাদে, Group এ
       if(isGroup && antilinkOn && body && !m.key.fromMe){
         let hasLink = /https?:\/\/|www\.|chat\.whatsapp\.com|t\.me|telegram\.me|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com/i.test(body)
         if(hasLink){
@@ -187,70 +185,70 @@ async function startBot(number){
               let w = warnCount[sender]
               if(w >= 3){
                 warnCount[sender] = 0
-                await sock.sendMessage(from, {text:`🚫 *ANTI-LINK - KICKED!*\n\n@${sender.split('@')[0]} 3 বার Link দিছে!\n1st: ⚠️ Warning 1/3\n2nd: ⚠️ Warning 2/3\n3rd: 🚫 KICK!\n\n👑 RANA-X-VIP-BOT`, mentions:[sender]})
+                await sock.sendMessage(from, {text:`🚫 *ANTI-LINK - KICKED!*\n\n@${sender.split('@')[0]} 3 বার Link দিছে!\n\n👑 RANA-X-VIP-BOT`, mentions:[sender]})
                 if(isBotAdmin){ try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{ await sock.sendMessage(from, {text:`❌ Kick করতে পারি নাই! বটকে Admin দাও!`}) } }
                 else{ await sock.sendMessage(from, {text:`❌ বট Admin না, Kick করতে পারলাম না! বটকে Admin দাও!`}) }
               } else {
-                await sock.sendMessage(from, {text:`⚠️ *ANTI-LINK WARNING ${w}/3*\n\n@${sender.split('@')[0]} Link দিছো!\n\n❌ Group এ Link দেওয়া নিষেধ!\n⚠️ Warning: ${w}/3\n${w===2 ? "⚠️ আর 1 বার দিলেই KICK খাইবা!" : "⚠️ আর 2 বার দিলেই KICK খাইবা!"}\n\n👑 RANA-X-VIP-BOT\n📢 Channel: ${CHANNEL}`, mentions:[sender]})
+                await sock.sendMessage(from, {text:`⚠️ *ANTI-LINK WARNING ${w}/3*\n\n@${sender.split('@')[0]} Link দিছো!\n\n❌ Group এ Link দেওয়া নিষেধ!\n⚠️ Warning: ${w}/3\n\n👑 RANA-X-VIP-BOT\n📢 Channel: ${CHANNEL}`, mentions:[sender]})
               }
-              return
+              continue
             }
           }catch(e){ console.log("Antilink Err:", e.message) }
         }
       }
-      if(!body || !body.startsWith('.')) return
+      if(!body || !body.startsWith('.')) continue
       const args = body.slice(1).trim().split(/ +/); const cmd = args[0].toLowerCase(); const text = args.slice(1).join(' ')
       if(recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
-      if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); return }
-      if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); return }
-      if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); return }
-      if(cmd==='goodbye' && text==='off'){ goodbyeOn=false; await success("Goodbye OFF"); return }
-      // ✅ RECENT / REACT ON-OFF - ২টাই একসাথে
-      if(cmd==='recent' && text==='on'){ recentOn=true; autoReactOn=true; await success("✅ Recent ON + Random Emoji React ON 🔥"); return }
-      if(cmd==='recent' && text==='off'){ recentOn=false; autoReactOn=false; await sendV("❌ Recent OFF + Emoji React OFF"); return }
-      if(cmd==='react' && text==='on'){ autoReactOn=true; await success("✅ Random Emoji React ON 🔥"); return }
-      if(cmd==='react' && text==='off'){ autoReactOn=false; await sendV("❌ Random Emoji React OFF"); return }
-      if(cmd==='react'){ await sendV(autoReactOn?"✅ React: ON - Random Emoji দিচ্ছে 🔥":"❌ React: OFF"); return }
-      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); return }
-      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
-      if(cmd==='antilink' && text==='on'){ antilinkOn=true; await success("✅ Anti-Link ON - Link দিলে 3 বার Warning -> Kick"); return }
-      if(cmd==='antilink' && text==='off'){ antilinkOn=false; await success("❌ Anti-Link OFF"); return }
-      if(cmd==='antilink'){ await sendV(antilinkOn?"✅ Anti-Link: ON\nLink দিলে 3 বার Warning -> Kick":"❌ Anti-Link: OFF"); return }
+      if(cmd==='welcome' && text==='on'){ welcomeOn=true; await success("Welcome ON"); continue }
+      if(cmd==='welcome' && text==='off'){ welcomeOn=false; await success("Welcome OFF"); continue }
+      if(cmd==='goodbye' && text==='on'){ goodbyeOn=true; await success("Goodbye ON"); continue }
+      if(cmd==='goodbye' && text==='off'){ goodbyeOn=false; await success("Goodbye OFF"); continue }
+      if(cmd==='recent' && text==='on'){ recentOn=true; autoReactOn=true; await success("✅ Recent ON + Random Emoji React ON 🔥"); continue }
+      if(cmd==='recent' && text==='off'){ recentOn=false; autoReactOn=false; await sendV("❌ Recent OFF + Emoji React OFF"); continue }
+      if(cmd==='react' && text==='on'){ autoReactOn=true; await success("✅ Random Emoji React ON 🔥"); continue }
+      if(cmd==='react' && text==='off'){ autoReactOn=false; await sendV("❌ Random Emoji React OFF"); continue }
+      if(cmd==='react'){ await sendV(autoReactOn?"✅ React: ON - Random Emoji দিচ্ছে 🔥":"❌ React: OFF"); continue }
+      if(cmd==='welcome'){ await sendV(welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); continue }
+      if(cmd==='goodbye'){ await sendV(goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); continue }
+      if(cmd==='antilink' && text==='on'){ antilinkOn=true; await success("✅ Anti-Link ON - Link দিলে 3 বার Warning -> Kick"); continue }
+      if(cmd==='antilink' && text==='off'){ antilinkOn=false; await success("❌ Anti-Link OFF"); continue }
+      if(cmd==='antilink'){ await sendV(antilinkOn?"✅ Anti-Link: ON\nLink দিলে 3 বার Warning -> Kick":"❌ Anti-Link: OFF"); continue }
       if(cmd==='warns' || cmd==='warnlist'){
         let list = Object.entries(warnCount).filter(([k,v])=>v>0)
-        if(!list.length){ await sendV("✅ কারো Warn নাই! সবাই ভালো! 💜"); return }
+        if(!list.length){ await sendV("✅ কারো Warn নাই! সবাই ভালো! 💜"); continue }
         await sendV("⚠️ *WARN LIST*\n"+list.map(([id,c])=>`@${id.split('@')[0]} - ${c}/3`).join("\n"))
-        return
+        continue
       }
       if(cmd==='resetwarn' || cmd==='resetwarns'){
         let t = getTarget()
-        if(!t){ await sendV("❌ কাকে Reset করবো? Tag করো! Ex: .resetwarn @user"); return }
+        if(!t){ await sendV("❌ কাকে Reset করবো? Tag করো! Ex: .resetwarn @user"); continue }
         warnCount[t]=0
         await success(`✅ @${t.split('@')[0]} এর Warn Reset হইছে!`)
-        return
+        continue
       }
       if(cmd==='warn'){
         let t = getTarget()
-        if(!t){ await sendV("❌ কাকে Warn দিবা? Tag করো!"); return }
+        if(!t){ await sendV("❌ কাকে Warn দিবা? Tag করো!"); continue }
         warnCount[t]=(warnCount[t]||0)+1
         if(warnCount[t]>=3){ warnCount[t]=0; await sock.sendMessage(from,{text:`🚫 @${t.split('@')[0]} 3 বার Warn খাইছে - KICK!`, mentions:[t]}); try{ await sock.groupParticipantsUpdate(from,[t],"remove") }catch{} }
         else{ await success(`⚠️ @${t.split('@')[0]} কে Warn দেওয়া হইছে! ${warnCount[t]}/3`) }
-        return
+        continue
       }
       if(cmd==='recent' || cmd==='trending'){
         let r1 = [...recentMsgs].slice(-10).reverse().map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
         let r2 = recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n")
         await sendV(`🔥 *RECENT - Random Emoji সহ*\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME}\n💡 .recent off লিখলে Emoji বন্ধ হবে`)
-        return
+        continue
       }
-      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); return }
+      if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, senderThumb); continue }
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){
-        await sock.sendMessage(from, { text: "📢 *Follow Channel:*", footer: "RANA X VIP 👑💜", buttons: [{ buttonId: "viewchannel", buttonText: { displayText: "📢 View Channel" }, type: 1 }], headerType: 1, contextInfo: { externalAdReply: { title: "📢 View Channel", body: "Tap to View Channel", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); return
+        await sock.sendMessage(from, { text: "📢 *Follow Channel:*", footer: "RANA X VIP 👑💜", buttons: [{ buttonId: "viewchannel", buttonText: { displayText: "📢 View Channel" }, type: 1 }], headerType: 1, contextInfo: { externalAdReply: { title: "📢 View Channel", body: "Tap to View Channel", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); continue
       }
-      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}`); return }
+      if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ await success(`🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}`); continue }
       let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, getCatMenu, getWelcomeMenu })
-      if(done) return
-      if(ALL_CMDS.includes(cmd)){ await success("."+cmd+" Successful!"); return }
+      if(done) continue
+      if(ALL_CMDS.includes(cmd)){ await success("."+cmd+" Successful!"); continue }
+      }
     })
     return sess
   }catch(e){ console.log("START ERROR:", e.message); sessions.delete(numKey); return null }
