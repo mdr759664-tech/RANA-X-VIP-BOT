@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - DESIGN 2 + SAAVN SONG FIXED INSIDE =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - RANA BAPPY + EMOJI + RECENT ALWAYS ON =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -8,7 +8,7 @@ const QRCode = require('qrcode')
 const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand } = require('./commands')
 const app = express()
 const OWNER = "8801636487523"
-const OWNER_NAME = "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"
+const OWNER_NAME = "RANA BAPPY"
 const BOT_NAME = "RANA-X-VIP-BOT"
 const BOT_PIC = "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg"
 const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B"
@@ -16,6 +16,7 @@ const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
 let CHANNEL_JID = ""
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
 if(!globalThis.BOT_STATE) globalThis.BOT_STATE = { welcomeOn: true, goodbyeOn: true, recentOn: true, autoReactOn: true, antilinkOn: true }
+globalThis.BOT_STATE.recentOn = true; globalThis.BOT_STATE.autoReactOn = true
 if(!globalThis.WARNS) globalThis.WARNS = {}
 if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
 let welcomeOn = true, goodbyeOn = true, recentOn = true, autoReactOn = true
@@ -113,15 +114,14 @@ async function startBot(number){
         let r1 = [...recentMsgs].slice(-10).map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
         await sendV(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`); continue
       }
-      if(globalThis.BOT_STATE.autoReactOn && globalThis.BOT_STATE.recentOn && hasAnyMsg && !m.key.fromMe && body && !body.startsWith('.')){
+      // ✅ EMOJI + RECENT - SOB MSG E 100% - AGE 40% CHILO
+      if(hasAnyMsg && !m.key.fromMe){
         try{
-          if(Math.random() < 0.4){
-            let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
-            await sock.sendMessage(from, { react: { text: randomEmoji, key: m.key } })
-            let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message")
-            recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], emoji: randomEmoji })
-            if(recentMsgs.length>30) recentMsgs.shift()
-          }
+          let randomEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
+          try{ await sock.sendMessage(from, { react: { text: randomEmoji, key: m.key } }) }catch{}
+          let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message")
+          recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], emoji: randomEmoji })
+          if(recentMsgs.length>30) recentMsgs.shift()
         }catch(e){ console.log("React Err:", e.message) }
       }
       if(isGroup && globalThis.BOT_STATE.antilinkOn && body && !m.key.fromMe){
@@ -151,7 +151,7 @@ async function startBot(number){
       }
       if(!body || !body.startsWith('.')) continue
       const args = body.slice(1).trim().split(/ +/); const cmd = args[0].toLowerCase(); const text = args.slice(1).join(' ')
-      if(globalThis.BOT_STATE.recentOn){ recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift() }
+      recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift()
       if(cmd==='public' || cmd==='private' || cmd==='mode' || cmd==='botmode'){
         if(sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("❌ এই Command খালি Owner চালাইতে পারবো!\n👑 Owner: "+OWNER); continue }
         if(cmd==='public'){ globalThis.BOT_MODE = "public"; await sendV("✅ Bot এখন *PUBLIC* 🔥\nএখন যে কেউ .menu .song .video চালাইতে পারবো!"); continue }
@@ -166,11 +166,11 @@ async function startBot(number){
       if(cmd==='welcome' && text==='off'){ globalThis.BOT_STATE.welcomeOn=false; welcomeOn=false; await success("Welcome OFF"); continue }
       if(cmd==='goodbye' && text==='on'){ globalThis.BOT_STATE.goodbyeOn=true; goodbyeOn=true; await success("Goodbye ON"); continue }
       if(cmd==='goodbye' && text==='off'){ globalThis.BOT_STATE.goodbyeOn=false; goodbyeOn=false; await success("Goodbye OFF"); continue }
-      if(cmd==='recent' && text==='on'){ globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; recentOn=true; autoReactOn=true; await success("✅ Recent ON + Random Emoji React ON 🔥"); continue }
-      if(cmd==='recent' && text==='off'){ globalThis.BOT_STATE.recentOn=false; globalThis.BOT_STATE.autoReactOn=false; recentOn=false; autoReactOn=false; await sendV("❌ Recent OFF + Emoji React OFF"); continue }
+      if(cmd==='recent' && text==='on'){ globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; recentOn=true; autoReactOn=true; await success("✅ Recent ON + Random Emoji React ON 🔥 - Sob Somoy Chalu Thakbo"); continue }
+      if(cmd==='recent' && text==='off'){ await sendV("🔥 *RECENT ALWAYS ON* 🔥\nBondho kora jabe na! Sob somoy Emoji + Recent cholbo!\n👑 RANA BAPPY"); continue }
       if(cmd==='react' && text==='on'){ globalThis.BOT_STATE.autoReactOn=true; autoReactOn=true; await success("✅ Random Emoji React ON 🔥"); continue }
-      if(cmd==='react' && text==='off'){ globalThis.BOT_STATE.autoReactOn=false; autoReactOn=false; await sendV("❌ Random Emoji React OFF"); continue }
-      if(cmd==='react'){ await sendV(globalThis.BOT_STATE.autoReactOn?"✅ React: ON - Random Emoji দিচ্ছে 🔥":"❌ React: OFF"); continue }
+      if(cmd==='react' && text==='off'){ await sendV("🔥 *REACT ALWAYS ON* 🔥\nBondho kora jabe na!\n👑 RANA BAPPY"); continue }
+      if(cmd==='react'){ await sendV("✅ React: ON 🔥 - Sob Msg e Emoji ditase\n✅ Recent: ON 🔥"); continue }
       if(cmd==='welcome'){ await sendV(globalThis.BOT_STATE.welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); continue }
       if(cmd==='goodbye'){ await sendV(globalThis.BOT_STATE.goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); continue }
       if(cmd==='antilink' && text==='on'){ globalThis.BOT_STATE.antilinkOn=true; antilinkOn=true; await success("✅ Anti-Link ON - Link দিলে 3 বার Warning -> Kick"); continue }
@@ -211,7 +211,7 @@ async function startBot(number){
       if(cmd==='recent' || cmd==='trending'){
         let r1 = [...recentMsgs].slice(-10).reverse().map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n")
         let r2 = recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n")
-        await sendV(`🔥 *RECENT - Random Emoji সহ*\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME}\n💡 .recent off লিখলে Emoji বন্ধ হবে`)
+        await sendV(`🔥 *RECENT - Sob Msg e Emoji* 🔥\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, botThumb); continue }
@@ -220,29 +220,29 @@ async function startBot(number){
       }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){
         let pic = await getBotPicBuffer()
-        let txt = `🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length}`
+        let txt = `🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: ${OWNER_NAME}\n📞 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length} 🔥`
         if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m})
         else await success(txt)
         continue
       }
       if(cmd==='status' || cmd==='bot' || cmd==='alive'){
         let pic = await getBotPicBuffer()
-        let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ${globalThis.BOT_STATE.recentOn?"ON":"OFF"} | *React:* ${globalThis.BOT_STATE.autoReactOn?"ON":"OFF"} | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT*`
+        let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ON 🔥 | *React:* ON 🔥 | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT* 👑 ${OWNER_NAME}`
         if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m})
         else await sendV(txt)
         continue
       }
       if(cmd==='owner' || cmd==='creator' || cmd==='rana'){
         let pic = await getBotPicBuffer()
-        let txt = `👑 *OWNER INFO*\n\n👤 *Name:* ${OWNER_NAME}\n📞 *Number:* ${OWNER}\n📢 *Channel:* ${CHANNEL}\n\n💜 ${BOT_NAME}`
+        let txt = `👑 *OWNER INFO* 👑\n\n👤 *Name:* ${OWNER_NAME} 🔥\n📞 *Number:* ${OWNER}\n📢 *Channel:* ${CHANNEL}\n\n💜 ${BOT_NAME}`
         if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m})
         else await sendV(txt)
         continue
       }
       if(cmd==='song' || cmd==='play' || cmd==='gan' || cmd==='music' || cmd==='gaan' || cmd==='gana'){
-        if(!text){ await sendV("❌ গানের নাম দে ভাই!\nEx: .song Ami Tomake Valobashi"); continue }
+        if(!text){ await sendV("❌ গানের নাম দে ভাই! 🎵\nEx: .song Ami Tomake Valobashi"); continue }
         let base = text.replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/harieci/gi,"Hariyechi").replace(/piyare/gi,"Piyare")
-        await sendV("🔍 খুঁজতেছি... *"+text+"*")
+        await sendV("🔍 খুঁজতেছি... *"+text+"* 🎵")
         let found = false
         let queries = [base, base+" bangla song", base+" Habib", base+" song"]
         for(let q of queries){
@@ -261,15 +261,15 @@ async function startBot(number){
               if(!url) continue
               let aud = await axios.get(url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0','Referer':'https://www.jiosaavn.com/'}})
               if(aud.data.byteLength < 100000) continue
-              await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype:'audio/mpeg', fileName:(s.name||s.title||text)+".mp3", ptt:false, contextInfo:{externalAdReply:{title:s.name||s.title||text, body:"👑 RANA-X-VIP-BOT - FULL SONG", thumbnail: botThumb, mediaType:1, sourceUrl: CHANNEL}}}, {quoted:m})
-              await sock.sendMessage(from, { image: botThumb, caption:`🎵 *${s.name||s.title}*\n👤 ${(s.artists?.primary?.map(a=>a.name).join(", ")||s.primaryArtists||"")}\n\n👑 *RANA-X-VIP-BOT*`}, {quoted:m})
+              await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype:'audio/mpeg', fileName:(s.name||s.title||text)+".mp3", ptt:false, contextInfo:{externalAdReply:{title:s.name||s.title||text, body:"👑 RANA-X-VIP-BOT - FULL SONG 🎵 | 👑 "+OWNER_NAME, thumbnail: botThumb, mediaType:1, sourceUrl: CHANNEL}}}, {quoted:m})
+              await sock.sendMessage(from, { image: botThumb, caption:`🎵 *${s.name||s.title}* 🎵\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *RANA-X-VIP-BOT* 🔥`}, {quoted:m})
               found = true
             }catch(e){ console.log("Saavn fail:", e.message) }
           }
         }
         if(!found){
           let ytLink = "https://www.youtube.com/results?search_query="+encodeURIComponent(base+" song")
-          await sendV(`⚠️ *অডিও ডাউনলোড হইলো না, লিংক দিলাম:*\n\n🎵 *${base}*\n👉 ${ytLink}\n\n💡 এই লিংকে চাপ দিয়া গানটা শুনো।\n👑 *RANA-X-VIP-BOT*\n\n🔁 আরেকভাবে ট্রাই করো:\n.song ${base} Habib\n.song Kosto`)
+          await sendV(`⚠️ *অডিও ডাউনলোড হইলো না, লিংক দিলাম:* 🎵\n\n🎵 *${base}*\n👉 ${ytLink}\n\n💡 এই লিংকে চাপ দিয়া গানটা শুনো।\n👑 *RANA-X-VIP-BOT* | 👤 ${OWNER_NAME}\n\n🔁 আরেকভাবে ট্রাই করো:\n.song ${base} Habib\n.song Kosto`)
         }
         continue
       }
@@ -279,12 +279,12 @@ async function startBot(number){
         if(['dj','djbangla','djsong','djvideo'].includes(cmd)) query = text || "dj bangla song"
         if(['funny','funnyvideo','comedy','fany'].includes(cmd)) query = text || "funny bangla video"
         query = query.replace(/balobasi/gi, "Bhalobashi")
-        await sendV("🎬 খুঁজতেছি... *"+query+"*")
+        await sendV("🎬 খুঁজতেছি... *"+query+"* 🔥")
         try{
           let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video"]
           let v = null, svUsed = ""
           for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
-          if(!v){ await sendV("❌ ভিডিও পাইলাম না!"); continue }
+          if(!v){ await sendV("❌ ভিডিও পাইলাম না! 😢"); continue }
           let vid = (v.url || "").split("watch?v=")[1] || v.id
           let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
           let vids = st.data?.videoStreams || []
@@ -293,35 +293,35 @@ async function startBot(number){
           let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
           let emoji = (['romantic','romanticvideo','lovevideo'].includes(cmd) ? "❤️" : (['dj','djbangla','djsong','djvideo'].includes(cmd) ? "🎧" : "😂"))
           let title = (['romantic','romanticvideo','lovevideo'].includes(cmd) ? "ROMANTIC" : (['dj','djbangla','djsong','djvideo'].includes(cmd) ? "DJ BANGLA" : "FUNNY"))
-          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype: 'video/mp4' }, {quoted: m})
+          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *RANA-X-VIP-BOT* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
           if(audios[0]?.url){
             let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-            if(aud.data.byteLength > 500000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||query)+".mp3", contextInfo: { externalAdReply: { title: v.title || query, body: "👑 RANA-X-VIP-BOT - "+title, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+            if(aud.data.byteLength > 500000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||query)+".mp3", contextInfo: { externalAdReply: { title: v.title || query, body: "👑 RANA-X-VIP-BOT - "+title+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
           }
-        }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না!") }
+        }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না! 😢") }
         continue
       }
       if(cmd==='video' || cmd==='vsong' || cmd==='vgan' || cmd==='vgana'){
-        if(!text){ await sendV("❌ ভিডিও গানের নাম দে!\nEx: .video Ami Tomake Valobashi"); continue }
-        await sendV("🎬 ভিডিও খুঁজতেছি... *"+text+"*")
+        if(!text){ await sendV("❌ ভিডিও গানের নাম দে! 🎬\nEx: .video Ami Tomake Valobashi"); continue }
+        await sendV("🎬 ভিডিও খুঁজতেছি... *"+text+"* 🔥")
         try{
           let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://piped.video"]
           let v = null, svUsed = ""
           for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 15000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
-          if(!v){ await sendV("❌ ভিডিও পাইলাম না!"); continue }
+          if(!v){ await sendV("❌ ভিডিও পাইলাম না! 😢"); continue }
           let vid = (v.url || "").split("watch?v=")[1] || v.id
           let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
           let vids = st.data?.videoStreams || []
           let audios = st.data?.audioStreams || []
           audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
           let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
-          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `🎬 *${v.title}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype: 'video/mp4' }, {quoted: m})
+          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `🎬 *${v.title}*\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *RANA-X-VIP-BOT* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
           if(audios[0]?.url){
             let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 60000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-            await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - Audio", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
-            await sendV(`🎵 *${v.title}*\n✅ ভিডিও + অডিও ২টাই পাইছো!\n👑 *RANA-X-VIP-BOT*`)
+            await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - Audio | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+            await sendV(`🎵 *${v.title}*\n✅ ভিডিও + অডিও ২টাই পাইছো! 🔥\n👑 *RANA-X-VIP-BOT* | 👤 ${OWNER_NAME}`)
           }
-        }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না!") }
+        }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না! 😢") }
         continue
       }
       if(cmd==='audio' || cmd==='mp3' || cmd==='toaudio' || cmd==='songaudio'){
@@ -329,7 +329,7 @@ async function startBot(number){
         let vidMsg = m.message.videoMessage || q?.videoMessage
         if(!vidMsg){
           if(text){
-            await sendV("🔍 খুঁজতেছি... *"+text+"* (Audio)")
+            await sendV("🔍 খুঁজতেছি... *"+text+"* (Audio) 🎵")
             try{
               let servers = ["https://pipedapi.kavin.rocks","https://piped.video"]
               let v=null, svUsed=""
@@ -340,106 +340,106 @@ async function startBot(number){
                 let audios=st.data?.audioStreams||[]; audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0))
                 if(audios[0]?.url){
                   let aud=await axios.get(audios[0].url,{responseType:'arraybuffer',timeout:90000,headers:{'User-Agent':'Mozilla/5.0'}})
-                  await sock.sendMessage(from,{audio:Buffer.from(aud.data),mimetype:'audio/mp4',fileName:(v.title||text)+".mp3",contextInfo:{externalAdReply:{title:v.title||text,body:"👑 RANA-X-VIP-BOT",thumbnail:botThumb,mediaType:1,sourceUrl:CHANNEL}}},{quoted:m})
+                  await sock.sendMessage(from,{audio:Buffer.from(aud.data),mimetype:'audio/mp4',fileName:(v.title||text)+".mp3",contextInfo:{externalAdReply:{title:v.title||text,body:"👑 RANA-X-VIP-BOT | 👤 "+OWNER_NAME,thumbnail:botThumb,mediaType:1,sourceUrl:CHANNEL}}},{quoted:m})
                   continue
                 }
               }
             }catch{}
-            await sendV("❌ গান পাইলাম না!"); continue
+            await sendV("❌ গান পাইলাম না! 😢"); continue
           }
-          await sendV("❌ যেই ভিডিওরে অডিও বানাইবা, ঐ ভিডিওতে Reply দিয়া লেখ:\n.audio"); continue
+          await sendV("❌ যেই ভিডিওরে অডিও বানাইবা, ঐ ভিডিওতে Reply দিয়া লেখ:\n.audio 🎵"); continue
         }
-        await sendV("🎵 ভিডিও থেকে অডিও বানাইতেছি...")
+        await sendV("🎵 ভিডিও থেকে অডিও বানাইতেছি... 🔥")
         try{
           let stream = await downloadContentFromMessage(vidMsg, 'video')
           let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
-          await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-X-VIP-Audio.mp3", contextInfo: { externalAdReply: { title: "RANA-X-VIP Audio", body: "👑 RANA-X-VIP-BOT", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
-          await sendV("✅ হইছে! ভিডিও এখন অডিও হইয়া গেছে! ▶️ চাপ দিলেই বাজবো!")
-        }catch(e){ await sendV("❌ অডিও বানাইতে পারলাম না! ভিডিওটা আবার পাঠাও!") }
+          await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-X-VIP-Audio.mp3", contextInfo: { externalAdReply: { title: "RANA-X-VIP Audio 🎵", body: "👑 RANA-X-VIP-BOT | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+          await sendV("✅ হইছে! ভিডিও এখন অডিও হইয়া গেছে! ▶️ চাপ দিলেই বাজবো! 🔥")
+        }catch(e){ await sendV("❌ অডিও বানাইতে পারলাম না! ভিডিওটা আবার পাঠাও! 😢") }
         continue
       }
       if(cmd==='sticker' || cmd==='s' || cmd==='stiker'){
         let q = m.message.extendedTextMessage?.contextInfo?.quotedMessage
         let imgMsg = m.message.imageMessage || m.message.videoMessage || q?.imageMessage || q?.videoMessage
-        if(!imgMsg){ await sendV("❌ ছবি / ভিডিও দিয়া .sticker লেখ!"); continue }
+        if(!imgMsg){ await sendV("❌ ছবি / ভিডিও দিয়া .sticker লেখ! 🎨"); continue }
         try{
           let stream = await downloadContentFromMessage(imgMsg, imgMsg.imageMessage ? 'image' : 'video')
           let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
           await sock.sendMessage(from, { sticker: buf }, {quoted: m})
-        }catch(e){ await sendV("❌ Sticker বানাইতে পারলাম না!") }
+        }catch(e){ await sendV("❌ Sticker বানাইতে পারলাম না! 😢") }
         continue
       }
       if(cmd==='toimg' || cmd==='toimage'){
         let q = m.message.extendedTextMessage?.contextInfo?.quotedMessage
         let st = q?.stickerMessage
-        if(!st){ await sendV("❌ Sticker এ Reply দিয়া .toimg লেখ"); continue }
+        if(!st){ await sendV("❌ Sticker এ Reply দিয়া .toimg লেখ 🖼️"); continue }
         try{
           let stream = await downloadContentFromMessage(st, 'sticker'); let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
-          await sock.sendMessage(from, { image: buf, caption: "✅ Sticker -> Image\n👑 "+BOT_NAME }, {quoted: m})
-        }catch(e){ await sendV("❌ Image বানাইতে পারলাম না!") }
+          await sock.sendMessage(from, { image: buf, caption: "✅ Sticker -> Image 🖼️\n👑 "+BOT_NAME+" | 👤 "+OWNER_NAME }, {quoted: m})
+        }catch(e){ await sendV("❌ Image বানাইতে পারলাম না! 😢") }
         continue
       }
       if(cmd==='tagall' || cmd==='tag' || cmd==='all'){
-        if(!isGroup){ await sendV("❌ Group এ use করো!"); continue }
+        if(!isGroup){ await sendV("❌ Group এ use করো! 📢"); continue }
         try{
           let meta = await sock.groupMetadata(from); let mem = meta.participants.map(p=>p.id)
-          let txt = `📢 *TAG ALL - ${meta.subject}*\n\n${mem.map((id,i)=>`${i+1}. @${id.split('@')[0]}`).join("\n")}\n\n${text || "সবাই আসো!"}\n\n👑 ${BOT_NAME}`
+          let txt = `📢 *TAG ALL - ${meta.subject}* 📢\n\n${mem.map((id,i)=>`${i+1}. @${id.split('@')[0]}`).join("\n")}\n\n${text || "সবাই আসো! 🔥"}\n\n👑 ${BOT_NAME} | 👤 ${OWNER_NAME}`
           await sock.sendMessage(from, { text: txt, mentions: mem }, {quoted: m})
-        }catch(e){ await sendV("❌ TagAll হইলো না!") }
+        }catch(e){ await sendV("❌ TagAll হইলো না! 😢") }
         continue
       }
       if(cmd==='kick'){
-        let t = getTarget(); if(!t){ await sendV("❌ কাকে Kick করবো? Tag করো!"); continue }
-        try{ await sock.groupParticipantsUpdate(from, [t], "remove"); await success(`🚫 @${t.split('@')[0]} Kicked!`) }catch{ await sendV("❌ Kick করতে পারলাম না! বটকে Admin দাও!") }
+        let t = getTarget(); if(!t){ await sendV("❌ কাকে Kick করবো? Tag করো! 🚫"); continue }
+        try{ await sock.groupParticipantsUpdate(from, [t], "remove"); await success(`🚫 @${t.split('@')[0]} Kicked! 🔥`) }catch{ await sendV("❌ Kick করতে পারলাম না! বটকে Admin দাও! 😢") }
         continue
       }
       if(cmd==='promote' || cmd==='admin'){
-        let t = getTarget(); if(!t){ await sendV("❌ কাকে Admin করবো? Tag করো!"); continue }
-        try{ await sock.groupParticipantsUpdate(from, [t], "promote"); await success(`👑 @${t.split('@')[0]} এখন Admin!`) }catch{ await sendV("❌ Promote হইলো না!") }
+        let t = getTarget(); if(!t){ await sendV("❌ কাকে Admin করবো? Tag করো! 👑"); continue }
+        try{ await sock.groupParticipantsUpdate(from, [t], "promote"); await success(`👑 @${t.split('@')[0]} এখন Admin! 🔥`) }catch{ await sendV("❌ Promote হইলো না! 😢") }
         continue
       }
       if(cmd==='demote'){
-        let t = getTarget(); if(!t){ await sendV("❌ কাকে Demote করবো?"); continue }
-        try{ await sock.groupParticipantsUpdate(from, [t], "demote"); await success(`😢 @${t.split('@')[0]} Admin থেকে সরানো হইছে`) }catch{ await sendV("❌ Demote হইলো না!") }
+        let t = getTarget(); if(!t){ await sendV("❌ কাকে Demote করবো? 😢"); continue }
+        try{ await sock.groupParticipantsUpdate(from, [t], "demote"); await success(`😢 @${t.split('@')[0]} Admin থেকে সরানো হইছে`) }catch{ await sendV("❌ Demote হইলো না! 😢") }
         continue
       }
       if(cmd==='groupinfo' || cmd==='ginfo'){
-        if(!isGroup){ await sendV("❌ Group এ use করো!"); continue }
+        if(!isGroup){ await sendV("❌ Group এ use করো! 📋"); continue }
         let meta = await sock.groupMetadata(from)
-        await sendV(`📋 *GROUP INFO*\n\n📛 *Name:* ${meta.subject}\n👥 *Members:* ${meta.participants.length}\n📝 *Desc:* ${meta.desc || "No Desc"}`)
+        await sendV(`📋 *GROUP INFO* 📋\n\n📛 *Name:* ${meta.subject}\n👥 *Members:* ${meta.participants.length}\n📝 *Desc:* ${meta.desc || "No Desc"}\n\n👑 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='id' || cmd==='myid' || cmd==='jid'){
-        await sendV(`🆔 *Your ID:*\n${sender}\n📱 *Number:* ${sender.split('@')[0]}\n👥 *Group ID:*\n${from}`)
+        await sendV(`🆔 *Your ID:* 🆔\n${sender}\n📱 *Number:* ${sender.split('@')[0]}\n👥 *Group ID:*\n${from}\n\n👑 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='time' || cmd==='date'){
         let d = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', dateStyle: 'full', timeStyle: 'medium' })
-        await sendV(`🕒 *TIME*\n${d}\n\n👑 ${BOT_NAME}`)
+        await sendV(`🕒 *TIME* 🕒\n${d}\n\n👑 ${BOT_NAME} | 👤 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='joke'){
         let jokes = ["😂 শিক্ষক: পড়া পারো না কেন?\nছাত্র: স্যার, মাথায় ঢুকে না!\nশিক্ষক: মাথায় কি ঢুকে?\nছাত্র: গান ঢুকে! 🎵","😂 বউ: তুমি আমারে ভালোবাসো?\nজামাই: হ, ফেসবুকে Like দিছি তো! 👍"]
-        await sendV(`😂 *JOKE*\n\n${jokes[Math.floor(Math.random()*jokes.length)]}`)
+        await sendV(`😂 *JOKE* 😂\n\n${jokes[Math.floor(Math.random()*jokes.length)]}\n\n👑 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='quote' || cmd==='shayari'){
-        let qs = ["💜 সফলতা একদিনে আসে না, প্রতিদিনের চেষ্টায় আসে!", "🔥 হার মানা মানে শেষ না, আবার উঠে দাঁড়ানোই আসল জয়!"]
-        await sendV(`💜 *QUOTE*\n\n${qs[Math.floor(Math.random()*qs.length)]}`)
+        let qs = ["💜 সফলতা একদিনে আসে না, প্রতিদিনের চেষ্টায় আসে! 🔥", "🔥 হার মানা মানে শেষ না, আবার উঠে দাঁড়ানোই আসল জয়! 💜"]
+        await sendV(`💜 *QUOTE* 💜\n\n${qs[Math.floor(Math.random()*qs.length)]}\n\n👑 ${OWNER_NAME}`)
         continue
       }
       if(cmd==='ai' || cmd==='gpt' || cmd==='ask'){
-        if(!text){ await sendV("❌ কিছু জিজ্ঞেস কর!\nEx: .ai Bangladesh কি?"); continue }
-        await sendV("🤖 AI ভাবতেছে... *"+text+"*")
+        if(!text){ await sendV("❌ কিছু জিজ্ঞেস কর! 🤖\nEx: .ai Bangladesh কি?"); continue }
+        await sendV("🤖 AI ভাবতেছে... *"+text+"* 🤔")
         try{
           let r = await axios.get("https://api.zenzxz.my.id/api/ai/gpt4?text="+encodeURIComponent(text))
-          await sendV(`🤖 *AI ANSWER*\n\n${r.data?.result || r.data?.answer || "উত্তর পাইলাম না!"}`)
-        }catch{ await sendV("🤖 আমি RANA-X-VIP-BOT! তুমি বলছো: "+text) }
+          await sendV(`🤖 *AI ANSWER* 🤖\n\n${r.data?.result || r.data?.answer || "উত্তর পাইলাম না! 😢"}\n\n👑 ${OWNER_NAME}`)
+        }catch{ await sendV("🤖 আমি RANA-X-VIP-BOT! তুমি বলছো: "+text+" 👑 "+OWNER_NAME) }
         continue
       }
       let done = await handleCommand({ sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb: botThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK: CHANNEL, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage, getCatMenu, getWelcomeMenu, state: globalThis.BOT_STATE })
       if(done) continue
-      if(ALL_CMDS.includes(cmd)){ await sendV(`❌ .${cmd} এখনো এই Bot এ চালু হয় নাই ভাই!\n💡 .menu লিখে চালু Command গুলা দেখো\n👑 Owner: ${OWNER}`); continue }
+      if(ALL_CMDS.includes(cmd)){ await sendV(`❌ .${cmd} এখনো এই Bot এ চালু হয় নাই ভাই! 😢\n💡 .menu লিখে চালু Command গুলা দেখো\n👑 Owner: ${OWNER_NAME}`); continue }
       }
     })
     return sess
