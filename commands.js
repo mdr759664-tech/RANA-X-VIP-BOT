@@ -370,3 +370,27 @@ async function handleCommand(o){
   return false
 }
 module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand }
+if(cmd==='antilink' && text==='on'){ antilinkOn=true; await success("✅ Anti-Link ON - Link দিলে 3 বার Warning -> Kick"); return }
+if(cmd==='antilink' && text==='off'){ antilinkOn=false; await success("❌ Anti-Link OFF"); return }
+if(cmd==='antilink'){ await sendV(antilinkOn?"✅ Anti-Link: ON\nLink দিলে 3 বার Warning -> Kick":"❌ Anti-Link: OFF"); return }
+if(cmd==='warns' || cmd==='warnlist'){
+  let list = Object.entries(warnCount).filter(([k,v])=>v>0)
+  if(!list.length){ await sendV("✅ কারো Warn নাই! সবাই ভালো! 💜"); return }
+  await sendV("⚠️ *WARN LIST*\n"+list.map(([id,c])=>`@${id.split('@')[0]} - ${c}/3`).join("\n"))
+  return
+}
+if(cmd==='resetwarn' || cmd==='resetwarns'){
+  let t = getTarget()
+  if(!t){ await sendV("❌ কাকে Reset করবো? Tag করো! Ex: .resetwarn @user"); return }
+  warnCount[t]=0
+  await success(`✅ @${t.split('@')[0]} এর Warn Reset হইছে!`)
+  return
+}
+if(cmd==='warn'){
+  let t = getTarget()
+  if(!t){ await sendV("❌ কাকে Warn দিবা? Tag করো!"); return }
+  warnCount[t]=(warnCount[t]||0)+1
+  if(warnCount[t]>=3){ warnCount[t]=0; await sock.sendMessage(from,{text:`🚫 @${t.split('@')[0]} 3 বার Warn খাইছে - KICK!`, mentions:[t]}); try{ await sock.groupParticipantsUpdate(from,[t],"remove") }catch{} }
+  else{ await success(`⚠️ @${t.split('@')[0]} কে Warn দেওয়া হইছে! ${warnCount[t]}/3`) }
+  return
+}
