@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP - commands.js - FIXED - NO SYNTAX ERROR =====
+// ===== RANA-X-VIP - commands.js - FULL - SONG + VIDEO + AUDIO + RECENT ON/OFF =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
 const CATS = {
@@ -69,6 +69,25 @@ function rand(n){ return Math.floor(Math.random()*n) }
 async function handleCommand(o){
   const { sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage } = o
   const reply = sendV
+  // ✅ RECENT / REACT / WELCOME / GOODBYE / ANTILINK ON-OFF - state diye, index.js eo kaj korbo
+  let st = o.state || globalThis.BOT_STATE || { recentOn: true, autoReactOn: true, welcomeOn: true, goodbyeOn: true, antilinkOn: true }
+  if(!globalThis.BOT_STATE) globalThis.BOT_STATE = st
+  if(cmd==='recent' && text==='on'){ st.recentOn = true; st.autoReactOn = true; globalThis.BOT_STATE = st; await reply("✅ Recent ON + Random Emoji React ON 🔥\nEkhon theke sob message e Emoji asbo!"); return true }
+  if(cmd==='recent' && text==='off'){ st.recentOn = false; st.autoReactOn = false; globalThis.BOT_STATE = st; await reply("❌ Recent OFF + Emoji React OFF\nEkhon theke Emoji asbo na!"); return true }
+  if(cmd==='recent' || cmd==='trending'){ await reply(st.recentOn ? "✅ Recent: ON 🔥\nOFF korte: .recent off" : "❌ Recent: OFF\nON korte: .recent on"); return true }
+  if(cmd==='react' && text==='on'){ st.autoReactOn = true; globalThis.BOT_STATE = st; await reply("✅ Random Emoji React ON 🔥"); return true }
+  if(cmd==='react' && text==='off'){ st.autoReactOn = false; globalThis.BOT_STATE = st; await reply("❌ Random Emoji React OFF"); return true }
+  if(cmd==='react' || cmd==='autoreact'){ await reply(st.autoReactOn ? "✅ React: ON 🔥\nOFF korte: .react off" : "❌ React: OFF\nON korte: .react on"); return true }
+  if(cmd==='welcome' && text==='on'){ st.welcomeOn = true; globalThis.BOT_STATE = st; await reply("✅ Welcome ON"); return true }
+  if(cmd==='welcome' && text==='off'){ st.welcomeOn = false; globalThis.BOT_STATE = st; await reply("❌ Welcome OFF"); return true }
+  if(cmd==='welcome'){ await reply(st.welcomeOn ? "✅ Welcome: ON" : "❌ Welcome: OFF"); return true }
+  if(cmd==='goodbye' && text==='on'){ st.goodbyeOn = true; globalThis.BOT_STATE = st; await reply("✅ Goodbye ON"); return true }
+  if(cmd==='goodbye' && text==='off'){ st.goodbyeOn = false; globalThis.BOT_STATE = st; await reply("❌ Goodbye OFF"); return true }
+  if(cmd==='goodbye'){ await reply(st.goodbyeOn ? "✅ Goodbye: ON" : "❌ Goodbye: OFF"); return true }
+  if(cmd==='antilink' && text==='on'){ st.antilinkOn = true; globalThis.BOT_STATE = st; await reply("✅ Anti-Link ON - Link dile 3 bar Warning -> Kick"); return true }
+  if(cmd==='antilink' && text==='off'){ st.antilinkOn = false; globalThis.BOT_STATE = st; await reply("❌ Anti-Link OFF"); return true }
+  if(cmd==='antilink'){ await reply(st.antilinkOn ? "✅ Anti-Link: ON\nLink dile 3 bar Warning -> Kick" : "❌ Anti-Link: OFF"); return true }
+
   if(cmd==='help'){
     if(!text) { await reply(`💡 Usage: .help <command>\nEx: .help sticker\nTotal: ${ALL_CMDS.length} Commands\n📢 ${CHANNEL_LINK}`); return true }
     if(ALL_CMDS.includes(text.toLowerCase())){ await reply(`╭── .${text.toLowerCase()}\n│ Available in ${BOT_NAME}\n│ Total: ${ALL_CMDS.length}\n│ Use: .${text.toLowerCase()}\n╰── Owner: ${OWNER_NAME}`); return true }
@@ -113,9 +132,101 @@ async function handleCommand(o){
   if(cmd==='quiz' || cmd==='trivia' || cmd==='riddle' || cmd==='guess'){ await reply("🧠 Quiz: Bangladesh er capital ki?\nA) Dhaka B) Chittagong\nAnswer: Dhaka! 🇧🇩"); return true }
   if(cmd==='math'){ try{ let expr = text.replace(/[^0-9+\-*/(). ]/g,''); if(!expr){ await reply("🧮 Usage: .math 2+2*3"); return true } await reply(`🧮 ${expr} = ${eval(expr)}`)}catch{ await reply("❌ Vul math!") } return true }
   if(cmd==='lottery' || cmd==='lottery2'){ await reply(`🎟️ Lottery Number: ${1000+rand(9000)}\n🍀 Good Luck!`); return true }
-  if(cmd==='play' || cmd==='song' || cmd==='play2' || cmd==='song2'){ if(!text){ await reply("🎵 Gaan er nam dao! Ex: .play DJ PARI"); return true } await reply(`🎵 *PLAY*\nTitle: ${text}\nChannel: RANA X MUSIC\nDuration: 3:04\n🔗 Search: https://youtube.com/results?search_query=${encodeURIComponent(text)}\n📢 ${CHANNEL_LINK}`); return true }
-  if(cmd==='video' || cmd==='ytmp4' || cmd==='ytvideo'){ await reply(`🎥 Video: ${text || "Video"}\nLink: https://youtube.com\n📢 ${CHANNEL_LINK}`); return true }
-  if(cmd==='ytmp3' || cmd==='ytaudio' || cmd==='mp3'){ await reply(`🎵 MP3: ${text || "Song"}\nDownloading... 🎧`); return true }
+  // ✅ SONG - ASOL GAN, GROUPE AUDIO BAJBO, YOUTUBE LINK NA
+  if(['song','play','gan','music','gaan','gana','play2','song2'].includes(cmd)){
+    if(!text){ await reply("❌ গানের নাম দে ভাই!\nEx: .song Ami Tomake Valobashi"); return true }
+    await reply("🔍 খুঁজতেছি... *"+text+"*")
+    try{
+      let servers = ["https://piped.video", "https://pipedapi.kavin.rocks", "https://pipedapi-libre.kavin.rocks"]
+      let v = null, svUsed = ""
+      for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 15000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
+      if(v){
+        let vid = (v.url || "").split("watch?v=")[1] || v.id
+        let st2 = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
+        let audios = st2.data?.audioStreams || []
+        audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+        if(audios[0]?.url){
+          let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 60000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+          await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+          await sock.sendMessage(from, { image: senderThumb, caption: `🎵 *${v.title || text}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ উপরের Audio তে চাপ দিলেই গ্রুপে বাজবো!` }, {quoted: m})
+          return true
+        }
+      }
+      // iTunes fallback - 30 sec preview
+      try{
+        let r = await axios.get("https://itunes.apple.com/search?term="+encodeURIComponent(text)+"&media=music&limit=1", {timeout: 15000})
+        let s = r.data?.results?.[0]
+        if(s?.previewUrl){
+          let aud = await axios.get(s.previewUrl, { responseType: 'arraybuffer' })
+          await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: s.trackName+".mp3", contextInfo: { externalAdReply: { title: s.trackName, body: "👑 RANA-X-VIP-BOT", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+          await reply(`🎵 *${s.trackName}*\n👤 ${s.artistName}\n\n👑 *RANA-X-VIP-BOT*`)
+          return true
+        }
+      }catch{}
+    }catch(e){ console.log("Song fail:", e.message) }
+    await reply("❌ গান পাইলাম না!\nEx: .song Ami Tomake Valobashi")
+    return true
+  }
+  // ✅ VIDEO - VIDEO + AUDIO 2 TAI ASBO
+  if(['video','vsong','vgan','vgana','ytmp4','ytvideo'].includes(cmd)){
+    if(!text){ await reply("❌ ভিডিও গানের নাম দে!\nEx: .video Ami Tomake Valobashi"); return true }
+    await reply("🎬 ভিডিও খুঁজতেছি... *"+text+"*")
+    try{
+      let servers = ["https://piped.video", "https://pipedapi.kavin.rocks"]
+      let v = null, svUsed = ""
+      for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 15000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
+      if(!v){ await reply("❌ ভিডিও পাইলাম না!"); return true }
+      let vid = (v.url || "").split("watch?v=")[1] || v.id
+      let st2 = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
+      let vids = st2.data?.videoStreams || []
+      let audios = st2.data?.audioStreams || []
+      audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+      let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
+      if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `🎬 *${v.title}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype: 'video/mp4' }, {quoted: m})
+      if(audios[0]?.url){
+        let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 60000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+        await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - Audio", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+      }
+      return true
+    }catch(e){ await reply("❌ ভিডিও আনতে পারলাম না!"); return true }
+  }
+  // ✅ AUDIO / MP3 - VIDEO TE REPLY DILE AUDIO HOIYA JAIBO
+  if(['audio','mp3','toaudio','songaudio','ytaudio','mp3dl','audio2','tomp3'].includes(cmd)){
+    let q = qCtx?.quotedMessage
+    let vidMsg = m.message.videoMessage || q?.videoMessage
+    if(!vidMsg){
+      // jodi text thake taile song hisabe khujbo
+      if(text){
+        await reply("🔍 খুঁজতেছি... *"+text+"* (Audio)")
+        try{
+          let servers = ["https://piped.video", "https://pipedapi.kavin.rocks"]
+          let v = null, svUsed = ""
+          for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(text)+"&filter=videos", {timeout: 15000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{} }
+          if(v){
+            let vid = (v.url || "").split("watch?v=")[1] || v.id
+            let st2 = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
+            let audios = st2.data?.audioStreams || []
+            audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+            if(audios[0]?.url){
+              let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 60000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+              await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+              return true
+            }
+          }
+        }catch{}
+        await reply("❌ গান পাইলাম না!"); return true
+      }
+      await reply("❌ যেই ভিডিওরে অডিও বানাইবা, ঐ ভিডিওতে Reply দিয়া লেখ:\n.audio\n\nঅথবা গানের নাম দিয়া লেখ:\n.audio Ami Tomake Valobashi"); return true
+    }
+    await reply("🎵 ভিডিও থেকে অডিও বানাইতেছি...")
+    try{
+      let stream = await downloadContentFromMessage(vidMsg, 'video')
+      let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
+      await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-X-VIP-Audio.mp3", contextInfo: { externalAdReply: { title: "RANA-X-VIP Audio", body: "👑 RANA-X-VIP-BOT", thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+      await reply("✅ হইছে! ভিডিও এখন অডিও হইয়া গেছে! ▶️ চাপ দিলেই বাজবো!")
+    }catch(e){ await reply("❌ অডিও বানাইতে পারলাম না! ভিডিওটা আবার পাঠাও!") }
+    return true
+  }
   if(cmd==='tiktok' || cmd==='tiktokdl'){ if(!text){ await reply("❌ TikTok link dao! Ex: .tiktok <link>"); return true } await reply(`🎵 TikTok DL: ${text}\nDownloading...`); return true }
   if(cmd==='igdl' || cmd==='insta' || cmd==='reels' || cmd==='fbdl' || cmd==='fbvideo'){ if(!text){ await reply(`❌ Link dao! Ex: .${cmd} <link>`); return true } await reply(`📥 Downloader: ${text}\nDownloading...`); return true }
   if(cmd==='wallpaper'){ try{ let r = await axios.get("https://picsum.photos/500", {responseType:'arraybuffer'}); await sock.sendMessage(from, {image: Buffer.from(r.data), caption:"🌸 Wallpaper for you! 👑"}, {quoted:m}) }catch{ await sock.sendMessage(from, {image:{url:"https://picsum.photos/500"}, caption:"🌸 Wallpaper for you! 👑"}, {quoted:m}) } return true }
@@ -227,9 +338,7 @@ async function handleCommand(o){
   if(cmd==='leave'){ await reply("👋 Bot group theke chole jacche... Bye! 🥺"); return true }
   if(cmd==='rules'){ await reply(`📜 *GROUP RULES*\n1. Link diba na ❌\n2. Galagali korba na ❌\n3. Spam korba na ❌\n4. Active thakba ✅\n👑 ${BOT_NAME}`); return true }
   if(cmd==='online'){ await reply("🟢 Online members dekhte WhatsApp er Online list dekho!"); return true }
-  // ✅ ANTI-LINK / WARN - EKHANE KEBOL TEXT DIBO, ASOL KAJ index.js KORBE - await BAIRE NAI, VITOR E ASE
-  if(cmd==='antilink'){ await reply(`✅ Anti-Link ON ache!\nLink dile 3 bar Warning -> Kick\nON/OFF korte index.js theke .antilink on/off likho`); return true }
-  if(cmd==='warns' || cmd==='warnlist'){ await reply("⚠️ Warn dekhte .warns likho - index.js theke dekhabe"); return true }
+  if(cmd==='warns' || cmd==='warnlist'){ await reply("⚠️ Warn dekhte group e .warns likho - index.js theke dekhabe"); return true }
   if(cmd==='resetwarn' || cmd==='warn'){ await reply("⚠️ Warn system index.js e - group e tag kore .warn likho"); return true }
   if(cmd==='google' || cmd==='search' || cmd==='find'){ await reply(`🔍 Google: ${text || "Search"}\nLink: https://google.com/search?q=${encodeURIComponent(text||"RANA")}`); return true }
   if(cmd==='wiki' || cmd==='meaning' || cmd==='dictionary' || cmd==='define'){ await reply(`📖 ${text || "Word"}: Eitar meaning holo - Valo jinish! 😍`); return true }
@@ -297,7 +406,7 @@ async function handleCommand(o){
   if(cmd==='prophet' || cmd==='muhammad'){ await reply("ﷺ Prophet Muhammad (SAW) - Amader priyo Nabi! 🤲❤️"); return true }
   if(cmd==='wudu'){ await reply("💧 Wudu: Hat, Mukh, Pa dhuye namaz poro! 🤲"); return true }
   if(cmd==='gojol' || cmd==='nasheed'){ await reply("🎵 Gojol: Allah Mohan, Nabi Mohan... 🤲🎵"); return true }
-  if(cmd==='lyrics2' || cmd==='playlist' || cmd==='radio' || cmd==='music' || cmd==='audio2' || cmd==='mp3dl' || cmd==='spotifydl'){ await reply(`🎵 Music: ${text || "Song"} - Playing... 🎶`); return true }
+  if(cmd==='playlist' || cmd==='radio' || cmd==='audio2' || cmd==='spotifydl'){ await reply(`🎵 Music: ${text || "Song"} - Playing... 🎶`); return true }
   if(cmd==='bass' || cmd==='nightcore' || cmd==='slowed' || cmd==='reverb' || cmd==='8d' || cmd==='lofi' || cmd==='remix'){ await reply(`🎧 ${cmd}: ${text || "Song"} - ${cmd} version banano hoise!`); return true }
   if(cmd==='gk' || cmd==='question' || cmd==='answer' || cmd==='homework' || cmd==='essay' || cmd==='story' || cmd==='poem' || cmd==='letter' || cmd==='study'){ await reply(`📚 ${cmd}: ${text || "Topic"} - Eita niye poro, valo hobe! 👑`); return true }
   if(cmd==='math2' || cmd==='science' || cmd==='history' || cmd==='english2' || cmd==='bangla2' || cmd==='geography' || cmd==='physics' || cmd==='chemistry' || cmd==='biology' || cmd==='maths' || cmd==='algebra' || cmd==='computer' || cmd==='programming' || cmd==='coding' || cmd==='python' || cmd==='javascript' || cmd==='java' || cmd==='html' || cmd==='css' || cmd==='space' || cmd==='nasa' || cmd==='earth' || cmd==='moon' || cmd==='animal' || cmd==='health' || cmd==='doctor' || cmd==='yoga' || cmd==='recipe' || cmd==='travel' || cmd==='country' || cmd==='language' || cmd==='business' || cmd==='law' || cmd==='police' || cmd==='army'){ await reply(`📚 ${cmd}: ${text || cmd} - Knowledge is Power! 👑`); return true }
@@ -324,7 +433,6 @@ async function handleCommand(o){
   if(cmd==='channel' || cmd==='follow' || cmd==='joinchannel' || cmd==='viewchannel' || cmd==='channellink' || cmd==='channelmenu'){ await reply(`📢 *FOLLOW CHANNEL*\n${CHANNEL_LINK}\n\n👑 ${BOT_NAME}`); return true }
   if(cmd==='support' || cmd==='donate'){ await reply(`💜 *SUPPORT*\n📞 01636487523\n💬 wa.me/8801636487523\n📢 ${CHANNEL_LINK}`); return true }
   if(cmd==='broadcast' || cmd==='bc'){ await reply(`📢 Broadcast: ${text || "Message"} - Sob group e pathano hoise! (Owner Only)`); return true }
-  if(cmd==='react' || cmd==='autoreact'){ await reply(`✅ Random Emoji React ON ache! 🔥\nGroup e je kono msg e Random Emoji dibo!`); return true }
   if(ALL_CMDS.includes(cmd)){ await reply(`✅ .${cmd} Successful!\n\n📌 Use: .${cmd} ${text||""}\n💜 ${BOT_NAME}`); return true }
   return false
 }
