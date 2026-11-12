@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FIXED - DESIGN 2 + BOT ID VIEW + SONG FIX =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - DESIGN 2 + SAAVN SONG =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -244,30 +244,41 @@ async function startBot(number){
         let searchQ = text.replace(/balobasi/gi, "Bhalobashi").replace(/valobashi/gi, "Valobashi")
         await sendV("🔍 খুঁজতেছি... *"+text+"*")
         let found = false
-        let tries = [searchQ, searchQ+" song", searchQ+" official"]
-        for(let q of tries){
-          if(found) break
-          try{
-            let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video","https://inv.nadeko.net","https://invidious.0011.lt"]
-            let v = null, svUsed = ""
-            for(let sv of servers){
-              try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; v = items[0]; if(v){ svUsed = sv; break } }catch{}
-            }
-            if(v){
-              let vid = (v.url || "").split("watch?v=")[1] || v.id
-              let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
-              let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]
-              audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-              let audioUrl = audios[0]?.url
-              if(audioUrl){
-                let aud = await axios.get(audioUrl, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-                if(aud.data.byteLength < 500000) continue
-                await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||text)+".mp3", ptt: false, contextInfo: { externalAdReply: { title: v.title || text, body: "👑 RANA-X-VIP-BOT - FULL SONG", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
-                await sock.sendMessage(from, { image: botThumb, caption: `🎵 *${v.title || text}*\n👤 ${v.uploaderName || ""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ উপরের Audio তে চাপ দিলেই গ্রুপে ফুল গান বাজবো!` }, {quoted: m})
+        try{
+          let r = await axios.get("https://saavn.dev/api/search/songs?query="+encodeURIComponent(searchQ), {timeout: 15000})
+          let list = r.data?.data?.results || []
+          if(list.length){
+            let s = list[0]
+            let dl = s.downloadUrl?.find(x=>x.quality==="320kbps") || s.downloadUrl?.find(x=>x.quality==="160kbps") || s.downloadUrl?.[s.downloadUrl.length-1]
+            if(dl?.url){
+              let aud = await axios.get(dl.url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}})
+              if(aud.data.byteLength > 100000){
+                await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype:'audio/mpeg', fileName: (s.name||text)+".mp3", ptt:false, contextInfo:{externalAdReply:{title:s.name||text, body:"👑 RANA-X-VIP-BOT - FULL SONG | "+(s.artists?.primary?.map(a=>a.name).join(", ")||""), thumbnail: botThumb, mediaType:1, sourceUrl: CHANNEL}}}, {quoted:m})
+                await sock.sendMessage(from, { image: botThumb, caption: `🎵 *${s.name}*\n👤 ${s.artists?.primary?.map(a=>a.name).join(", ")||""}\n⏱️ ${s.duration} sec\n\n👑 *RANA-X-VIP-BOT*`}, {quoted:m})
                 found = true
               }
             }
-          }catch(e){ console.log("Piped song fail:", e.message) }
+          }
+        }catch(e){ console.log("Saavn fail:", e.message) }
+        if(!found){
+          try{
+            let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video"]
+            let v=null, svUsed=""
+            for(let sv of servers){ try{ let r=await axios.get(sv+"/search?q="+encodeURIComponent(searchQ+" song")+"&filter=videos",{timeout:12000}); let items=r.data?.items||[]; v=items[0]; if(v){svUsed=sv;break} }catch{} }
+            if(v){
+              let vid=(v.url||"").split("watch?v=")[1]||v.id
+              let st=await axios.get(svUsed+"/streams/"+vid,{timeout:20000})
+              let audios=[...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]
+              audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0))
+              if(audios[0]?.url){
+                let aud=await axios.get(audios[0].url,{responseType:'arraybuffer',timeout:90000,headers:{'User-Agent':'Mozilla/5.0'}})
+                if(aud.data.byteLength>500000){
+                  await sock.sendMessage(from,{audio:Buffer.from(aud.data),mimetype:'audio/mp4',fileName:(v.title||text)+".mp3",contextInfo:{externalAdReply:{title:v.title||text,body:"👑 RANA-X-VIP-BOT - FULL SONG",thumbnail:botThumb,mediaType:1,sourceUrl:CHANNEL}}},{quoted:m})
+                  found=true
+                }
+              }
+            }
+          }catch(e){ console.log("Piped backup fail:",e.message) }
         }
         if(!found) await sendV("❌ ফুল গান পাইলাম না! ২ মিনিট পরে আবার লেখ:\nEx: .song Ami Tomake Valobashi")
         continue
