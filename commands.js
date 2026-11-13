@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP - commands.js - FULL - ALL REAL - NO FAKE =====
+// ===== RANA-X-VIP - commands.js - FULL - ALL FIXED - RECENT+WELCOME+ANTILINK+AUDIO =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
 const CATS = {
@@ -42,6 +42,40 @@ async function getWiki(q){ try{ let r = await axios.get("https://en.wikipedia.or
 async function getPipedVideo(query){ let servers = ["https://piped.video","https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz"]; for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout:12000}); let items = r.data?.items||[]; if(items[0]) return {v:items[0], sv} }catch{} } return null }
 async function getPipedAudio(v, sv){ let vid = (v.url||"").split("watch?v=")[1]||v.id; let st = await axios.get(sv+"/streams/"+vid, {timeout:20000}); let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]; audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0)); return {audios, vids: st.data?.videoStreams||[], vid} }
 async function sendPipedAudio(o, query, v, sv){ let {audios} = await getPipedAudio(v, sv); if(!audios[0]?.url) return false; let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength < 500000) return false; await o.sock.sendMessage(o.from, {audio: Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(v.title||query)+".mp3", contextInfo:{externalAdReply:{title:v.title||query, body:"👑 RANA-X-VIP-BOT - FULL SONG", thumbnail:o.senderThumb, mediaType:1, sourceUrl:o.CHANNEL_LINK}}}, {quoted:o.m}); return true }
+// ✅ ANTILINK CHECK - index.js থেকে এই ফাংশন ডাকলেই 1/3 -> 2/3 -> 3/3 KICK হইবো
+async function checkAntilink(o){
+  const { sock, from, m, sender, isGroup, msgText, OWNER, CHANNEL_LINK } = o
+  if(!isGroup) return false
+  if(!globalThis.BOT_STATE?.antilinkOn) return false
+  if(m.key.fromMe) return false
+  let body = msgText || ""
+  if(!body) return false
+  if(body.startsWith('.') || body.startsWith('!')) return false // Command হইলে ছাড়
+  let isLink = /https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.|t\.me\/|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com/i.test(body)
+  if(!isLink) return false
+  if(CHANNEL_LINK && body.includes(CHANNEL_LINK)) return false
+  if(body.includes("whatsapp.com/channel")) return false
+  // Admin / Owner হইলে ছাড়
+  try{
+    let meta = await sock.groupMetadata(from)
+    let me = meta.participants.find(p=>p.id===sender)
+    if(me?.admin) return false
+    if(sender.replace(/[^0-9]/g,'') === String(OWNER).replace(/[^0-9]/g,'')) return false
+  }catch{}
+  if(!globalThis.ANTILINK_WARN) globalThis.ANTILINK_WARN = {}
+  let key = from + "_" + sender
+  globalThis.ANTILINK_WARN[key] = (globalThis.ANTILINK_WARN[key] || 0) + 1
+  let count = globalThis.ANTILINK_WARN[key]
+  try{ await sock.sendMessage(from, {delete:{remoteJid:from, fromMe:false, id:m.key.id, participant:sender}}) }catch{}
+  if(count >= 3){
+    globalThis.ANTILINK_WARN[key] = 0
+    await sock.sendMessage(from, {text: `🚫 @${sender.split('@')[0]} - antilink violation (Link) Warning 3/3.\n3 বার Link দিছে - KICK করা হইলো! 💥`, mentions:[sender]})
+    try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{ await sock.sendMessage(from, {text: "❌ Kick করতে পারলাম না! বটকে Admin দাও!"}) }
+  } else {
+    await sock.sendMessage(from, {text: `⚠️ @${sender.split('@')[0]} - antilink violation (Link) Warning ${count}/3.\nLink দেওয়া নিষেধ! আবার দিলে KICK! ❌`, mentions:[sender]})
+  }
+  return true
+}
 async function handleCommand(o){
   const { sock, from, m, cmd, text, sender, isGroup, qCtx, mentioned, getTarget, sendV, success, senderThumb, BOT_NAME, OWNER_NAME, OWNER, CHANNEL_LINK, CHANNEL_JID, needAdmin, userBal, userXp, downloadContentFromMessage } = o
   const reply = sendV
@@ -54,21 +88,23 @@ async function handleCommand(o){
     if(cmd==='private'){ globalThis.BOT_MODE="private"; await reply("🔒 Bot এখন *PRIVATE* 🔒\nএখন খালি তুমি চালাইতে পারবা!"); return true }
     await reply(globalThis.BOT_MODE==="private" ? "🔒 Bot এখন *PRIVATE*\nPublic করতে: .public" : "✅ Bot এখন *PUBLIC*\nPrivate করতে: .private"); return true
   }
-  if(cmd==='recent' && text==='on'){ st.recentOn=true; st.autoReactOn=true; await reply("✅ Recent ON + Random Emoji React ON 🔥"); return true }
-  if(cmd==='recent' && text==='off'){ st.recentOn=false; st.autoReactOn=false; await reply("❌ Recent OFF + Emoji React OFF"); return true }
-  if(cmd==='recent' || cmd==='trending'){ await reply(st.recentOn ? "✅ Recent: ON 🔥\nOFF korte: .recent off" : "❌ Recent: OFF\nON korte: .recent on"); return true }
-  if(cmd==='react' && text==='on'){ st.autoReactOn=true; await reply("✅ Random Emoji React ON 🔥"); return true }
-  if(cmd==='react' && text==='off'){ st.autoReactOn=false; await reply("❌ Random Emoji React OFF"); return true }
-  if(cmd==='react' || cmd==='autoreact'){ await reply(st.autoReactOn ? "✅ React: ON 🔥" : "❌ React: OFF"); return true }
-  if(cmd==='welcome' && text==='on'){ st.welcomeOn=true; await reply("✅ Welcome ON"); return true }
-  if(cmd==='welcome' && text==='off'){ st.welcomeOn=false; await reply("❌ Welcome OFF"); return true }
+  // ✅ FIXED - RECENT = EMOJI - globalThis sync
+  if(cmd==='recent' && text==='on'){ st.recentOn=true; st.autoReactOn=true; globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; await reply("✅ Recent ON + Emoji React ON 🔥\nএখন সব মেসেজে Emoji মারবো!"); return true }
+  if(cmd==='recent' && text==='off'){ st.recentOn=false; st.autoReactOn=false; globalThis.BOT_STATE.recentOn=false; globalThis.BOT_STATE.autoReactOn=false; await reply("❌ Recent OFF + Emoji React OFF\nএখন আর Emoji মারবো না!"); return true }
+  if(cmd==='recent' || cmd==='trending'){ await reply(st.recentOn ? "✅ Recent: ON 🔥 + Emoji React: ON\nOFF করতে: .recent off" : "❌ Recent: OFF + Emoji React: OFF\nON করতে: .recent on"); return true }
+  if(cmd==='react' && text==='on'){ st.autoReactOn=true; globalThis.BOT_STATE.autoReactOn=true; await reply("✅ Random Emoji React ON 🔥"); return true }
+  if(cmd==='react' && text==='off'){ st.autoReactOn=false; globalThis.BOT_STATE.autoReactOn=false; await reply("❌ Random Emoji React OFF\nএখন আর Emoji মারবো না!"); return true }
+  if(cmd==='react' || cmd==='autoreact'){ await reply(st.autoReactOn ? "✅ React: ON 🔥\nOFF করতে: .react off" : "❌ React: OFF\nON করতে: .react on"); return true }
+  if(cmd==='welcome' && text==='on'){ st.welcomeOn=true; globalThis.BOT_STATE.welcomeOn=true; await reply("✅ Welcome ON"); return true }
+  if(cmd==='welcome' && text==='off'){ st.welcomeOn=false; globalThis.BOT_STATE.welcomeOn=false; await reply("❌ Welcome OFF"); return true }
   if(cmd==='welcome'){ await reply(st.welcomeOn ? "✅ Welcome: ON" : "❌ Welcome: OFF"); return true }
-  if(cmd==='goodbye' && text==='on'){ st.goodbyeOn=true; await reply("✅ Goodbye ON"); return true }
-  if(cmd==='goodbye' && text==='off'){ st.goodbyeOn=false; await reply("❌ Goodbye OFF"); return true }
+  if(cmd==='goodbye' && text==='on'){ st.goodbyeOn=true; globalThis.BOT_STATE.goodbyeOn=true; await reply("✅ Goodbye ON"); return true }
+  if(cmd==='goodbye' && text==='off'){ st.goodbyeOn=false; globalThis.BOT_STATE.goodbyeOn=false; await reply("❌ Goodbye OFF"); return true }
   if(cmd==='goodbye'){ await reply(st.goodbyeOn ? "✅ Goodbye: ON" : "❌ Goodbye: OFF"); return true }
-  if(cmd==='antilink' && text==='on'){ st.antilinkOn=true; await reply("✅ Anti-Link ON - Link dile 3 bar Warning -> Kick"); return true }
-  if(cmd==='antilink' && text==='off'){ st.antilinkOn=false; await reply("❌ Anti-Link OFF"); return true }
-  if(cmd==='antilink'){ await reply(st.antilinkOn ? "✅ Anti-Link: ON" : "❌ Anti-Link: OFF"); return true }
+  // ✅ FIXED ANTILINK TOGGLE - 3 বার Warning -> KICK
+  if(cmd==='antilink' && text==='on'){ st.antilinkOn=true; globalThis.BOT_STATE.antilinkOn=true; await reply("✅ Anti-Link ON 🔥\nLink দিলে: 1/3 -> 2/3 -> 3/3 = KICK!"); return true }
+  if(cmd==='antilink' && text==='off'){ st.antilinkOn=false; globalThis.BOT_STATE.antilinkOn=false; await reply("❌ Anti-Link OFF\nএখন Link দিলে কিছু হইবো না!"); return true }
+  if(cmd==='antilink'){ await reply(st.antilinkOn ? "✅ Anti-Link: ON 🔥\nLink দিলে 3 বার Warning -> KICK\nOFF করতে: .antilink off" : "❌ Anti-Link: OFF\nON করতে: .antilink on"); return true }
   if(cmd==='del' || cmd==='delete'){
     let q = qCtx; if(!q?.stanzaId){ await reply("❌ যেই মেসেজ ডিলিট করবা, ঐটাতে Reply দিয়া লেখ:\n.del"); return true }
     try{ await sock.sendMessage(from, {delete:{remoteJid:from, fromMe:false, id:q.stanzaId, participant:q.participant}}); await reply("✅ ডিলিট হইছে!") }catch{ await reply("❌ ডিলিট করতে পারলাম না! বটকে Admin দাও!") }
@@ -171,19 +207,28 @@ async function handleCommand(o){
       return true
     }catch{ await reply("❌ ভিডিও আনতে পারলাম না!"); return true }
   }
+  // ✅ FIXED AUDIO - ভিডিও Reply দিলেই সাথে সাথে Audio - ViewOnce সহ
   if(['audio','mp3','toaudio','songaudio','ytaudio','mp3dl','audio2','tomp3','ytmp3'].includes(cmd)){
-    let q = qCtx?.quotedMessage; let vidMsg = m.message.videoMessage || q?.videoMessage
-    if(!vidMsg){
-      if(text){
-        await reply("🔍 খুঁজতেছি... *"+text+"* (Audio)")
-        try{ let got = await getPipedVideo(text); if(got){ let ok = await sendPipedAudio(o, text, got.v, got.sv); if(ok) return true } }catch{}
-        await reply("❌ গান পাইলাম না!"); return true
-      }
-      await reply("❌ যেই ভিডিওরে অডিও বানাইবা, ঐ ভিডিওতে Reply দিয়া লেখ:\n.audio\n\nঅথবা গানের নাম দিয়া লেখ:\n.audio Ami Tomake Valobashi"); return true
+    let qMsg = qCtx?.quotedMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage || null
+    let inner = qMsg?.viewOnceMessage?.message || qMsg?.viewOnceMessageV2?.message || qMsg?.viewOnceMessageV2Extension?.message || null
+    let vidMsg = m.message.videoMessage || qMsg?.videoMessage || inner?.videoMessage || null
+    if(vidMsg){
+      await reply("🎵 ভিডিও থেকে অডিও বানাইতেছি... 🔥")
+      try{
+        let stream = await downloadContentFromMessage(vidMsg, 'video')
+        let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
+        if(buf.length < 10000){ await reply("❌ ভিডিও খালি আসছে! আবার দিয়া .audio লেখো"); return true }
+        await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-Audio.mp3", ptt: false, contextInfo: { externalAdReply: { title: "RANA-X-VIP Audio ▶️", body: "👑 চাপ দিলেই বাজবো | "+OWNER_NAME, thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+        await reply("✅ হইছে! ভিডিও এখন অডিও হইয়া গেছে! ▶️ চাপ দিলেই বাজবো!")
+      }catch(e){ console.log("Audio Convert Err:", e.message); await reply("❌ অডিও বানাইতে পারলাম না! ভিডিওটা আবার পাঠাইয়া Reply দিয়া .audio লেখো") }
+      return true
     }
-    await reply("🎵 ভিডিও থেকে অডিও বানাইতেছি...")
-    try{ let stream = await downloadContentFromMessage(vidMsg, 'video'); let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c]); await sock.sendMessage(from, {audio: buf, mimetype:'audio/mp4', fileName:"RANA-X-VIP-Audio.mp3", contextInfo:{externalAdReply:{title:"RANA-X-VIP Audio", body:"👑 RANA-X-VIP-BOT", thumbnail:senderThumb, mediaType:1, sourceUrl:CHANNEL_LINK}}}, {quoted:m}); await reply("✅ হইছে! ভিডিও এখন অডিও হইয়া গেছে! ▶️ চাপ দিলেই বাজবো!") }catch{ await reply("❌ অডিও বানাইতে পারলাম না!") }
-    return true
+    if(text){
+      await reply("🔍 খুঁজতেছি... *"+text+"* (Audio)")
+      try{ let got = await getPipedVideo(text); if(got){ let ok = await sendPipedAudio(o, text, got.v, got.sv); if(ok) return true } }catch{}
+      await reply("❌ গান পাইলাম না!"); return true
+    }
+    await reply("❌ যেই ভিডিওরে অডিও বানাইবা, ঐ ভিডিওতে Reply দিয়া লেখ:\n.audio\n\nঅথবা গানের নাম দিয়া লেখ:\n.audio Ami Tomake Valobashi"); return true
   }
   if(cmd==='tiktok' || cmd==='tiktokdl'){
     if(!text){ await reply("❌ TikTok link dao! Ex: .tiktok <link>"); return true }
@@ -419,4 +464,4 @@ async function handleCommand(o){
   }
   return false
 }
-module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand }
+module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink }
