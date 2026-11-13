@@ -1,5 +1,5 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FINAL FIXED - RANA BAPPY =====
-// .private = Close-Up Romantic - Proti bar alada | .song = Audio - Group e bajbo | .video = FULL | .recent + Emoji + Welcome + Always Connected
+// ===== RANA-X-VIP-BOT - FULL index.js - FINAL 100% RANDOM SHORT - RANA BAPPY =====
+// .private = Short Romantic - 100% Random | .song = Audio - Group e bajbo | .video = FULL
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -31,7 +31,8 @@ const sessions = new Map()
 let userBal = {}, userXp = {}
 const groupMetaCache = new Map()
 const dpCache = new Map()
-let lastPrivateIdx = -1
+// ✅ 100% RANDOM - ager video gulo mone rakhbo
+let usedPrivateIds = new Set()
 async function getGroupMetaCached(sock, gid){
   let c = groupMetaCache.get(gid)
   if(c && Date.now() - c.time < 30000) return c.data
@@ -74,67 +75,107 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
   }catch{}
   await sock.sendMessage(from, { text: menuTxt+"\n\n📢 *Channel:* "+CHANNEL, contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 }, externalAdReply: { title: "📢 View Channel", body: "RANA X VIP - Tap to View Channel", thumbnail: picBuf, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: msg})
 }
+// ✅ VIDEO HELPER - Piped + Invidious - Buffer diya pathabo - 100% Random
 async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wantShort=false){
   const sendV = async (txt) => sock.sendMessage(from, vBox(txt, botThumb), {quoted:m})
   await sendV("🎬 খুঁজতেছি... *"+query+"* 🔥")
-  const FALLBACK_PRIVATE = ["https://www.youtube.com/watch?v=09R8_2nJtjg","https://www.youtube.com/watch?v=Ho2Tq-sD6a8","https://www.youtube.com/watch?v=JGwWNGJdvx8","https://www.youtube.com/watch?v=kXYiU_JCYtU","https://www.youtube.com/watch?v=2Vv-BfVoq4g"]
   try{
-    let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video","https://pipedapi-libre.kavin.rocks","https://pipedapi.reallyaweso.me"]
-    let searchQs = [query, query+" status", "romantic kiss closeup status", "couple kiss romantic status", "turkish drama kiss scene"]
-    let itemsAll = [], svUsed = ""
-    for(let q of searchQs){
-      if(itemsAll.length) break
-      for(let sv of servers){
-        try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 10000}); let items = r.data?.items || []; if(items.length){ itemsAll = items; svUsed = sv; break } }catch{}
+    let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video"]
+    let invServers = ["https://inv.nadeko.net","https://invidious.privacyredirect.com","https://iv.datura.network","https://invidious.0011.lt"]
+    let itemsAll = [], svUsed = "", isInvidious = false
+    for(let sv of servers){
+      try{
+        let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 8000})
+        let items = r.data?.items || []
+        if(items.length){ itemsAll = items; svUsed = sv; break }
+      }catch{}
+    }
+    if(!itemsAll.length){
+      for(let sv of invServers){
+        try{
+          let r = await axios.get(sv+"/api/v1/search?q="+encodeURIComponent(query)+"&type=video", {timeout: 8000})
+          let items = r.data || []
+          if(items.length){
+            itemsAll = items.map(x=>({ title: x.title, url: "https://www.youtube.com/watch?v="+x.videoId, id: x.videoId, duration: x.lengthSeconds }))
+            svUsed = sv; isInvidious = true; break
+          }
+        }catch{}
       }
     }
     if(!itemsAll.length){
-      let fb = FALLBACK_PRIVATE[Math.floor(Math.random()*FALLBACK_PRIVATE.length)]
-      let vid = fb.split("watch?v=")[1]
-      for(let sv of servers){
-        try{
-          let st = await axios.get(sv+"/streams/"+vid, {timeout: 15000})
-          let vids = st.data?.videoStreams || []
-          let audios = st.data?.audioStreams || []
-          audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-          let vv = vids.find(x=>x.quality==="360p") || vids[0]
-          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `❤️ *${title}*\n🎬 *Romantic Video*\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
-          if(audios[0]?.url){
-            let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-            if(aud.data.byteLength > 200000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: "private-romantic.mp3", contextInfo: { externalAdReply: { title: "PRIVATE ❤️ ROMANTIC", body: "👑 "+BOT_NAME+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
-          }
-          return
-        }catch{}
-      }
-      await sendV(`❤️ *${title}*\n\n🎬 ভিডিও ডাউনলোড হইলো না, লিংকে চাপ দিয়া দেখো:\n👉 ${fb}\n\n👑 ${BOT_NAME}`)
+      await sendV(`❤️ *${title}*\n\n🎬 *${query}*\n👉 https://www.youtube.com/results?search_query=${encodeURIComponent(query)}\n\n👆 লিংকে চাপ দিলেই ভিডিও দেখবা!\n\n👑 ${BOT_NAME}`)
       return
     }
     let v = itemsAll[0]
     if(wantShort){
       let shorts = itemsAll.filter(x => (x.duration||999) <= 65 && (x.duration||0) >= 10)
-      if(shorts.length){
-        let idx = Math.floor(Math.random()*shorts.length)
-        if(idx===lastPrivateIdx && shorts.length>1) idx = (idx+1)%shorts.length
-        lastPrivateIdx = idx
-        v = shorts[idx]
-      } else { itemsAll.sort((a,b)=> (a.duration||999)-(b.duration||999)); v = itemsAll[0] }
+      // ✅ 100% RANDOM - ager gulo bad diya nibo
+      let fresh = shorts.filter(x=>{
+        let id = (x.url||"").split("watch?v=")[1] || x.id || x.videoId
+        return !usedPrivateIds.has(id)
+      })
+      let pool = fresh.length ? fresh : shorts
+      if(usedPrivateIds.size > 30) usedPrivateIds.clear()
+      v = pool[Math.floor(Math.random()*pool.length)]
+      let vidId = (v.url||"").split("watch?v=")[1] || v.id || v.videoId
+      if(vidId) usedPrivateIds.add(vidId)
     } else {
       let fulls = itemsAll.filter(x => (x.duration||0) > 120)
-      if(fulls.length) v = fulls[0]
+      if(fulls.length) v = fulls[Math.floor(Math.random()*fulls.length)]
     }
-    let vid = (v.url || "").split("watch?v=")[1] || v.id
-    let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 20000})
-    let vids = st.data?.videoStreams || []
-    let audios = st.data?.audioStreams || []
-    audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
-    let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
-    if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n⏱️ *Duration:* ${v.duration||0} sec\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
-    else { await sendV(`❤️ *${title}*\n\n🎬 *${v.title}*\n👉 https://www.youtube.com/watch?v=${vid}\n\n👑 ${BOT_NAME}`) }
-    if(audios[0]?.url){
-      let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 120000, headers: { 'User-Agent': 'Mozilla/5.0' } })
-      if(aud.data.byteLength > 200000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||query)+".mp3", contextInfo: { externalAdReply: { title: v.title || query, body: "👑 "+BOT_NAME+" - "+title+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+    let vid = (v.url || "").split("watch?v=")[1] || v.id || v.videoId
+    let videoUrl = ""
+    try{
+      if(isInvidious){
+        let st = await axios.get(svUsed+"/api/v1/videos/"+vid, {timeout: 15000})
+        let fmts = st.data?.formatStreams || []
+        let vv = fmts.find(x=>x.itag==18) || fmts[0]
+        videoUrl = vv?.url || ""
+      } else {
+        let st = await axios.get(svUsed+"/streams/"+vid, {timeout: 15000})
+        let vids = st.data?.videoStreams || []
+        let vv = vids.find(x=>x.quality==="360p") || vids.find(x=>x.quality==="720p") || vids[0]
+        videoUrl = vv?.url || ""
+      }
+    }catch(e){ console.log("Stream Fail:", e.message) }
+    if(!videoUrl){
+      await sendV(`❤️ *${title}*\n\n🎬 *${v.title}*\n👉 https://www.youtube.com/watch?v=${vid}\n\n👑 ${BOT_NAME}`)
+      return
     }
-  }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না! আবার চেষ্টা করো:\n.private Tum Hi Ho 😢") }
+    try{
+      let vb = await axios.get(videoUrl, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+      if(vb.data.byteLength > 50000){
+        await sock.sendMessage(from, { video: Buffer.from(vb.data), caption: `${emoji} *${title}*\n🎬 *${v.title}*\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
+      } else {
+        await sock.sendMessage(from, { video: { url: videoUrl }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
+      }
+    }catch{
+      await sock.sendMessage(from, { video: { url: videoUrl }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
+    }
+    // .private e Audio lagbo na - khali Short Video
+    if(!wantShort){
+      try{
+        let audUrl = ""
+        if(isInvidious){
+          let st2 = await axios.get(svUsed+"/api/v1/videos/"+vid, {timeout: 10000})
+          let adp = st2.data?.adaptiveFormats || []
+          audUrl = (adp.filter(x=>x.type && x.type.includes("audio"))[0]||{}).url || ""
+        } else {
+          let st2 = await axios.get(svUsed+"/streams/"+vid, {timeout: 10000})
+          let audios = st2.data?.audioStreams || []
+          audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+          audUrl = audios[0]?.url || ""
+        }
+        if(audUrl){
+          let aud = await axios.get(audUrl, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+          if(aud.data.byteLength > 200000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||query)+".mp3", contextInfo: { externalAdReply: { title: v.title || query, body: "👑 "+BOT_NAME+" - "+title+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+        }
+      }catch{}
+    }
+  }catch(e){
+    console.log("Video Err:", e.message)
+    await sendV(`❌ ভিডিও আনতে পারলাম না! Link দিলাম:\n👉 https://www.youtube.com/results?search_query=${encodeURIComponent(query)}\n\n👑 ${BOT_NAME}`)
+  }
 }
 async function sendSongAudio(sock, from, m, base, botThumb){
   let found = false
