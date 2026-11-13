@@ -1,12 +1,13 @@
-// ===== RANA-X-VIP - commands.js - FULL - ALL FIXED - RECENT+WELCOME+ANTILINK+AUDIO =====
+// ===== RANA-X-VIP - commands.js - FULL - PRIVATE ONLY 30-40 SEC VIDEO =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
+const OWNER_NAME_FIX = "✷𐏓꯭⸙Ξ⤹𝐑𝐀𝐍𝐀𐏓𝐁𝐀𝐏𝐏𝐘⟭꯭⎯۞"
 const CATS = {
-  "OWNER": ["owner","creator","public","private","mode","botmode","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
+  "OWNER": ["owner","creator","public","mode","botmode","support","donate","repo","script","deploy","pair","session","reset","restart","broadcast","bc","join","leave","block","unblock","ban","unban","sudo","del","delete","shutdown","eval"],
   "MAIN": ["menu","menu2","allmenu","help","commands","list","ping","pong","speed","runtime","uptime","alive","info","bot","about","profile","myinfo","id","stats","system","version","ownerinfo","botinfo","cam","pic"],
   "FUN": ["joke","meme","fact","quote","shayari","love","crush","propose","slap","kiss","hug","pat","cuddle","dance","sing","roast","insult","compliment","truth","dare","ship","compatibility","beautiful","ugly","luck","horoscope","zodiac","aura","vibe","fun","happy","sad","angry","cry","laugh","smile","wink","poke","tickle","bite","wave","hello","bye","goodmorning","goodnight"],
   "GAME": ["tictactoe","quiz","riddle","guess","dice","coin","slot","rps","blackjack","trivia","math","word","hangman","flip","roll","lottery","football","cricket","hunt","fight","battle","duel","race","truthordare","wouldyou","neverhave"],
-  "DOWNLOADER": ["play","song","video","romantic","dj","funny","romanticvideo","djbangla","funnyvideo","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl"],
+  "DOWNLOADER": ["play","song","video","romantic","dj","funny","romanticvideo","djbangla","funnyvideo","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl","private","praivete","praivate","privet","priv"],
   "IMAGE": ["sticker","s","vv","vv2","vv3","viewonce","take","steal","toimg","toimage","tovid","tomp3","blur","circle","invert","grey","attp","ttp","emojimix","removebg","upscale","enhance","cartoon","anime","logo","banner","thumbnail","poster","dp","pfp","avatar","background","neon","glow"],
   "GROUP": ["admin","admins","announce","antibot","antilink","antispam","approve","close","desc","disappear","everyone","filter","groupinfo","hidetag","invite","kick","kickall","leave","linkgroup","lock","mute","open","poll","promote","reject","requests","revoke","rtag","setgpp","subject","tag","tagadmins","tagall","togroupstatus","totag","unlock","unmute","warn","welcome","goodbye","setdesc","setname","link","members","online","vote","rules","groupname","groupdesc","add","demote","setppgc","groupopen","groupclose","kickme","adminlist","memberlist","warns","resetwarn","antibadword","antibad","recent","react","autoreact"],
   "SEARCH": ["google","image","img","yt","youtube","wiki","weather","news","translate","meaning","dictionary","lyrics","movie","series","animeinfo","github","stalk","search","find","lookup","check","ipinfo","screenshot","qrscan","ocr","define","synonym"],
@@ -29,9 +30,9 @@ let ALL_CMDS = []
 for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k])
 ALL_CMDS = [...new Set(ALL_CMDS)]
 function getCatMenu(cat){ if(!CATS[cat]) return null; let t = `╭─━─━─${cat}─━─━─╮\n`; CATS[cat].forEach((c,i)=>{ t += `┃ ${i+1}. .${c}\n` }); t += `╰─━─━─━─━─━─╯\n👑 RANA-X-VIP`; return t }
-function getMenuText(ownerName, owner, channelLink){ let t = `━━━━━━━━━━━━━━\n👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands\n━━━━━━━━━━━━━━\n\n`; for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n`; t += CATS[cat].slice(0,12).map(c=> `  • .${c}`).join("\n") + `\n`; if(CATS[cat].length > 12) t += `  • ... +${CATS[cat].length-12} more\n`; t += `\n` } t += `━━━━━━━━━━━━━━\n💡 Full list: .allmenu\n📢 Channel: ${channelLink || ""}\n👑 RANA-X-VIP`; return t }
-function getWelcomeMenu(num, gName, count, ownerName){ let user = num.split('@')[0]; let date = new Date().toLocaleDateString('en-BD', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'long', year: 'numeric' }); let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true }); return `╭─━─━─━─💜─━─━─━─╮\n┃ ✨ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ✨ ┃\n╰─━─━─━─💜─━─━─━─╯\n\n🌸 হ্যালো @${user} ! 🥰\n💖 *${gName}* গ্রুপে তোমাকে স্বাগতম!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👤 নাম: @${user}\n┃ 👥 মোট সদস্য: ${count} জন\n┃ 📅 তারিখ: ${date}\n┃ 🕒 সময়: ${time}\n┃ 👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n┗━━━━━━━━━━━━━━┛\n\n💡 .menu লিখে সব Command দেখো\n🎉 মজা করো, Active থাকো!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
-function getGoodbyeMenu(num, gName, count){ let user = (num||"").split('@')[0]; return `╭─━─━─━─💔─━─━─━─╮\n┃ 🥺 𝗚𝗢𝗢𝗗𝗕𝗬𝗘 🥺 ┃\n╰─━─━─━─💔─━─━─━─╯\n\n🥺 @${user} চলে গেলো! 💔\n💖 *${gName}* থেকে বিদায়!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👥 বর্তমান সদস্য: ${count} জন\n┃ 👑 Owner: 🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸\n┗━━━━━━━━━━━━━━┛\n\n🥺 ভালো থেকো!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
+function getMenuText(ownerName, owner, channelLink){ let t = `━━━━━━━━━━━━━━\n👑 Owner: ${ownerName || OWNER_NAME_FIX}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands\n━━━━━━━━━━━━━━\n\n`; for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n`; t += CATS[cat].slice(0,12).map(c=> `  • .${c}`).join("\n") + `\n`; if(CATS[cat].length > 12) t += `  • ... +${CATS[cat].length-12} more\n`; t += `\n` } t += `━━━━━━━━━━━━━━\n💡 Full list: .allmenu\n📢 Channel: ${channelLink || ""}\n👑 RANA-X-VIP`; return t }
+function getWelcomeMenu(num, gName, count, ownerName){ let user = num.split('@')[0]; let date = new Date().toLocaleDateString('en-BD', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'long', year: 'numeric' }); let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true }); return `╭─━─━─━─💜─━─━─━─╮\n┃ ✨ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ✨ ┃\n╰─━─━─━─💜─━─━─━─╯\n\n🌸 হ্যালো @${user} ! 🥰\n💖 *${gName}* গ্রুপে তোমাকে স্বাগতম!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👤 নাম: @${user}\n┃ 👥 মোট সদস্য: ${count} জন\n┃ 📅 তারিখ: ${date}\n┃ 🕒 সময়: ${time}\n┃ 👑 Owner: ${ownerName || OWNER_NAME_FIX}\n┗━━━━━━━━━━━━━━┛\n\n💡 .menu লিখে সব Command দেখো\n🎉 মজা করো, Active থাকো!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
+function getGoodbyeMenu(num, gName, count){ let user = (num||"").split('@')[0]; return `╭─━─━─━─💔─━─━─━─╮\n┃ 🥺 𝗚𝗢𝗢𝗗𝗕𝗬𝗘 🥺 ┃\n╰─━─━─━─💔─━─━─━─╯\n\n🥺 @${user} চলে গেলো! 💔\n💖 *${gName}* থেকে বিদায়!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👥 বর্তমান সদস্য: ${count} জন\n┃ 👑 Owner: ${OWNER_NAME_FIX}\n┗━━━━━━━━━━━━━━┛\n\n🥺 ভালো থেকো!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
 const JOKES = ["😂 Teacher: Poralekha keno koro na?\nStudent: Sir, WhatsApp Bot chalai, RANA X VIP BOT! 🤣","😂 Amar bot er 500+ command, ar amar exam e 0 number 😭🤣","😂 Girlfriend: Tumi amake time dao na!\nBoyfriend: Bot er command likhte hoy! 🤣","😂 Wifi slow hoile mone hoy jibon slow! 📶😭"]
 const QUOTES = ["💡 Shopno dekho boro, bot chalao RANA X VIP diye! 👑","💡 Hard work + Smart work = Success! 🔥","💡 Jibone har manba na, RANA er moto agay jaba! 👑"]
 const FACTS = ["🧠 Fact: Modhu kokhono nosto hoy na! 🍯","🌍 Fact: Prithibi te proti second e 2 jon manush jonmay! 👶","🔥 Fact: RANA X VIP - Bangladesh er sera Bot! 👑"]
@@ -42,7 +43,32 @@ async function getWiki(q){ try{ let r = await axios.get("https://en.wikipedia.or
 async function getPipedVideo(query){ let servers = ["https://piped.video","https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz"]; for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout:12000}); let items = r.data?.items||[]; if(items[0]) return {v:items[0], sv} }catch{} } return null }
 async function getPipedAudio(v, sv){ let vid = (v.url||"").split("watch?v=")[1]||v.id; let st = await axios.get(sv+"/streams/"+vid, {timeout:20000}); let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]; audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0)); return {audios, vids: st.data?.videoStreams||[], vid} }
 async function sendPipedAudio(o, query, v, sv){ let {audios} = await getPipedAudio(v, sv); if(!audios[0]?.url) return false; let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength < 500000) return false; await o.sock.sendMessage(o.from, {audio: Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(v.title||query)+".mp3", contextInfo:{externalAdReply:{title:v.title||query, body:"👑 RANA-X-VIP-BOT - FULL SONG", thumbnail:o.senderThumb, mediaType:1, sourceUrl:o.CHANNEL_LINK}}}, {quoted:o.m}); return true }
-// ✅ ANTILINK CHECK - index.js থেকে এই ফাংশন ডাকলেই 1/3 -> 2/3 -> 3/3 KICK হইবো
+// ✅ PRIVATE HELPER - শুধু এই স্টাইলের ভিডিও - 30-40 Sec
+let _usedPrivateIds = new Set()
+async function getPrivateVideo30_40(){
+  const QUERIES = ["couple kiss closeup hand on chin","couple kiss closeup holding face","turkish couple kiss closeup holding chin","kiss closeup hand on cheek romantic","boy holding girl face kiss closeup","couple kiss closeup hand on jaw romantic","romantic kiss closeup hand holding face","couple kissing closeup romantic scene"]
+  let shuffledQ = [...QUERIES].sort(()=> Math.random()-0.5)
+  let servers = ["https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://piped.video"]
+  for(let q of shuffledQ){
+    for(let sv of servers){
+      try{
+        let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 8000})
+        let items = (r.data?.items || []).filter(v=>{
+          let dur = v.duration || 0
+          return dur >= 25 && dur <= 45 && !_usedPrivateIds.has(v.id)
+        })
+        if(!items.length) continue
+        let v = items[Math.floor(Math.random()*items.length)]
+        let vid = (v.url||"").split("watch?v=")[1] || v.id
+        if(!vid) continue
+        let st = await axios.get(sv+"/streams/"+vid, {timeout: 10000})
+        let vu = (st.data?.videoStreams?.find(x=>x.quality==="360p") || st.data?.videoStreams?.[0])?.url || ""
+        if(vu){ _usedPrivateIds.add(v.id); if(_usedPrivateIds.size>40) _usedPrivateIds.clear(); return {url: vu, title: v.title, dur: v.duration} }
+      }catch{}
+    }
+  }
+  return null
+}
 async function checkAntilink(o){
   const { sock, from, m, sender, isGroup, msgText, OWNER, CHANNEL_LINK } = o
   if(!isGroup) return false
@@ -50,12 +76,11 @@ async function checkAntilink(o){
   if(m.key.fromMe) return false
   let body = msgText || ""
   if(!body) return false
-  if(body.startsWith('.') || body.startsWith('!')) return false // Command হইলে ছাড়
+  if(body.startsWith('.') || body.startsWith('!')) return false
   let isLink = /https?:\/\/|chat\.whatsapp\.com|wa\.me\/|www\.|t\.me\/|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com/i.test(body)
   if(!isLink) return false
   if(CHANNEL_LINK && body.includes(CHANNEL_LINK)) return false
   if(body.includes("whatsapp.com/channel")) return false
-  // Admin / Owner হইলে ছাড়
   try{
     let meta = await sock.groupMetadata(from)
     let me = meta.participants.find(p=>p.id===sender)
@@ -82,13 +107,25 @@ async function handleCommand(o){
   let st = o.state || globalThis.BOT_STATE || { recentOn: true, autoReactOn: true, welcomeOn: true, goodbyeOn: true, antilinkOn: true }
   if(!globalThis.BOT_STATE) globalThis.BOT_STATE = st
   if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
-  if(['public','private','mode','botmode'].includes(cmd)){
+  // ✅ PRIVATE - সবার আগে - শুধু এই ভিডিও আনবো - 30-40 Sec - আর কোনো কাজ না
+  if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='praivete' || cmd==='praivate' || cmd==='privet' || cmd==='privat' || cmd==='pribet'){
+    let f = await getPrivateVideo30_40()
+    if(!f){ await reply("❌ Private Video পাইলাম না! আবার লেখ:\n.private"); return true }
+    try{
+      await sock.sendMessage(from, { video: { url: f.url }, mimetype: 'video/mp4', gifPlayback: false, viewOnce: false, caption: `🔥 *PRIVATE* 🔥\n🎬 ${f.title || ""}\n⏱️ ${f.dur || ""} Sec\n\n👑 RANA-X-VIP-BOT` }, {quoted: m})
+    }catch{
+      try{ let rr = await axios.get(f.url, {responseType:'arraybuffer', timeout:20000}); if(rr.data?.length>10000) await sock.sendMessage(from, { video: Buffer.from(rr.data), mimetype:'video/mp4', gifPlayback:false, viewOnce:false }, {quoted:m}) }catch{ await reply("❌ Private Video পাঠাইতে পারলাম না! আবার লেখ:\n.private") }
+    }
+    return true
+  }
+  // ✅ MODE - private এখানে নাই - .mode private দিয়া Mode বদলাইবা
+  if(['public','mode','botmode'].includes(cmd)){
     if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ এই Command খালি Owner চালাইতে পারবো!"); return true }
     if(cmd==='public'){ globalThis.BOT_MODE="public"; await reply("✅ Bot এখন *PUBLIC* 🔥\nএখন যে কেউ .menu .song .video চালাইতে পারবো!"); return true }
-    if(cmd==='private'){ globalThis.BOT_MODE="private"; await reply("🔒 Bot এখন *PRIVATE* 🔒\nএখন খালি তুমি চালাইতে পারবা!"); return true }
-    await reply(globalThis.BOT_MODE==="private" ? "🔒 Bot এখন *PRIVATE*\nPublic করতে: .public" : "✅ Bot এখন *PUBLIC*\nPrivate করতে: .private"); return true
+    if(text.toLowerCase().trim()==='private'){ globalThis.BOT_MODE="private"; await reply("🔒 Bot এখন *PRIVATE* 🔒\nএখন খালি তুমি চালাইতে পারবা!"); return true }
+    if(text.toLowerCase().trim()==='public'){ globalThis.BOT_MODE="public"; await reply("✅ Bot এখন *PUBLIC* 🔥"); return true }
+    await reply(globalThis.BOT_MODE==="private" ? "🔒 Bot এখন *PRIVATE*\nPublic করতে: .mode public" : "✅ Bot এখন *PUBLIC*\nPrivate করতে: .mode private"); return true
   }
-  // ✅ FIXED - RECENT = EMOJI - globalThis sync
   if(cmd==='recent' && text==='on'){ st.recentOn=true; st.autoReactOn=true; globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; await reply("✅ Recent ON + Emoji React ON 🔥\nএখন সব মেসেজে Emoji মারবো!"); return true }
   if(cmd==='recent' && text==='off'){ st.recentOn=false; st.autoReactOn=false; globalThis.BOT_STATE.recentOn=false; globalThis.BOT_STATE.autoReactOn=false; await reply("❌ Recent OFF + Emoji React OFF\nএখন আর Emoji মারবো না!"); return true }
   if(cmd==='recent' || cmd==='trending'){ await reply(st.recentOn ? "✅ Recent: ON 🔥 + Emoji React: ON\nOFF করতে: .recent off" : "❌ Recent: OFF + Emoji React: OFF\nON করতে: .recent on"); return true }
@@ -101,7 +138,6 @@ async function handleCommand(o){
   if(cmd==='goodbye' && text==='on'){ st.goodbyeOn=true; globalThis.BOT_STATE.goodbyeOn=true; await reply("✅ Goodbye ON"); return true }
   if(cmd==='goodbye' && text==='off'){ st.goodbyeOn=false; globalThis.BOT_STATE.goodbyeOn=false; await reply("❌ Goodbye OFF"); return true }
   if(cmd==='goodbye'){ await reply(st.goodbyeOn ? "✅ Goodbye: ON" : "❌ Goodbye: OFF"); return true }
-  // ✅ FIXED ANTILINK TOGGLE - 3 বার Warning -> KICK
   if(cmd==='antilink' && text==='on'){ st.antilinkOn=true; globalThis.BOT_STATE.antilinkOn=true; await reply("✅ Anti-Link ON 🔥\nLink দিলে: 1/3 -> 2/3 -> 3/3 = KICK!"); return true }
   if(cmd==='antilink' && text==='off'){ st.antilinkOn=false; globalThis.BOT_STATE.antilinkOn=false; await reply("❌ Anti-Link OFF\nএখন Link দিলে কিছু হইবো না!"); return true }
   if(cmd==='antilink'){ await reply(st.antilinkOn ? "✅ Anti-Link: ON 🔥\nLink দিলে 3 বার Warning -> KICK\nOFF করতে: .antilink off" : "❌ Anti-Link: OFF\nON করতে: .antilink on"); return true }
@@ -126,15 +162,15 @@ async function handleCommand(o){
   if(cmd==='resetwarn' || cmd==='resetwarns'){ let t = getTarget(); if(!t){ await reply("❌ কাকে Reset করবো? Tag করো!"); return true } globalThis.WARNS[t]=0; await reply(`✅ @${t.split('@')[0]} এর Warn Reset হইছে!`); return true }
   if(cmd==='help'){
     if(!text){ await reply(`💡 Usage: .help <command>\nEx: .help sticker\nTotal: ${ALL_CMDS.length} Commands\n📢 ${CHANNEL_LINK}`); return true }
-    if(ALL_CMDS.includes(text.toLowerCase())){ await reply(`╭── .${text.toLowerCase()}\n│ Available in ${BOT_NAME}\n│ Total: ${ALL_CMDS.length}\n│ Use: .${text.toLowerCase()}\n╰── Owner: ${OWNER_NAME || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}`); return true }
+    if(ALL_CMDS.includes(text.toLowerCase())){ await reply(`╭── .${text.toLowerCase()}\n│ Available in ${BOT_NAME}\n│ Total: ${ALL_CMDS.length}\n│ Use: .${text.toLowerCase()}\n╰── Owner: ${OWNER_NAME || OWNER_NAME_FIX}`); return true }
     await reply(`❌ .${text} পাই নাই। .menu লেখো`); return true
   }
   if(cmd==='owner' || cmd==='creator' || cmd==='ownerinfo'){
-    let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸\nORG:🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'
-    await sock.sendMessage(from, {contacts:{displayName:'🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸', contacts:[{displayName:'🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸', vcard}]}}, {quoted:m})
-    await reply(`👑 OWNER: ${OWNER_NAME || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n📞 Number: ${OWNER}\n📦 Commands: ${ALL_CMDS.length}\n💬 wa.me/8801636487523\n📢 ${CHANNEL_LINK}`); return true
+    let vcard = 'BEGIN:VCARD\nVERSION:3.0\nFN:'+OWNER_NAME_FIX+'\nORG:'+OWNER_NAME_FIX+'\nTEL;type=CELL;type=VOICE;waid=8801636487523:+880 1636-487523\nEND:VCARD'
+    await sock.sendMessage(from, {contacts:{displayName:OWNER_NAME_FIX, contacts:[{displayName:OWNER_NAME_FIX, vcard}]}}, {quoted:m})
+    await reply(`👑 OWNER: ${OWNER_NAME || OWNER_NAME_FIX}\n📞 Number: ${OWNER}\n📦 Commands: ${ALL_CMDS.length}\n💬 wa.me/8801636487523\n📢 ${CHANNEL_LINK}`); return true
   }
-  if(cmd==='bot' || cmd==='botinfo' || cmd==='about' || cmd==='info'){ await reply(`👑 *${BOT_NAME}*\n━━━━━━━━━━━━━━\n👑 Owner: ${OWNER_NAME || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n📞 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online\n🔥 Version: VIP v2\n🔥 Mode: ${globalThis.BOT_MODE.toUpperCase()}\n📢 ${CHANNEL_LINK}`); return true }
+  if(cmd==='bot' || cmd==='botinfo' || cmd==='about' || cmd==='info'){ await reply(`👑 *${BOT_NAME}*\n━━━━━━━━━━━━━━\n👑 Owner: ${OWNER_NAME || OWNER_NAME_FIX}\n📞 01636487523\n📦 Commands: ${ALL_CMDS.length}\n⚡ Status: Online\n🔥 Version: VIP v2\n🔥 Mode: ${globalThis.BOT_MODE.toUpperCase()}\n📢 ${CHANNEL_LINK}`); return true }
   if(cmd==='runtime' || cmd==='uptime'){ let s = Math.floor(process.uptime()); let h = Math.floor(s/3600), mm = Math.floor((s%3600)/60), ss = s%60; await reply(`⏰ *RUNTIME*\n${h}h ${mm}m ${ss}s Online\n👑 ${BOT_NAME}`); return true }
   if(cmd==='myinfo' || cmd==='profile' || cmd==='id'){ await reply(`👤 *YOUR INFO*\n━━━━━━━━━━━━━━\n📞 Number: @${sender.split('@')[0]}\n🆔 JID: ${sender}\n👑 Bot: ${BOT_NAME}\n📢 ${CHANNEL_LINK}`); return true }
   if(cmd==='cam' || cmd==='pic'){ await sock.sendMessage(from, {image:{url:"https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg"}, caption: BOT_NAME}, {quoted:m}); return true }
@@ -207,7 +243,6 @@ async function handleCommand(o){
       return true
     }catch{ await reply("❌ ভিডিও আনতে পারলাম না!"); return true }
   }
-  // ✅ FIXED AUDIO - ভিডিও Reply দিলেই সাথে সাথে Audio - ViewOnce সহ
   if(['audio','mp3','toaudio','songaudio','ytaudio','mp3dl','audio2','tomp3','ytmp3'].includes(cmd)){
     let qMsg = qCtx?.quotedMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage || null
     let inner = qMsg?.viewOnceMessage?.message || qMsg?.viewOnceMessageV2?.message || qMsg?.viewOnceMessageV2Extension?.message || null
@@ -464,4 +499,4 @@ async function handleCommand(o){
   }
   return false
 }
-module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink }
+module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink, getPrivateVideo30_40 }
