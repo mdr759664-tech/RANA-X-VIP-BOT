@@ -1,5 +1,5 @@
 // ===== RANA-X-VIP-BOT - FULL index.js - FINAL ALL FIXED - RANA BAPPY =====
-// .private = 30sec Romantic Short ALADA | .song/.video = FULL Bangla+Hindi | .recent = Sob SMS + ID | Emoji = Sob SMS | Welcome DP | Always Connected + Fast
+// .private = Romantic Direct - Proti bar alada | .song/.video = FULL Bangla+Hindi | .recent = Sob SMS + ID | Emoji = Sob SMS | Welcome DP | Always Connected + Fast
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -30,10 +30,12 @@ const sessions = new Map()
 let userBal = {}, userXp = {}
 const groupMetaCache = new Map()
 const dpCache = new Map()
+// ✅ .private er jonno - last video mone rakbo, eki ta bar bar asbo na
+let lastPrivateIdx = -1
 async function getGroupMetaCached(sock, gid){
   let c = groupMetaCache.get(gid)
   if(c && Date.now() - c.time < 30000) return c.data
-  try{ let m = await sock.groupMetadata(gid); groupMetaCache.set(gid,{data:m,time:Date.now()}); return m }catch{ return c?.data || null }
+  try{ let m = await sock.groupMetadata(gid); groupMetaCache.set(gid,{data:m,[STRIPPED] return m }catch{ return c?.data || null }
 }
 function getCountryInfo(num){ num=num.replace(/[^0-9]/g,''); const list={"880":{name:"Bangladesh",flag:"🇧🇩",code:"BD"},"91":{name:"India",flag:"🇮🇳",code:"IN"},"92":{name:"Pakistan",flag:"🇵🇰",code:"PK"},"1":{name:"USA",flag:"🇺🇸",code:"US"}}; let keys=Object.keys(list).sort((a,b)=>b.length-a.length); for(let k of keys){ if(num.startsWith(k)) return list[k] } return {name:"International",flag:"🌍",code:"INT"} }
 let BOT_PIC_BUF = null
@@ -56,22 +58,61 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
   }catch{}
   await sock.sendMessage(from, { text: menuTxt+"\n\n📢 *Channel:* "+CHANNEL, contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, newsletterName: BOT_NAME, serverMessageId: 1 }, externalAdReply: { title: "📢 View Channel", body: "RANA X VIP - Tap to View Channel", thumbnail: picBuf, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: msg})
 }
-// ✅ VIDEO HELPER - wantShort=true hoile 30sec er kachakachi, false hoile FULL
+// ✅ VIDEO HELPER - Piped morleo asbo, Fallback soho - wantShort=true hoile 30sec er kachakachi, false hoile FULL
 async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wantShort=false){
   const sendV = async (txt) => sock.sendMessage(from, vBox(txt, botThumb), {quoted:m})
   await sendV("🎬 খুঁজতেছি... *"+query+"* 🔥")
+  const FALLBACK_PRIVATE = [
+    "https://www.youtube.com/watch?v=09R8_2nJtjg",
+    "https://www.youtube.com/watch?v=Ho2Tq-sD6a8",
+    "https://www.youtube.com/watch?v=JGwWNGJdvx8",
+    "https://www.youtube.com/watch?v=kXYiU_JCYtU",
+    "https://www.youtube.com/watch?v=2Vv-BfVoq4g"
+  ]
   try{
-    let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video"]
+    let servers = ["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz","https://piped.video","https://pipedapi-libre.kavin.rocks","https://pipedapi.reallyaweso.me"]
+    let searchQs = [query, query+" song", "romantic couple kiss status", "romantic love couple status", "Tum Hi Ho romantic"]
     let itemsAll = [], svUsed = ""
-    for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 12000}); let items = r.data?.items || []; if(items.length){ itemsAll = items; svUsed = sv; break } }catch{} }
-    if(!itemsAll.length){ await sendV("❌ ভিডিও পাইলাম না! 😢"); return }
+    for(let q of searchQs){
+      if(itemsAll.length) break
+      for(let sv of servers){
+        try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 10000}); let items = r.data?.items || []; if(items.length){ itemsAll = items; svUsed = sv; break } }catch{}
+      }
+    }
+    if(!itemsAll.length){
+      console.log("Piped Dead - Fallback Use: "+query)
+      let fb = FALLBACK_PRIVATE[Math.floor(Math.random()*FALLBACK_PRIVATE.length)]
+      let vid = fb.split("watch?v=")[1]
+      for(let sv of servers){
+        try{
+          let st = await axios.get(sv+"/streams/"+vid, {timeout: 15000})
+          let vids = st.data?.videoStreams || []
+          let audios = st.data?.audioStreams || []
+          audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
+          let vv = vids.find(x=>x.quality==="360p") || vids[0]
+          if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `❤️ *${title}*\n🎬 *Romantic Video*\n⏱️ *Duration:* 30 sec\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
+          if(audios[0]?.url){
+            let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 90000, headers: { 'User-Agent': 'Mozilla/5.0' } })
+            if(aud.data.byteLength > 200000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: "private-romantic.mp3", contextInfo: { externalAdReply: { title: "PRIVATE ❤️ ROMANTIC", body: "👑 "+BOT_NAME+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
+          }
+          return
+        }catch{}
+      }
+      await sendV(`❤️ *${title}*\n\n🎬 ভিডিও ডাউনলোড হইলো না, লিংকে চাপ দিয়া দেখো:\n👉 ${fb}\n\n👑 ${BOT_NAME}`)
+      return
+    }
     let v = itemsAll[0]
     if(wantShort){
       let shorts = itemsAll.filter(x => (x.duration||999) <= 65 && (x.duration||0) >= 10)
-      if(shorts.length){ shorts.sort((a,b)=> Math.abs((a.duration||30)-30) - Math.abs((b.duration||30)-30)); v = shorts[0] }
+      if(shorts.length){
+        // Proti bar alada - random short nibo, ager ta bad
+        let idx = Math.floor(Math.random()*shorts.length)
+        if(idx===lastPrivateIdx && shorts.length>1) idx = (idx+1)%shorts.length
+        lastPrivateIdx = idx
+        v = shorts[idx]
+      }
       else { itemsAll.sort((a,b)=> (a.duration||999)-(b.duration||999)); v = itemsAll[0] }
     } else {
-      // FULL - Short bad, 2min+ khujbo
       let fulls = itemsAll.filter(x => (x.duration||0) > 120)
       if(fulls.length) v = fulls[0]
     }
@@ -82,11 +123,12 @@ async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wa
     audios.sort((a,b)=> (b.bitrate||0)-(a.bitrate||0))
     let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
     if(vv?.url) await sock.sendMessage(from, { video: { url: vv.url }, caption: `${emoji} *${title}*\n🎬 *${v.title}*\n⏱️ *Duration:* ${v.duration||0} sec\n👤 *Requested By:* ${OWNER_NAME} 👑\n\n👑 *${BOT_NAME}* 🔥`, mimetype: 'video/mp4' }, {quoted: m})
+    else { await sendV(`❤️ *${title}*\n\n🎬 *${v.title}*\n👉 https://www.youtube.com/watch?v=${vid}\n\n👑 ${BOT_NAME}`) }
     if(audios[0]?.url){
       let aud = await axios.get(audios[0].url, { responseType: 'arraybuffer', timeout: 120000, headers: { 'User-Agent': 'Mozilla/5.0' } })
       if(aud.data.byteLength > 200000) await sock.sendMessage(from, { audio: Buffer.from(aud.data), mimetype: 'audio/mp4', fileName: (v.title||query)+".mp3", contextInfo: { externalAdReply: { title: v.title || query, body: "👑 "+BOT_NAME+" - "+title+" | 👤 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL } } }, {quoted: m})
     }
-  }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না! 😢") }
+  }catch(e){ await sendV("❌ ভিডিও আনতে পারলাম না! আবার চেষ্টা করো:\n.private Tum Hi Ho 😢") }
 }
 app.get('/', function(req,res){
   res.send(`<!DOCTYPE html><html><head><meta name=viewport content="width=device-width,initial-scale=1"><title>RANA-X-VIP-BOT</title><style>*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#080808;color:#fff;font-family:system-ui;display:flex;justify-content:center;padding:12px}.card{background:#121212;border:1px solid #242424;border-radius:28px;padding:22px 18px;width:100%;max-width:420px}.icon{width:80px;height:80px;margin:6px auto 12px;border-radius:20px;overflow:hidden}.icon img{width:100%;height:100%;object-fit:cover}h1{text-align:center;font-size:26px;margin:4px 0}.o{color:#ff6a00}.sub{text-align:center;color:#777;font-size:13px;margin:8px 0 14px}.status{text-align:center}.pill{display:inline-block;background:#1e1e1e;color:#666;font-size:11px;padding:6px 14px;border-radius:20px;letter-spacing:1px}.label{font-size:11px;color:#666;letter-spacing:1.5px;display:flex;justify-content:space-between;margin:16px 0 8px}.label b{color:#ff6a00;font-weight:400;cursor:pointer}.server{border:1.5px solid #2a2a2a;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer}.server.active{border-color:#ff5a00;background:#1a0f08}.dot{width:28px;height:28px;border-radius:50%;border:2px solid #333;display:flex;align-items:center;justify-content:center;flex-shrink:0}.server.active .dot{border-color:#ff5a00}.server.active .dot:after{content:'';width:12px;height:12px;background:#ff5a00;border-radius:50%;display:block}.sname{font-weight:800;font-size:16px}.ssub{font-size:12px;color:#666}.scount{margin-left:auto;color:#555;font-size:13px}.steps{display:flex;align-items:center;justify-content:center;gap:12px;margin:18px 0}.step{width:38px;height:38px;border-radius:50%;background:#1e1e1e;color:#666;display:flex;align-items:center;justify-content:center;font-weight:800}.step.active{background:linear-gradient(135deg,#ff4500,#ff8c00);color:#fff}.line{width:40px;height:2px;background:#2a2a2a}.stitle{font-size:11px;color:#888;letter-spacing:1.5px}.ssub2{font-size:12px;color:#555;margin:2px 0 10px}.phoneBox{display:flex;gap:8px}.cc{width:78px;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff}.num{flex:1;padding:14px;background:#0e0e0e;border:1.5px solid #2a2a2a;border-radius:14px;color:#fff}.check{display:flex;gap:18px;margin:14px 0;flex-wrap:wrap}.check label{font-size:13px;color:#888;display:flex;gap:8px;align-items:center}.check input{accent-color:#ff5a00;width:18px;height:18px}.btn{width:100%;margin-top:6px;padding:15px;background:linear-gradient(135deg,#ff4500,#ff8c00);border:none;border-radius:14px;color:#fff;font-weight:900;font-size:15px}.box{margin-top:14px;padding:14px;border-radius:14px;display:none;justify-content:space-between;background:#0e0e0e;border:1.5px dashed #ff5a00}.code{font-size:28px;font-weight:900;color:#ff8c00}.qrbox{margin-top:14px;padding:14px;background:#0e0e0e;border-radius:16px;display:none;text-align:center}.qrbox img{width:230px;height:230px;background:#fff;padding:8px;border-radius:12px}.foot{margin-top:14px;display:flex;justify-content:space-between}.foot a,.foot button{background:none;border:none;color:#ff6a00;font-size:13px}</style></head><body><div class=card><div class=icon><img src="${BOT_PIC}"></div><h1>RANA-<span class=o>X-VIP-</span>BOT</h1><p class=sub>Enter your WhatsApp number to link your device.</p><div class=status><span class=pill>● CONNECTING...</span></div><div class=label><span>SELECT SERVER</span><b onclick="location.reload()">↻ refresh</b></div><div class="server active" onclick="selServer(this,'heroku')"><div class=dot></div><div><div class=sname>heroku</div><div class=ssub>Fast • Recommended</div></div><div class=scount>-/100</div></div><div class="server" onclick="selServer(this,'railway')"><div class=dot></div><div><div class=sname>railway</div><div class=ssub>Backup Server</div></div><div class=scount>-/100</div></div><div class=steps><div class="step active">1</div><div class=line></div><div class=step>2</div><div class=line></div><div class=step>3</div></div><div class=stitle>STEP 1 - YOUR NUMBER</div><div class=ssub2>WhatsApp number, with country code</div><div class=phoneBox><input id=c class=cc value="+880"><input id=num class=num placeholder="16XXXXXXXX"></div><div class=check><label><input type=checkbox checked> Enable sound</label><label><input type=checkbox> Video on</label></div><label style="font-size:13px;color:#888;display:flex;gap:8px;align-items:center"><input type=checkbox checked style="accent-color:#ff5a00;width:18px;height:18px"> Remember this number on this device</label><button class=btn onclick="getPair()">⚡ Get Pair Code</button><div id=box class=box><span id=code class=code></span><button onclick="copyCode()" style="padding:8px 14px;background:#ff5a00;color:#fff;border:none;border-radius:8px">Copy</button></div><div id=res style="margin-top:10px;text-align:center"></div><div style="margin-top:12px;padding:12px;border-radius:14px;background:#0e1a2a;text-align:center"><b>✈️ TELEGRAM থেকে Pair Code নাও</b><br><small>Telegram এ <b>@RanaXVIPBot</b> কে <b>/pair 88016XXXXXXXX</b> লিখো</small></div><div class=foot><button onclick="showQR()">📷 Use QR Code</button><a href="${CHANNEL}" target="_blank">📢 Join Channel</a></div><div id=qrbox class=qrbox><img id=qimg src=""></div></div><script>let server='heroku';function selServer(el,s){server=s;document.querySelectorAll('.server').forEach(x=>x.classList.remove('active'));el.classList.add('active');}async function getPair(){let c=(document.getElementById("c").value||"").replace(/[^0-9]/g,"")||"880";let n=document.getElementById("num").value.replace(/[^0-9]/g,"").replace(/^0+/,"");let full=c+n;if(full.length<10){alert("Valid number dao");return;}let r=document.getElementById("res");r.innerText="⚡ Connecting...";try{let d=await (await fetch("/pair?number="+full)).json();if(d.code){document.getElementById("code").innerText=d.code;document.getElementById("box").style.display="flex";r.innerText="";}else{r.innerText="❌ "+d.error;}}catch(e){r.innerText="❌ Server Error";}}function copyCode(){let t=document.getElementById("code").innerText;navigator.clipboard.writeText(t);}function showQR(){document.getElementById("qrbox").style.display="block";getQR();}async function getQR(){let d=await (await fetch("/qr")).json();if(d.qr)document.getElementById("qimg").src=d.qr;}</script></body></html>`)
@@ -187,7 +229,6 @@ async function handleOneMessage(sock, m){
         let mentions = last.map(x=> x.jid).filter(Boolean)
         await sock.sendMessage(from, { text: `🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`, mentions }, {quoted: m}); return
       }
-      // ✅ SOB SMS E EMOJI + SOB SMS RECENT E
       let myEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
       if(hasAnyMsg && !m.key.fromMe){
         try{
@@ -225,13 +266,32 @@ async function handleOneMessage(sock, m){
       if(!body || !body.startsWith('.')) return
       const args = body.slice(1).trim().split(/ +/); const cmd = args[0].toLowerCase(); const text = args.slice(1).join(' ')
       recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift()
-      // ✅ .private = ALADA - 30sec Romantic Short - Je keu likhlei asbo
+      // ✅ .private = ROMANTIC DIRECT - Proti bar alada alada - Tumi jei type dekhaiso oi type
       if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='privatemode'){
-        let q = (text || "").replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare").replace(/tomake/gi,"Tomake")
-        await sendVideoByQuery(sock, from, m, q || "romantic bangla song short", "PRIVATE ❤️ ROMANTIC", "❤️", botThumb, true)
+        const PRIVATE_POOL = [
+          "romantic couple kiss status",
+          "romantic couple kiss whatsapp status",
+          "couple romantic kiss love status",
+          "romantic hug kiss couple status",
+          "turkish romantic kiss couple status",
+          "romantic love couple kiss reels",
+          "cute couple romantic kiss status",
+          "romantic kiss love story status",
+          "couple kiss romantic moment status",
+          "romantic couple love kiss short",
+          "romantic couple kiss hug love",
+          "hot romantic couple kiss status"
+        ]
+        let q = ""
+        if(text){
+          let t = text.replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare").replace(/tomake/gi,"Tomake")
+          q = t + " romantic couple kiss status"
+        } else {
+          q = PRIVATE_POOL[Math.floor(Math.random()*PRIVATE_POOL.length)]
+        }
+        await sendVideoByQuery(sock, from, m, q, "PRIVATE ❤️ ROMANTIC", "❤️", botThumb, true)
         return
       }
-      // ✅ BOT MODE - .public / .mode / .botmode - Sudhu Owner
       if(cmd==='public' || cmd==='mode' || cmd==='botmode'){
         if(sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("❌ এই Command খালি Owner চালাইতে পারবো!\n👑 Owner: "+OWNER); return }
         if(cmd==='public'){ globalThis.BOT_MODE = "public"; await sendV("✅ Bot এখন *PUBLIC* 🔥\nএখন যে কেউ .menu .song .video চালাইতে পারবো!"); return }
@@ -322,7 +382,6 @@ async function handleOneMessage(sock, m){
         else await sendV(txt)
         return
       }
-      // ✅ .song = FULL GAN - Bangla + Hindi
       if(cmd==='song' || cmd==='play' || cmd==='gan' || cmd==='music' || cmd==='gaan' || cmd==='gana'){
         if(!text){ await sendV("❌ গানের নাম দে ভাই! 🎵\nEx: .song Ami Tomare Balobasi\nEx: .song Tum Hi Ho"); return }
         let base = text.replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare").replace(/tomake/gi,"Tomake").replace(/harieci/gi,"Hariyechi").replace(/piyare/gi,"Piyare").replace(/koster/gi,"Kosto")
@@ -377,7 +436,6 @@ async function handleOneMessage(sock, m){
         }
         return
       }
-      // ✅ .romantic / .love = Romantic FULL, .short = Short
       if(['romantic','romanticvideo','love','lovevideo','lovestory'].includes(cmd)){
         let q = (text || "").replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare")
         await sendVideoByQuery(sock, from, m, q || "romantic bangla song", "ROMANTIC ❤️", "❤️", botThumb, false)
@@ -398,7 +456,6 @@ async function handleOneMessage(sock, m){
         await sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, false)
         return
       }
-      // ✅ .video = FULL VIDEO - Bangla + Hindi
       if(cmd==='video' || cmd==='vsong' || cmd==='vgan' || cmd==='vgana'){
         if(!text){ await sendV("❌ ভিডিও গানের নাম দে! 🎬\nEx: .video Ami Tomare Balobasi\nEx: .video Tum Hi Ho"); return }
         let base = text.replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare")
