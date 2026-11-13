@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - PRIVATE=CLOSEUP RANDOM SHORT =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - PRIVATE=CLOSEUP + WELCOME=DP+DESIGN =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -31,7 +31,6 @@ let userBal = {}, userXp = {}
 const groupMetaCache = new Map()
 const dpCache = new Map()
 let usedPrivateIds = new Set()
-// ✅ PRIVATE - তোর ভিডিওর মত Closeup Pool - ভিতরে বসানো
 const PRIVATE_POOL = ["turkish drama couple kiss closeup","romantic couple kiss closeup slow motion","couple kiss closeup lip status","turkish series romantic kiss scene","boyfriend girlfriend kiss closeup romantic","romantic kiss neck closeup couple","couple kiss hug romantic closeup status","deep romantic kiss closeup love","turkish drama kiss scene romantic couple","romantic couple kiss cheek neck closeup","kiss romantic couple closeup reels","husband wife romantic kiss closeup","romantic kiss love story closeup status","couple kiss forehead neck romantic","turkish couple kiss romantic scene slow","romantic kiss closeup whatsapp status","couple romantic kiss lip to lip closeup","kiss scene hindi serial romantic closeup","romantic couple kiss holding face closeup","love couple kiss closeup 30 seconds","romantic couple kiss holding chin closeup","turkish drama couple kiss slow motion status"]
 async function getGroupMetaCached(sock, gid){
   let c = groupMetaCache.get(gid)
@@ -107,7 +106,6 @@ async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wa
     if(!itemsAll.length){ await sendV(`❌ পাইলাম না! আবার লেখ:\n.private`); return }
     let v = itemsAll[0]
     if(wantShort){
-      // ✅ Random Short - 15-45 সেকেন্ড, 30 সেকেন্ডের কাছের গুলা আগে
       let shorts = itemsAll.filter(x => (x.duration||999) >= 15 && (x.duration||0) <= 45)
       if(!shorts.length) shorts = itemsAll.filter(x => (x.duration||999) <= 65 && (x.duration||0) >= 10)
       if(!shorts.length) shorts = itemsAll
@@ -205,17 +203,39 @@ async function startBot(number){
         let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true })
         for(let num of anu.participants){
           let userDp = await getSenderThumbNow(sock, num)
+          // ✅ WELCOME - স্ক্রিনশটের মত - উপরে DP + নিচে ডিজাইন - ভিতরে বসানো
           if(anu.action == 'add' && globalThis.BOT_STATE.welcomeOn){
-            let baseTxt = ""
-            try{ baseTxt = getWelcomeMenu(num, meta.subject, meta.participants.length, OWNER_NAME) }catch{}
-            let txt = `╭─━─━─🌸─━─━─╮\n┃ ✨ *WELCOME* ✨ ┃\n╰─━─━─🌸─━─━─╯\n\n🌸 হ্যালো @${num.split('@')[0]} ! 🥰💜\n💖 *${meta.subject}* গ্রুপে স্বাগতম!\n\n👥 *Members:* ${meta.participants.length} জন\n📅 *Date:* ${date}\n🕒 *Time:* ${time}\n👑 *Owner:* ${OWNER_NAME}\n\n${baseTxt ? baseTxt.split("\n").slice(0,3).join("\n")+"\n" : ""}💡 *.menu* লিখো সব Command দেখতে\n╰─➤ *${BOT_NAME}* 👑💜`
+            let txt = `🌈👉🏻 @${num.split('@')[0]} 💞\n`
+            txt += `╭🌈 পরিবারের বুতে স্বাগতম 🌈◯\n`
+            txt += `❀╭\n`
+            txt += `│ 🫥 তোমাকে আমাদের পরিবারের\n`
+            txt += `│ অংশ হতে দেখে ভালো লাগছে!\n`
+            txt += `│ ❝ কিছু মানুষ চুপচাপ আসে, কিন্তু\n`
+            txt += `│ গভীরভাবে আলো ছড়ায় ❞\n`
+            txt += `│ আমরা বিশ্বাস করি তুমিও তেমনই\n`
+            txt += `│ একজন 🌸\n`
+            txt += `│ তোমার সময়টা হোক ভালো মানুষ,\n`
+            txt += `│ ভালো heppy আর সুন্দর স্মৃতিতে ভরা\n`
+            txt += `│ 🥹\n`
+            txt += `│ এই পরিবার তোমাকে পেয়ে আনন্দিত\n`
+            txt += `│ 💫\n`
+            txt += `│ 👥 সদস্য: ${meta.participants.length} 👊🎀\n`
+            txt += `│ 📅 ${date} | 🕒 ${time}\n`
+            txt += `│ 🏠 গ্রুপ: ${meta.subject}\n`
+            txt += `╰───🌈╯\n`
+            txt += `\n💜 *.menu* লিখো সব Command দেখতে\n╰─➤ *${BOT_NAME}* 👑💜`
             await sock.sendMessage(anu.id, { image: userDp, caption: txt, mentions: [num] })
           }
           if(anu.action == 'remove' && globalThis.BOT_STATE.goodbyeOn){
-            let txt2 = ""
-            try{ txt2 = getGoodbyeMenu(num, meta.subject, meta.participants.length) }catch{}
-            let t = txt2 || `💔 @${num.split('@')[0]} চলে গেলো... 🥺\n👥 এখন ${meta.participants.length} জন | 🕒 ${time}\n╰─➤ *${BOT_NAME}* 👑`
-            await sock.sendMessage(anu.id, { image: userDp, caption: t, mentions: [num] })
+            let txt2 = `💔 @${num.split('@')[0]} চলে গেলো... 🥺\n`
+            txt2 += `╭🌈 পরিবার তোমাকে মিস করবো 🌈◯\n`
+            txt2 += `❀╭\n`
+            txt2 += `│ তুমি ছিলে আমাদের পরিবারের\n`
+            txt2 += `│ একজন ভালো মানুষ 💜\n`
+            txt2 += `│ 👥 সদস্য: ${meta.participants.length} জন\n`
+            txt2 += `╰───🌈╯\n`
+            txt2 += `\n╰─➤ *${BOT_NAME}* 👑`
+            await sock.sendMessage(anu.id, { image: userDp, caption: txt2, mentions: [num] })
           }
           if(anu.action == 'promote'){ await sock.sendMessage(anu.id, { image: userDp, caption: `🎉 অভিনন্দন @${num.split('@')[0]}! তুমি এখন Admin! 👑\n\n🖤 ${BOT_NAME}`, mentions: [num] }) }
           if(anu.action == 'demote'){ await sock.sendMessage(anu.id, { text: `😢 @${num.split('@')[0]} কে Admin থেকে সরানো হইছে।\n\n🖤 ${BOT_NAME}`, mentions: [num] }) }
@@ -267,14 +287,12 @@ async function handleOneMessage(sock, m){
       if(!body || !body.startsWith('.')) return
       const args = body.slice(1).trim().split(/ +/); const cmd = args[0].toLowerCase(); const text = args.slice(1).join(' ')
       recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift()
-      // ✅ PRIVATE - ভিতরে বসানো Pool দিয়া Random Short
       if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='privatemode'){
         let q = ""
         if(text){
           let t = text.replace(/balobasi/gi,"Bhalobashi").replace(/valobashi/gi,"Valobashi").replace(/tomare/gi,"Tomare").replace(/tomake/gi,"Tomake")
           q = t + " kiss closeup romantic"
         } else {
-          // ✅ প্রতিবার আলাদা Pool থেকে Random নিবো
           q = PRIVATE_POOL[Math.floor(Math.random()*PRIVATE_POOL.length)]
         }
         await sendVideoByQuery(sock, from, m, q, "PRIVATE ❤️ ROMANTIC", "❤️", botThumb, true)
