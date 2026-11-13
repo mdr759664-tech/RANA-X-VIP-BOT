@@ -1,11 +1,11 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - PRIVATE=CLOSEUP + WELCOME=DP+DESIGN =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FINAL FIXED - RECENT+REACT+WELCOME+ANTILINK =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
 const fs = require('fs')
 const axios = require('axios')
 const QRCode = require('qrcode')
-const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand } = require('./commands')
+const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand, checkAntilink } = require('./commands')
 const app = express()
 const OWNER = "8801636487523"
 const OWNER_NAME = "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"
@@ -15,14 +15,11 @@ const CHANNEL = "https://whatsapp.com/channel/0029VbDF4POH5JLyfJOmwZ3B"
 const CHANNEL_INVITE = "0029VbDF4POH5JLyfJOmwZ3B"
 let CHANNEL_JID = ""
 const CHROME = ["Ubuntu", "Chrome", "20.0.04"]
+// ✅ FIXED - জোর কইরা true করি নাই, এখন off করলে off-ই থাকবো
 if(!globalThis.BOT_STATE) globalThis.BOT_STATE = { welcomeOn: true, goodbyeOn: true, recentOn: true, autoReactOn: true, antilinkOn: true }
-globalThis.BOT_STATE.recentOn = true
-globalThis.BOT_STATE.autoReactOn = true
 if(!globalThis.WARNS) globalThis.WARNS = {}
+if(!globalThis.ANTILINK_WARN) globalThis.ANTILINK_WARN = {}
 if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
-let welcomeOn = true, goodbyeOn = true, recentOn = true, autoReactOn = true
-let antilinkOn = true
-let warnCount = globalThis.WARNS
 let sockMain = null, isConnected = false, qrData = null
 const EMOJI = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","😘","😗","🤗","🤩","😋","🤫","🤭","🫣","🤔","😌","🥺","😭","😤","👋","🤚","👌","✌️","🤞","🫰","🤟","👍","👎","👊","👏","🙌","🫶","🤝","🙏","💪","😃","😄","😆","😉","😜","🤪","😇","🥰","😻","🙈","🙉","🙊","🐶","🐱","🦁","🐯","🦊","🐼","🌹","🌻","🍓","🍒","🍕","🍔","⚽","🎮","🎲","🎸","🎧","🚀","💎","👑","🦋","🌈","☀️","🌙","⭐","🔥","💥","🎊","🎁"]
 const recentMsgs = [], recentCmds = []
@@ -203,7 +200,6 @@ async function startBot(number){
         let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true })
         for(let num of anu.participants){
           let userDp = await getSenderThumbNow(sock, num)
-          // ✅ WELCOME - স্ক্রিনশটের মত - উপরে DP + নিচে ডিজাইন - ভিতরে বসানো
           if(anu.action == 'add' && globalThis.BOT_STATE.welcomeOn){
             let txt = `🌈👉🏻 @${num.split('@')[0]} 💞\n`
             txt += `╭🌈 পরিবারের বুতে স্বাগতম 🌈◯\n`
@@ -261,32 +257,20 @@ async function handleOneMessage(sock, m){
       if(btnId === "viewchannel"){ await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 নিচের লিংকে চাপ দাও:\n"+CHANNEL+"\n\n💜 Follow করো!", contextInfo: { externalAdReply: { title: "📢 View Channel", body: "RANA X VIP Channel", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); return }
       if(btnId === "menu"){ if(globalThis.BOT_MODE==="private" && sender.replace(/[^0-9]/g,'')!==OWNER){ await sendV("🔒 *BOT PRIVATE*\nKhali Owner chalai te parbo!"); return } await sendMenuWithChannel(sock, from, m, botThumb); return }
       if(btnId === "recent"){ let last = [...recentMsgs].slice(-20); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); await sock.sendMessage(from, { text: `🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`, mentions }, {quoted: m}); return }
-      let myEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
-      if(hasAnyMsg && !m.key.fromMe){
-        try{ sock.sendMessage(from, { react: { text: myEmoji, key: m.key } }).catch(()=>{}); let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message"); recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], jid: sender, emoji: myEmoji, from: from }); if(recentMsgs.length>100) recentMsgs.shift() }catch(e){ console.log("React Err:", e.message) }
+      // ✅ FIXED - ANTILINK - commands.js এর checkAntilink দিয়া - 1/3 -> 2/3 -> 3/3 = KICK
+      if(isGroup && body && !body.startsWith('.')){
+        let blocked = await checkAntilink({ sock, from, m, sender, isGroup, msgText: body, OWNER, CHANNEL_LINK: CHANNEL })
+        if(blocked) return
       }
-      if(isGroup && globalThis.BOT_STATE.antilinkOn && body && !m.key.fromMe){
-        let hasLink = /https?:\/\/|www\.|chat\.whatsapp\.com|t\.me|telegram\.me|instagram\.com|facebook\.com|youtube\.com|youtu\.be|tiktok\.com/i.test(body)
-        if(hasLink && !body.startsWith('.')){
-          try{
-            let meta = await getGroupMetaCached(sock, from)
-            let senderInfo = meta?.participants.find(p=>p.id===sender)
-            let isAdmin = senderInfo?.admin
-            let isBotAdmin = meta?.participants.find(p=>p.id===sock.user.id)?.admin
-            if(!isAdmin){
-              try{ await sock.sendMessage(from, {delete:{remoteJid:from, fromMe:false, id:m.key.id, participant:sender}}) }catch{}
-              warnCount[sender] = (warnCount[sender]||0) + 1
-              let w = warnCount[sender]
-              if(w >= 3){ warnCount[sender] = 0; await sock.sendMessage(from, {text:`🚫 *ANTI-LINK - KICKED!*\n\n@${sender.split('@')[0]} 3 বার Link দিছে!\n\n👑 RANA-X-VIP-BOT`, mentions:[sender]}); if(isBotAdmin){ try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{ await sock.sendMessage(from, {text:`❌ Kick করতে পারি নাই! বটকে Admin দাও!`}) } } else{ await sock.sendMessage(from, {text:`❌ বট Admin না, Kick করতে পারলাম না! বটকে Admin দাও!`}) } }
-              else { await sock.sendMessage(from, {text:`⚠️ *ANTI-LINK WARNING ${w}/3*\n\n@${sender.split('@')[0]} Link দিছো!\n\n❌ Group এ Link দেওয়া নিষেধ!\n⚠️ Warning: ${w}/3\n\n👑 RANA-X-VIP-BOT\n📢 Channel: ${CHANNEL}`, mentions:[sender]}) }
-              return
-            }
-          }catch(e){ console.log("Antilink Err:", e.message) }
-        }
+      // ✅ FIXED - REACT - off করলে আর Emoji মারবো না
+      let myEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
+      if(hasAnyMsg && !m.key.fromMe && globalThis.BOT_STATE.autoReactOn && globalThis.BOT_STATE.recentOn){
+        try{ sock.sendMessage(from, { react: { text: myEmoji, key: m.key } }).catch(()=>{}); let showTxt = (body || "").toString().slice(0,60) || (m.message.imageMessage ? "📷 Photo" : m.message.videoMessage ? "🎥 Video" : m.message.stickerMessage ? "🎨 Sticker" : m.message.audioMessage ? "🎵 Audio" : "📩 Message"); recentMsgs.push({ txt: showTxt, user: sender.split('@')[0], jid: sender, emoji: myEmoji, from: from }); if(recentMsgs.length>100) recentMsgs.shift() }catch(e){ console.log("React Err:", e.message) }
       }
       if(!body || !body.startsWith('.')) return
       const args = body.slice(1).trim().split(/ +/); const cmd = args[0].toLowerCase(); const text = args.slice(1).join(' ')
       recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift()
+      // ❌ আগের welcome/recent/react/antilink/warn/del ডুপ্লিকেট গুলা কাইটা দিছি - এখন সব commands.js থেকে চলবো
       if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='privatemode'){
         let q = ""
         if(text){
@@ -306,29 +290,11 @@ async function handleOneMessage(sock, m){
         await sendV(globalThis.BOT_MODE==="private" ? "🔒 Bot এখন *PRIVATE*\nPublic করতে: .mode public" : "✅ Bot এখন *PUBLIC*\nPrivate করতে: .mode private"); return
       }
       if(globalThis.BOT_MODE === "private" && sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("🔒 *BOT PRIVATE*\n\nএই Bot এখন Private!\nখালি Owner চালাইতে পারবো!\n\n👑 Owner: "+OWNER+"\n💡 Owner কে বলো .mode public করতে!"); return }
-      if(cmd==='welcome' && text==='on'){ globalThis.BOT_STATE.welcomeOn=true; welcomeOn=true; await success("Welcome ON"); return }
-      if(cmd==='welcome' && text==='off'){ globalThis.BOT_STATE.welcomeOn=false; welcomeOn=false; await success("Welcome OFF"); return }
-      if(cmd==='goodbye' && text==='on'){ globalThis.BOT_STATE.goodbyeOn=true; goodbyeOn=true; await success("Goodbye ON"); return }
-      if(cmd==='goodbye' && text==='off'){ globalThis.BOT_STATE.goodbyeOn=false; goodbyeOn=false; await success("Goodbye OFF"); return }
-      if(cmd==='recent' && text==='on'){ globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; recentOn=true; autoReactOn=true; await success("✅ Recent ON + Random Emoji React ON 🔥 - Sob Somoy Chalu Thakbo"); return }
-      if(cmd==='recent' && text==='off'){ await sendV("🔥 *RECENT ALWAYS ON* 🔥\nBondho kora jabe na! Sob somoy Emoji + Recent cholbo!\n👑 RANA BAPPY"); return }
-      if(cmd==='react' && text==='on'){ globalThis.BOT_STATE.autoReactOn=true; autoReactOn=true; await success("✅ Random Emoji React ON 🔥"); return }
-      if(cmd==='react' && text==='off'){ await sendV("🔥 *REACT ALWAYS ON* 🔥\nBondho kora jabe na!\n👑 RANA BAPPY"); return }
-      if(cmd==='react'){ await sendV("✅ React: ON 🔥 - Sob Msg e Emoji ditase\n✅ Recent: ON 🔥"); return }
-      if(cmd==='welcome'){ await sendV(globalThis.BOT_STATE.welcomeOn?"✅ Welcome: ON":"❌ Welcome: OFF"); return }
-      if(cmd==='goodbye'){ await sendV(globalThis.BOT_STATE.goodbyeOn?"✅ Goodbye: ON":"❌ Goodbye: OFF"); return }
-      if(cmd==='antilink' && text==='on'){ globalThis.BOT_STATE.antilinkOn=true; antilinkOn=true; await success("✅ Anti-Link ON - Link দিলে 3 বার Warning -> Kick"); return }
-      if(cmd==='antilink' && text==='off'){ globalThis.BOT_STATE.antilinkOn=false; antilinkOn=false; await success("❌ Anti-Link OFF"); return }
-      if(cmd==='antilink'){ await sendV(globalThis.BOT_STATE.antilinkOn?"✅ Anti-Link: ON\nLink দিলে 3 বার Warning -> Kick":"❌ Anti-Link: OFF"); return }
-      if(cmd==='warns' || cmd==='warnlist'){ let list = Object.entries(warnCount).filter(([k,v])=>v>0); if(!list.length){ await sendV("✅ কারো Warn নাই! সবাই ভালো! 💜"); return } await sendV("⚠️ *WARN LIST*\n"+list.map(([id,c])=>`@${id.split('@')[0]} - ${c}/3`).join("\n")); return }
-      if(cmd==='resetwarn' || cmd==='resetwarns'){ let t = getTarget(); if(!t){ await sendV("❌ কাকে Reset করবো? Tag করো! Ex: .resetwarn @user"); return } warnCount[t]=0; await success(`✅ @${t.split('@')[0]} এর Warn Reset হইছে!`); return }
-      if(cmd==='warn'){ let t = getTarget(); if(!t){ await sendV("❌ কাকে Warn দিবা? Tag করো!"); return } warnCount[t]=(warnCount[t]||0)+1; if(warnCount[t]>=3){ warnCount[t]=0; await sock.sendMessage(from,{text:`🚫 @${t.split('@')[0]} 3 বার Warn খাইছে - KICK!`, mentions:[t]}); try{ await sock.groupParticipantsUpdate(from,[t],"remove") }catch{} } else{ await success(`⚠️ @${t.split('@')[0]} কে Warn দেওয়া হইছে! ${warnCount[t]}/3`) } return }
-      if(cmd==='del' || cmd==='delete'){ let q = qCtx; if(!q?.stanzaId){ await sendV("❌ যেই মেসেজ ডিলিট করবা, ঐটাতে Reply দিয়া লেখ:\n.del"); return } try{ await sock.sendMessage(from, { delete: { remoteJid: from, fromMe: false, id: q.stanzaId, participant: q.participant } }); await sendV("✅ ডিলিট হইছে!") }catch(e){ try{ await sock.sendMessage(from, { delete: q.stanzaId }); await sendV("✅ ডিলিট হইছে!") }catch{ await sendV("❌ ডিলিট করতে পারলাম না! বটকে Admin দাও, আর মেসেজটা ১ দিনের ভিতরে হইতে হইবো!") } } return }
       if(cmd==='recent' || cmd==='trending'){ let last = [...recentMsgs].slice(-20).reverse(); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); let r2 = recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n"); await sock.sendMessage(from, { text: `🔥 *RECENT - Sob Msg e Emoji* 🔥\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}\n👆 উপরে নামে চাপ দিলেই তার ID / Profile খুলবো`, mentions }, {quoted: m}); return }
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, botThumb); return }
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sock.sendMessage(from, { text: "📢 *Follow Channel:*", footer: "RANA X VIP 👑💜", buttons: [{ buttonId: "viewchannel", buttonText: { displayText: "📢 View Channel" }, type: 1 }], headerType: 1, contextInfo: { externalAdReply: { title: "📢 View Channel", body: "Tap to View Channel", thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: true, showAdAttribution: true } } }, {quoted: m}); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ let pic = await getBotPicBuffer(); let txt = `🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: ${OWNER_NAME}\n📞 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length} 🔥`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await success(txt); return }
-      if(cmd==='status' || cmd==='bot' || cmd==='alive'){ let pic = await getBotPicBuffer(); let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ON 🔥 | *React:* ON 🔥 | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT* 👑 ${OWNER_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
+      if(cmd==='status' || cmd==='bot' || cmd==='alive'){ let pic = await getBotPicBuffer(); let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ${globalThis.BOT_STATE.recentOn?"ON 🔥":"OFF ❌"} | *React:* ${globalThis.BOT_STATE.autoReactOn?"ON 🔥":"OFF ❌"} | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT* 👑 ${OWNER_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
       if(cmd==='owner' || cmd==='creator' || cmd==='rana'){ let pic = await getBotPicBuffer(); let txt = `👑 *OWNER INFO* 👑\n\n👤 *Name:* ${OWNER_NAME} 🔥\n📞 *Number:* ${OWNER}\n📢 *Channel:* ${CHANNEL}\n\n💜 ${BOT_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
       if(cmd==='song' || cmd==='play' || cmd==='gan' || cmd==='music' || cmd==='gaan' || cmd==='gana' || cmd==='video' || cmd==='vsong' || cmd==='vgan' || cmd==='vgana'){
         if(!text){ await sendV("❌ গানের নাম দে ভাই! 🎬\nEx: .song Ami Tomare Balobasi\nEx: .song Tum Hi Ho"); return }
