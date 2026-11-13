@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - FINAL - MENU BIG ONLY + ALL SMALL + FAST REPLY AUDIO =====
+// ===== RANA-X-VIP-BOT - FULL index.js - SONG MUST COME + PRIVATE 100% RANDOM 30-40 SEC =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -27,17 +27,65 @@ const sessions = new Map()
 let userBal = {}, userXp = {}
 const groupMetaCache = new Map()
 const dpCache = new Map()
-let usedPrivateIds = new Set()
-const PRIVATE_POOL = ["couple kiss closeup hand on chin","couple kiss closeup holding face","turkish couple kiss closeup holding chin","kiss closeup hand on cheek romantic","boy holding girl face kiss closeup","couple kiss closeup hand on jaw romantic","romantic kiss closeup hand holding face"]
 const INV_LIST = ["https://inv.nadeko.net","https://yt.lemnoslife.com","https://invidious.privacyredirect.com","https://invidious.flokinet.to","https://inv.us.projectsegfau.lt","https://invidious.0011.lt"]
 const COBALT_LIST = ["https://co.wuk.sh/api/json","https://cobalt.canine.tools/api/json","https://co.theromanxpl0it.com/api/json"]
 const PIPED_LIST = ["https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de"]
+// ✅ PRIVATE - 100% RANDOM - শুধু এই স্টাইল - 30-40 Sec
+let _usedPrivateIds = new Set()
+const PRIVATE_QUERIES = ["couple kiss closeup hand on chin","couple kiss closeup holding face","turkish couple kiss closeup holding chin","kiss closeup hand on cheek romantic","boy holding girl face kiss closeup","couple kiss closeup hand on jaw romantic","romantic kiss closeup hand holding face","couple kissing closeup romantic scene","kiss closeup holding chin romantic couple","couple kiss closeup hand on neck"]
+async function getPrivateVideo100(){
+  let qs = [...PRIVATE_QUERIES].sort(()=> Math.random()-0.5)
+  for(let q of qs){
+    // Piped + Invidious 2টাই - 1টা ফেল হইলে আরেকটা
+    let list = []
+    for(let BASE of PIPED_LIST){
+      try{ let r = await axios.get(BASE+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 7000}); if(r.data?.items?.length){ list = r.data.items.map(x=>({title:x.title, videoId:(x.url||"").split("watch?v=")[1]||x.id, duration:x.duration||0})); break } }catch{}
+    }
+    if(!list.length){
+      for(let BASE of INV_LIST){
+        try{ let r = await axios.get(BASE+"/api/v1/search?q="+encodeURIComponent(q)+"&type=video", {timeout: 7000}); if(r.data?.length){ list = r.data.map(x=>({title:x.title, videoId:x.videoId, duration:x.lengthSeconds||0})); break } }catch{}
+      }
+    }
+    // ✅ 100% Filter - Kiss থাকতেই হইবো + 30-40 Sec + আগেরটা না
+    let filtered = list.filter(v=>{
+      let t = (v.title||"").toLowerCase()
+      return t.includes("kiss") && v.duration >= 25 && v.duration <= 45 && !_usedPrivateIds.has(v.videoId)
+    })
+    if(!filtered.length) continue
+    // 100% Random - First না
+    let shuffled = [...filtered].sort(()=> Math.random()-0.5)
+    for(let v of shuffled.slice(0,5)){
+      let yt = "https://www.youtube.com/watch?v="+v.videoId
+      let vu = await cobaltGet(yt, false)
+      if(!vu){ let p = await pipedGet(v.videoId); vu = p.vUrl }
+      if(!vu){ let iv = await invidiousGet(v.videoId); vu = iv.vUrl }
+      if(vu){
+        _usedPrivateIds.add(v.videoId)
+        if(_usedPrivateIds.size > 50) _usedPrivateIds.clear()
+        return {url: vu, title: v.title, dur: v.duration}
+      }
+    }
+  }
+  return null
+}
+function norm(s){ return (s||"").toLowerCase().replace(/[^\w\s\u0980-\u09ff]/g," ").replace(/\b(song|official|video|audio|mp3|bangla|hindi|full|lyrics|lyrical|4k|hd|new)\b/g," ").replace(/\s+/g," ").trim() }
+function scoreSong(title, query){
+  let t = norm(title), q = norm(query)
+  if(!t || !q) return 0
+  if(t===q) return 100
+  if(t.includes(q)) return 90
+  let qw = q.split(" ").filter(w=>w.length>2), tw = new Set(t.split(" "))
+  let hit = qw.filter(w=>tw.has(w)).length
+  let s = (hit / Math.max(1,qw.length))*80
+  if(hit>=2) s+=10
+  return s
+}
 async function searchYT(query){
   for(let BASE of INV_LIST){
-    try{ let r = await axios.get(BASE+"/api/v1/search?q="+encodeURIComponent(query)+"&type=video", {timeout: 5000}); let list = r.data || []; if(list.length) return list.map(x=>({title:x.title, videoId:x.videoId})) }catch{}
+    try{ let r = await axios.get(BASE+"/api/v1/search?q="+encodeURIComponent(query)+"&type=video", {timeout: 5000}); let list = r.data || []; if(list.length) return list.map(x=>({title:x.title, videoId:x.videoId, duration:x.lengthSeconds||0, uploader:x.author||""})) }catch{}
   }
   for(let BASE of PIPED_LIST){
-    try{ let r = await axios.get(BASE+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 5000}); if(r.data?.items?.length) return r.data.items.map(x=>({title:x.title, videoId:(x.url||"").split("watch?v=")[1]||x.id})) }catch{}
+    try{ let r = await axios.get(BASE+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout: 5000}); if(r.data?.items?.length) return r.data.items.map(x=>({title:x.title, videoId:(x.url||"").split("watch?v=")[1]||x.id, duration:x.duration||0, uploader:x.uploaderName||""})) }catch{}
   }
   return []
 }
@@ -49,42 +97,55 @@ async function cobaltGet(ytUrl, isAudio){
 }
 async function pipedGet(vid){
   for(let BASE of PIPED_LIST){
-    try{ let st = await axios.get(BASE+"/streams/"+vid, {timeout: 6000}); let vu = (st.data?.videoStreams?.find(x=>x.quality==="360p") || st.data?.videoStreams?.[0])?.url || ""; let au = (st.data?.audioStreams?.[0])?.url || ""; if(vu||au) return {vUrl: vu, aUrl: au} }catch{}
+    try{ let st = await axios.get(BASE+"/streams/"+vid, {timeout: 7000}); let vu = (st.data?.videoStreams?.find(x=>x.quality==="360p") || st.data?.videoStreams?.[0])?.url || ""; let au = (st.data?.audioStreams?.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0))[0])?.url || ""; if(vu||au) return {vUrl: vu, aUrl: au} }catch{}
   }
   return {vUrl:"", aUrl:""}
 }
-async function getFastVideo(query, needKiss=false){
-  let list = await searchYT(query)
-  if(needKiss) list = list.filter(x => (x.title||"").toLowerCase().includes("kiss"))
-  if(!list.length && !needKiss) list = await searchYT(query+" video")
-  if(!list.length) return {vUrl:"", aUrl:"", title:"", videoId:""}
-  let shuffled = [...list].sort(()=> Math.random()-0.5)
-  for(let v of shuffled.slice(0, 4)){
-    if(needKiss && usedPrivateIds.has(v.videoId)) continue
+async function invidiousGet(vid){
+  for(let BASE of INV_LIST){
+    try{ let r = await axios.get(BASE+"/api/v1/videos/"+vid, {timeout: 7000}); let f = r.data?.adaptiveFormats || r.data?.formatStreams || []; let au = f.find(x=>x.mimeType?.includes("audio"))?.url || ""; let vu = f.find(x=>x.mimeType?.includes("video"))?.url || ""; if(vu||au) return {vUrl: vu, aUrl: au} }catch{}
+  }
+  return {vUrl:"", aUrl:""}
+}
+async function getSongGuaranteed(base){
+  let queries = [base, base+" song", base+" official song", base+" bangla song", base+" hindi song"]
+  let all = []
+  for(let q of queries){
+    let list = await searchYT(q)
+    for(let v of list) v._score = scoreSong(v.title, base)
+    all.push(...list)
+    if(all.length>=15) break
+  }
+  let seen = new Set(), uniq = []
+  for(let v of all){ if(!seen.has(v.videoId)){ seen.add(v.videoId); uniq.push(v) } }
+  uniq.sort((a,b)=> b._score - a._score)
+  for(let v of uniq.slice(0,8)){
     let yt = "https://www.youtube.com/watch?v="+v.videoId
     let vu = await cobaltGet(yt, false)
-    if(!vu){ let p = await pipedGet(v.videoId); vu = p.vUrl }
-    if(vu){ if(needKiss){ usedPrivateIds.add(v.videoId); if(usedPrivateIds.size>40) usedPrivateIds.clear() } let au = await cobaltGet(yt, true); if(!au){ let p2 = await pipedGet(v.videoId); au = p2.aUrl } return {vUrl: vu, aUrl: au||vu, title: v.title, videoId: v.videoId} }
+    let au = await cobaltGet(yt, true)
+    if(!vu || !au){ let p = await pipedGet(v.videoId); if(!vu) vu = p.vUrl; if(!au) au = p.aUrl }
+    if(!vu && !au){ let iv = await invidiousGet(v.videoId); if(!vu) vu = iv.vUrl; if(!au) au = iv.aUrl }
+    if(vu || au) return {vUrl: vu, aUrl: au||vu, title: v.title, videoId: v.videoId}
   }
-  let v0 = shuffled[0]
-  if(v0){ let au2 = await cobaltGet("https://www.youtube.com/watch?v="+v0.videoId, true); if(!au2){ let p = await pipedGet(v0.videoId); au2 = p.aUrl } if(au2) return {vUrl:"", aUrl: au2, title: v0.title, videoId: v0.videoId} }
   return {vUrl:"", aUrl:"", title:"", videoId:""}
+}
+async function getFastVideo(query, needKiss=false){
+  if(needKiss){ let f = await getPrivateVideo100(); return {vUrl: f?.url||"", aUrl: f?.url||"", title: f?.title||"", videoId: ""} }
+  return await getSongGuaranteed(query.replace(/ song$| video$/,""))
 }
 async function getYTSearch(q){ let r = await searchYT(q); return r.slice(0,5) }
 async function getYTStream(vid){ let vu = await cobaltGet("https://www.youtube.com/watch?v="+vid, false); if(!vu){ let p = await pipedGet(vid); vu = p.vUrl } let au = await cobaltGet("https://www.youtube.com/watch?v="+vid, true); if(!au){ let p = await pipedGet(vid); au = p.aUrl } return {vUrl: vu, aUrl: au||vu} }
-async function getPrivateVideo100(query){ let f = await getFastVideo(query, true); if(f.vUrl) return {url: f.vUrl, title: f.title}; return null }
-// ✅ SMALL CARD - Ping / Recent / Status / Owner সব ছোট - Menu বাদে
 function smallCard(txt){ return { text: txt, contextInfo: { externalAdReply: { title: BOT_NAME, body: "👑 "+OWNER_NAME, thumbnail: BOT_PIC_BUF || null, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true } } } }
 function vBox(txt, thumb){ return smallCard(txt) }
 async function sendDirectVideo(sock, from, m, url){
   try{ await sock.sendMessage(from, { video: { url }, mimetype: 'video/mp4', gifPlayback: false, viewOnce: false }, {quoted: m}); return true }catch{
-    try{ let r = await axios.get(url, {responseType:'arraybuffer', timeout:20000}); if(r.data?.length>10000){ await sock.sendMessage(from, { video: Buffer.from(r.data), mimetype:'video/mp4', gifPlayback:false, viewOnce:false }, {quoted:m}); return true } }catch{}
+    try{ let r = await axios.get(url, {responseType:'arraybuffer', timeout:25000}); if(r.data?.length>10000){ await sock.sendMessage(from, { video: Buffer.from(r.data), mimetype:'video/mp4', gifPlayback:false, viewOnce:false }, {quoted:m}); return true } }catch{}
   }
   return false
 }
 async function sendDirectAudio(sock, from, m, url, title){
   try{ await sock.sendMessage(from, { audio: { url }, mimetype:'audio/mp4', fileName:(title||"song")+".mp3", ptt:false }, {quoted:m}); return true }catch{
-    try{ let r = await axios.get(url, {responseType:'arraybuffer', timeout:20000}); if(r.data?.length>10000){ await sock.sendMessage(from, { audio: Buffer.from(r.data), mimetype:'audio/mp4', fileName:(title||"song")+".mp3", ptt:false }, {quoted:m}); return true } }catch{}
+    try{ let r = await axios.get(url, {responseType:'arraybuffer', timeout:25000}); if(r.data?.length>10000){ await sock.sendMessage(from, { audio: Buffer.from(r.data), mimetype:'audio/mp4', fileName:(title||"song")+".mp3", ptt:false }, {quoted:m}); return true } }catch{}
   }
   return false
 }
@@ -123,7 +184,6 @@ async function downloadVideoBufferFast(vidMsg){
 async function downloadAudioBufferFast(audMsg){
   try{ let stream = await downloadContentFromMessage(audMsg, 'audio'); let chunks = []; for await(let c of stream) chunks.push(c); return Buffer.concat(chunks) }catch(e){ return null }
 }
-// ✅ MENU - শুধু এইটা বড় - আগের মতো
 async function sendMenuWithChannel(sock, from, msg, thumb){
   let recentTxt = recentCmds.length ? "\n\n🔥 RECENT\n"+recentCmds.slice(-10).reverse().map(c=>"✦ ."+c).join("\n") : ""
   let menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL)+recentTxt
@@ -136,8 +196,7 @@ async function sendMenuWithChannel(sock, from, msg, thumb){
 }
 async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wantShort=false){
   try{
-    let f = await getFastVideo(query + (wantShort ? " short" : " video"))
-    if(!f.vUrl) f = await getFastVideo(query)
+    let f = await getSongGuaranteed(query)
     if(!f.vUrl && !f.aUrl) return
     if(f.vUrl) await sendDirectVideo(sock, from, m, f.vUrl)
     else if(f.aUrl) await sendDirectAudio(sock, from, m, f.aUrl, f.title)
@@ -145,7 +204,7 @@ async function sendVideoByQuery(sock, from, m, query, title, emoji, botThumb, wa
 }
 async function sendAudioByQuery(sock, from, m, query, botThumb){
   try{
-    let f = await getFastVideo(query+" song")
+    let f = await getSongGuaranteed(query)
     if(!f.aUrl && !f.vUrl) return
     await sendDirectAudio(sock, from, m, f.aUrl || f.vUrl, f.title)
   }catch{}
@@ -243,7 +302,7 @@ async function handleOneMessage(sock, m){
       let btnId = m.message?.buttonsResponseMessage?.selectedButtonId || m.message?.templateButtonReplyMessage?.selectedId || ""
       if(btnId === "viewchannel"){ await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 নিচের লিংকে চাপ দাও:\n"+CHANNEL+"\n\n💜 Follow করো!", contextInfo: { externalAdReply: { title: BOT_NAME, body: "👑 "+OWNER_NAME, thumbnail: botThumb, mediaType: 1, sourceUrl: CHANNEL, renderLargerThumbnail: false, showAdAttribution: true } } }, {quoted: m}); return }
       if(btnId === "menu"){ if(globalThis.BOT_MODE==="private" && sender.replace(/[^0-9]/g,'')!==OWNER){ await sendV("🔒 *BOT PRIVATE*\nKhali Owner chalai te parbo!"); return } await sendMenuWithChannel(sock, from, m, botThumb); return }
-      if(btnId === "recent"){ let last = [...recentMsgs].slice(-20); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); await sock.sendMessage(from, smallCard(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`), {quoted: m}); return }
+      if(btnId === "recent"){ let last = [...recentMsgs].slice(-20); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); await sock.sendMessage(from, smallCard(`🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`), {quoted: m}); return }
       if(isGroup && body && !body.startsWith('.')){
         let blocked = await checkAntilink({ sock, from, m, sender, isGroup, msgText: body, OWNER, CHANNEL_LINK: CHANNEL })
         if(blocked) return
@@ -255,15 +314,16 @@ async function handleOneMessage(sock, m){
       if(!body || !body.startsWith('.')) return
       const args = body.slice(1).trim().split(/ +/); let cmd = fixCmd(args[0].toLowerCase()); const text = args.slice(1).join(' ')
       recentCmds.push(cmd); if(recentCmds.length>20) recentCmds.shift()
-      if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='privatemode'){
-        let pools = [...PRIVATE_POOL].sort(()=> Math.random()-0.5)
-        let ok = false
-        for(let q of pools){
-          if(ok) break
-          let f = await getFastVideo(q, true)
-          if(f.vUrl){ ok = await sendDirectVideo(sock, from, m, f.vUrl) }
+      // ✅ PRIVATE - সবার আগে - Mode Check এর আগেই - শুধু এই ভিডিও - 100% Random - 30-40 Sec - আর কোনো কাজ না
+      if(cmd==='private'){
+        let f = await getPrivateVideo100()
+        if(!f){ await sendV("❌ Private Video পাইলাম না! আবার লেখ:\n.private"); return }
+        let ok = await sendDirectVideo(sock, from, m, f.url)
+        if(ok){
+          await sock.sendMessage(from, smallCard(`🔥 *PRIVATE* 🔥\n🎬 ${f.title || ""}\n⏱️ ${f.dur || ""} Sec\n\n👑 ${BOT_NAME}`), {quoted: m})
+        } else {
+          await sendV("❌ Private Video পাঠাইতে পারলাম না! আবার লেখ:\n.private")
         }
-        if(!ok){ let f2 = await getFastVideo(PRIVATE_POOL[Math.floor(Math.random()*PRIVATE_POOL.length)], false); if(f2.vUrl) await sendDirectVideo(sock, from, m, f2.vUrl) }
         return
       }
       if(cmd==='public' || cmd==='mode' || cmd==='botmode'){
@@ -274,7 +334,7 @@ async function handleOneMessage(sock, m){
         await sendV(globalThis.BOT_MODE==="private" ? "🔒 Bot এখন *PRIVATE*\nPublic করতে: .mode public" : "✅ Bot এখন *PUBLIC*\nPrivate করতে: .mode private"); return
       }
       if(globalThis.BOT_MODE === "private" && sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("🔒 *BOT PRIVATE*\n\nএই Bot এখন Private!\nখালি Owner চালাইতে পারবো!\n\n👑 Owner: "+OWNER+"\n💡 Owner কে বলো .mode public করতে!"); return }
-      if(cmd==='recent' || cmd==='trending'){ let last = [...recentMsgs].slice(-20).reverse(); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); let r2 = recentCmds.slice(-10).reverse().map(c=>"✦ ."+c).join("\n"); await sock.sendMessage(from, smallCard(`🔥 *RECENT - Sob Msg e Emoji* 🔥\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n🔥 RECENT COMMANDS\n${r2||"✦ .menu"}\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}\n👆 উপরে নামে চাপ দিলেই তার ID / Profile খুলবো`), {quoted: m}); return }
+      if(cmd==='recent' || cmd==='trending'){ let last = [...recentMsgs].slice(-20).reverse(); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let r2 = recentCmds.slice(-10).reverse().map(c=>"✦ ."+c).join("\n"); await sock.sendMessage(from, smallCard(`🔥 *RECENT - Sob Msg e Emoji* 🔥\n\n${r1||"No recent yet - এখন মেসেজ করো, Emoji আসবো!"}\n\n🔥 RECENT COMMANDS\n${r2||"✦ .menu"}\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}`), {quoted: m}); return }
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, botThumb); return }
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sock.sendMessage(from, smallCard("📢 *Follow Channel:*\n"+CHANNEL), {quoted: m}); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){
@@ -292,11 +352,14 @@ async function handleOneMessage(sock, m){
       if(cmd==='song' || cmd==='play' || cmd==='gan' || cmd==='music' || cmd==='gaan' || cmd==='gana' || cmd==='video' || cmd==='vsong' || cmd==='vgan' || cmd==='vgana' || cmd==='ong'){
         let base = cleanBase(text)
         if(!base){ await sendV("❌ গানের নাম দে ভাই! 🎬\nEx: .song Ami Tomare Chai"); return }
-        let f = await getFastVideo(base+" song")
-        if(!f.vUrl && !f.aUrl){ f = await getFastVideo(base) }
-        if(!f.vUrl && !f.aUrl) return
-        if(f.vUrl) await sendDirectVideo(sock, from, m, f.vUrl)
-        if(f.aUrl && f.aUrl!==f.vUrl) await sendDirectAudio(sock, from, m, f.aUrl, f.title)
+        await sendV("🔍 খুঁজতেছি... *"+base+"* - ওই গানটাই আনতেছি...")
+        let f = await getSongGuaranteed(base)
+        if(!f.vUrl && !f.aUrl){ await sendV("❌ গানটা পাইলাম না ভাই! নামটা আরেকটু ঠিক কইরা লেখ:\nEx: .song Ami Tomare Chai\n.song Tum Se Hi"); return }
+        let vOk = false, aOk = false
+        if(f.vUrl) vOk = await sendDirectVideo(sock, from, m, f.vUrl)
+        if(f.aUrl) aOk = await sendDirectAudio(sock, from, m, f.aUrl, f.title)
+        if(!vOk && !aOk){ await sendV("❌ গানটা ডাউনলোড হইলো না! আবার লেখ:\n.song "+base); return }
+        await sock.sendMessage(from, smallCard(`🎵 *${f.title}*\n✅ তুমি যেই গান লিখছো ওইটাই আইছে!\n\n👑 ${BOT_NAME}`), {quoted: m})
         return
       }
       if(['romantic','romanticvideo','love','lovevideo','lovestory'].includes(cmd)){ let q = cleanBase(text) || "romantic bangla song"; await sendVideoByQuery(sock, from, m, q, "ROMANTIC ❤️", "❤️", botThumb, false); return }
@@ -304,22 +367,17 @@ async function handleOneMessage(sock, m){
       if(['dj','djbangla','djsong','djvideo','funny','funnyvideo','comedy','fany'].includes(cmd)){
         let query = cleanBase(text); if(['dj','djbangla','djsong','djvideo'].includes(cmd)) query = query || "dj bangla song"; if(['funny','funnyvideo','comedy','fany'].includes(cmd)) query = query || "funny bangla video"; await sendVideoByQuery(sock, from, m, query, "VIDEO 🎬", "🎬", botThumb, false); return
       }
-      // ✅ AUDIO - 3 ভাবে - FAST - Reply / Caption / Name
       if(cmd==='audio' || cmd==='mp3' || cmd==='toaudio' || cmd==='songaudio'){
-        // 1) .audio গানের নাম
         if(text){ await sendAudioByQuery(sock, from, m, cleanBase(text), botThumb); return }
-        // 2) ভিডিও + Caption .audio / ভিডিওতে Reply দিয়া .audio
         let q = m.message.extendedTextMessage?.contextInfo?.quotedMessage
         let quotedVideo = q?.videoMessage || q?.documentMessage
         let quotedAudio = q?.audioMessage
-        let quotedDoc = q?.documentMessage
         let directVideo = m.message.videoMessage
         let directAudio = m.message.audioMessage
         let targetVideo = directVideo || quotedVideo
         if(targetVideo){
           let buf = await downloadVideoBufferFast(targetVideo)
           if(buf && buf.length>10000){ await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-Audio.mp3", ptt: false }, {quoted: m}); return }
-          // Video Buffer ফেল হইলে - Caption থেকে নাম নিয়া আবার Search
           let cap = targetVideo.caption || ""
           if(cap){ await sendAudioByQuery(sock, from, m, cleanBase(cap), botThumb); return }
         }
@@ -327,7 +385,6 @@ async function handleOneMessage(sock, m){
           let buf2 = await downloadAudioBufferFast(quotedAudio || directAudio)
           if(buf2 && buf2.length>1000){ await sock.sendMessage(from, { audio: buf2, mimetype: 'audio/mp4', fileName: "RANA-Audio.mp3", ptt: false }, {quoted: m}); return }
         }
-        // 3) গানের ভিডিওতে Reply দিয়া .audio - Quoted এর Caption থেকে গান খুঁজবো
         if(q){
           let qCap = q.videoMessage?.caption || q.imageMessage?.caption || q.conversation || q.extendedTextMessage?.text || ""
           if(qCap){ await sendAudioByQuery(sock, from, m, cleanBase(qCap), botThumb); return }
