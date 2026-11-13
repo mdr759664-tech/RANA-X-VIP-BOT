@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP - commands.js - FULL - PRIVATE ONLY 30-40 SEC VIDEO =====
+// ===== RANA-X-VIP - commands.js - FULL - PRIVATE CUT - Private Sudhu index.js e =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
 const OWNER_NAME_FIX = "✷𐏓꯭⸙Ξ⤹𝐑𝐀𝐍𝐀𐏓𝐁𝐀𝐏𝐏𝐘⟭꯭⎯۞"
@@ -7,7 +7,7 @@ const CATS = {
   "MAIN": ["menu","menu2","allmenu","help","commands","list","ping","pong","speed","runtime","uptime","alive","info","bot","about","profile","myinfo","id","stats","system","version","ownerinfo","botinfo","cam","pic"],
   "FUN": ["joke","meme","fact","quote","shayari","love","crush","propose","slap","kiss","hug","pat","cuddle","dance","sing","roast","insult","compliment","truth","dare","ship","compatibility","beautiful","ugly","luck","horoscope","zodiac","aura","vibe","fun","happy","sad","angry","cry","laugh","smile","wink","poke","tickle","bite","wave","hello","bye","goodmorning","goodnight"],
   "GAME": ["tictactoe","quiz","riddle","guess","dice","coin","slot","rps","blackjack","trivia","math","word","hangman","flip","roll","lottery","football","cricket","hunt","fight","battle","duel","race","truthordare","wouldyou","neverhave"],
-  "DOWNLOADER": ["play","song","video","romantic","dj","funny","romanticvideo","djbangla","funnyvideo","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl","private","praivete","praivate","privet","priv"],
+  "DOWNLOADER": ["play","song","video","romantic","dj","funny","romanticvideo","djbangla","funnyvideo","ytmp3","ytmp4","tiktok","igdl","fbdl","reels","insta","spotify","pinterest","mediafire","terabox","apk","wallpaper","ringtone","ytaudio","ytvideo","ytsearch","tiktokdl","fbvideo","mp3","mp4","audio","download","dl"],
   "IMAGE": ["sticker","s","vv","vv2","vv3","viewonce","take","steal","toimg","toimage","tovid","tomp3","blur","circle","invert","grey","attp","ttp","emojimix","removebg","upscale","enhance","cartoon","anime","logo","banner","thumbnail","poster","dp","pfp","avatar","background","neon","glow"],
   "GROUP": ["admin","admins","announce","antibot","antilink","antispam","approve","close","desc","disappear","everyone","filter","groupinfo","hidetag","invite","kick","kickall","leave","linkgroup","lock","mute","open","poll","promote","reject","requests","revoke","rtag","setgpp","subject","tag","tagadmins","tagall","togroupstatus","totag","unlock","unmute","warn","welcome","goodbye","setdesc","setname","link","members","online","vote","rules","groupname","groupdesc","add","demote","setppgc","groupopen","groupclose","kickme","adminlist","memberlist","warns","resetwarn","antibadword","antibad","recent","react","autoreact"],
   "SEARCH": ["google","image","img","yt","youtube","wiki","weather","news","translate","meaning","dictionary","lyrics","movie","series","animeinfo","github","stalk","search","find","lookup","check","ipinfo","screenshot","qrscan","ocr","define","synonym"],
@@ -43,32 +43,7 @@ async function getWiki(q){ try{ let r = await axios.get("https://en.wikipedia.or
 async function getPipedVideo(query){ let servers = ["https://piped.video","https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz"]; for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout:12000}); let items = r.data?.items||[]; if(items[0]) return {v:items[0], sv} }catch{} } return null }
 async function getPipedAudio(v, sv){ let vid = (v.url||"").split("watch?v=")[1]||v.id; let st = await axios.get(sv+"/streams/"+vid, {timeout:20000}); let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]; audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0)); return {audios, vids: st.data?.videoStreams||[], vid} }
 async function sendPipedAudio(o, query, v, sv){ let {audios} = await getPipedAudio(v, sv); if(!audios[0]?.url) return false; let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength < 500000) return false; await o.sock.sendMessage(o.from, {audio: Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(v.title||query)+".mp3", contextInfo:{externalAdReply:{title:v.title||query, body:"👑 RANA-X-VIP-BOT - FULL SONG", thumbnail:o.senderThumb, mediaType:1, sourceUrl:o.CHANNEL_LINK}}}, {quoted:o.m}); return true }
-// ✅ PRIVATE HELPER - শুধু এই স্টাইলের ভিডিও - 30-40 Sec
-let _usedPrivateIds = new Set()
-async function getPrivateVideo30_40(){
-  const QUERIES = ["couple kiss closeup hand on chin","couple kiss closeup holding face","turkish couple kiss closeup holding chin","kiss closeup hand on cheek romantic","boy holding girl face kiss closeup","couple kiss closeup hand on jaw romantic","romantic kiss closeup hand holding face","couple kissing closeup romantic scene"]
-  let shuffledQ = [...QUERIES].sort(()=> Math.random()-0.5)
-  let servers = ["https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://piped.video"]
-  for(let q of shuffledQ){
-    for(let sv of servers){
-      try{
-        let r = await axios.get(sv+"/search?q="+encodeURIComponent(q)+"&filter=videos", {timeout: 8000})
-        let items = (r.data?.items || []).filter(v=>{
-          let dur = v.duration || 0
-          return dur >= 25 && dur <= 45 && !_usedPrivateIds.has(v.id)
-        })
-        if(!items.length) continue
-        let v = items[Math.floor(Math.random()*items.length)]
-        let vid = (v.url||"").split("watch?v=")[1] || v.id
-        if(!vid) continue
-        let st = await axios.get(sv+"/streams/"+vid, {timeout: 10000})
-        let vu = (st.data?.videoStreams?.find(x=>x.quality==="360p") || st.data?.videoStreams?.[0])?.url || ""
-        if(vu){ _usedPrivateIds.add(v.id); if(_usedPrivateIds.size>40) _usedPrivateIds.clear(); return {url: vu, title: v.title, dur: v.duration} }
-      }catch{}
-    }
-  }
-  return null
-}
+// ❌ PRIVATE CUT - Private ekhon sudhu index.js e - ekhane ar nai
 async function checkAntilink(o){
   const { sock, from, m, sender, isGroup, msgText, OWNER, CHANNEL_LINK } = o
   if(!isGroup) return false
@@ -107,18 +82,8 @@ async function handleCommand(o){
   let st = o.state || globalThis.BOT_STATE || { recentOn: true, autoReactOn: true, welcomeOn: true, goodbyeOn: true, antilinkOn: true }
   if(!globalThis.BOT_STATE) globalThis.BOT_STATE = st
   if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
-  // ✅ PRIVATE - সবার আগে - শুধু এই ভিডিও আনবো - 30-40 Sec - আর কোনো কাজ না
-  if(cmd==='private' || cmd==='priv' || cmd==='pvt' || cmd==='praivete' || cmd==='praivate' || cmd==='privet' || cmd==='privat' || cmd==='pribet'){
-    let f = await getPrivateVideo30_40()
-    if(!f){ await reply("❌ Private Video পাইলাম না! আবার লেখ:\n.private"); return true }
-    try{
-      await sock.sendMessage(from, { video: { url: f.url }, mimetype: 'video/mp4', gifPlayback: false, viewOnce: false, caption: `🔥 *PRIVATE* 🔥\n🎬 ${f.title || ""}\n⏱️ ${f.dur || ""} Sec\n\n👑 RANA-X-VIP-BOT` }, {quoted: m})
-    }catch{
-      try{ let rr = await axios.get(f.url, {responseType:'arraybuffer', timeout:20000}); if(rr.data?.length>10000) await sock.sendMessage(from, { video: Buffer.from(rr.data), mimetype:'video/mp4', gifPlayback:false, viewOnce:false }, {quoted:m}) }catch{ await reply("❌ Private Video পাঠাইতে পারলাম না! আবার লেখ:\n.private") }
-    }
-    return true
-  }
-  // ✅ MODE - private এখানে নাই - .mode private দিয়া Mode বদলাইবা
+  // ❌ PRIVATE CUT - ekhane private ar nai - index.js e cholbo
+  // ✅ MODE - private ekhane nai - .mode private diya Mode bodlaiba
   if(['public','mode','botmode'].includes(cmd)){
     if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ এই Command খালি Owner চালাইতে পারবো!"); return true }
     if(cmd==='public'){ globalThis.BOT_MODE="public"; await reply("✅ Bot এখন *PUBLIC* 🔥\nএখন যে কেউ .menu .song .video চালাইতে পারবো!"); return true }
@@ -499,4 +464,4 @@ async function handleCommand(o){
   }
   return false
 }
-module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink, getPrivateVideo30_40 }
+module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink }
