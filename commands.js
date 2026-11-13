@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP - commands.js - FULL - ALL ENGLISH =====
+// ===== RANA-X-VIP - commands.js - FULL - ALL ENGLISH - SONG=AUDIO, VIDEO=VIDEO, AUDIO=CONVERT =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
 const CATS = {
@@ -30,6 +30,7 @@ for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k])
 ALL_CMDS = [...new Set(ALL_CMDS)]
 function getCatMenu(cat){ if(!CATS[cat]) return null; let t = `╭─━─━─${cat}─━─━─╮\n`; CATS[cat].forEach((c,i)=>{ t += `┃ ${i+1}. .${c}\n` }); t += `╰─━─━─━─━─━─╯\n👑 RANA-X-VIP`; return t }
 function getMenuText(ownerName, owner, channelLink){ let t = `━━━━━━━━━━━━━━\n👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands\n━━━━━━━━━━━━━━\n\n`; for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n`; t += CATS[cat].slice(0,12).map(c=> `  • .${c}`).join("\n") + `\n`; if(CATS[cat].length > 12) t += `  • ... +${CATS[cat].length-12} more\n`; t += `\n` } t += `━━━━━━━━━━━━━━\n💡 Full list: .allmenu\n📢 Channel: ${channelLink || ""}\n👑 RANA-X-VIP`; return t }
+// NOTE: This file is ALL ENGLISH. Real Welcome in index.js stays Bangla screenshot design.
 function getWelcomeMenu(num, gName, count, ownerName){ let user = num.split('@')[0]; let date = new Date().toLocaleDateString('en-BD', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'long', year: 'numeric' }); let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true }); return `╭─━─━─━─💜─━─━─━─╮\n┃ ✨ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ✨ ┃\n╰─━─━─━─💜─━─━─━─╯\n\n🌸 Hello @${user} ! 🥰\n💖 Welcome to *${gName}* group!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👤 Name: @${user}\n┃ 👥 Total Members: ${count}\n┃ 📅 Date: ${date}\n┃ 🕒 Time: ${time}\n┃ 👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n┗━━━━━━━━━━━━━━┛\n\n💡 Type .menu to see all Commands\n🎉 Enjoy, Stay Active!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
 function getGoodbyeMenu(num, gName, count){ let user = (num||"").split('@')[0]; return `╭─━─━─━─💔─━─━─━─╮\n┃ 🥺 𝗚𝗢𝗢𝗗𝗕𝗬𝗘 🥺 ┃\n╰─━─━─━─💔─━─━─━─╯\n\n🥺 @${user} left! 💔\n💖 Goodbye from *${gName}*!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👥 Current Members: ${count}\n┃ 👑 Owner: 🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸\n┗━━━━━━━━━━━━━━┛\n\n🥺 Take care!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
 const JOKES = ["😂 Teacher: Why don't you study?\nStudent: Sir, I run WhatsApp Bot, RANA X VIP BOT! 🤣","😂 My bot has 500+ commands, and I got 0 in exam 😭🤣","😂 Girlfriend: You don't give me time!\nBoyfriend: I have to write Bot commands! 🤣","😂 When WiFi is slow, life feels slow! 📶😭"]
@@ -41,7 +42,15 @@ function rand(n){ return Math.floor(Math.random()*n) }
 async function getWiki(q){ try{ let r = await axios.get("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(q), {timeout:10000}); if(r.data?.extract) return r.data.extract.slice(0,800) }catch{} return null }
 async function getPipedVideo(query){ let servers = ["https://piped.video","https://pipedapi.kavin.rocks","https://pipedapi-libre.kavin.rocks","https://pipedapi.adminforge.de","https://pipedapi.leptons.xyz"]; for(let sv of servers){ try{ let r = await axios.get(sv+"/search?q="+encodeURIComponent(query)+"&filter=videos", {timeout:12000}); let items = r.data?.items||[]; if(items[0]) return {v:items[0], sv} }catch{} } return null }
 async function getPipedAudio(v, sv){ let vid = (v.url||"").split("watch?v=")[1]||v.id; let st = await axios.get(sv+"/streams/"+vid, {timeout:20000}); let audios = [...(st.data?.audioStreams||[]), ...(st.data?.adaptiveFormats?.filter(x=>x.mimeType?.includes("audio"))||[])]; audios.sort((a,b)=>(b.bitrate||0)-(a.bitrate||0)); return {audios, vids: st.data?.videoStreams||[], vid} }
-async function sendPipedAudio(o, query, v, sv){ let {audios} = await getPipedAudio(v, sv); if(!audios[0]?.url) return false; let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength < 500000) return false; await o.sock.sendMessage(o.from, {audio: Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(v.title||query)+".mp3", contextInfo:{externalAdReply:{title:v.title||query, body:"👑 RANA-X-VIP-BOT - FULL SONG", thumbnail:o.senderThumb, mediaType:1, sourceUrl:o.CHANNEL_LINK}}}, {quoted:o.m}); return true }
+async function sendPipedAudio(o, query, v, sv){ let {audios} = await getPipedAudio(v, sv); if(!audios[0]?.url) return false; let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength < 500000) return false; await o.sock.sendMessage(o.from, {audio: Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(v.title||query)+".mp3"}, {quoted:o.m}); return true }
+async function sendPipedVideo(o, query, v, sv, title){
+  let {vids} = await getPipedAudio(v, sv)
+  let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
+  if(!vv?.url) return false
+  await o.sock.sendMessage(o.from, {video:{url:vv.url}, caption:`🎬 *${title}*\n🎵 *${v.title}*\n👤 ${v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype:'video/mp4'}, {quoted:o.m})
+  return true
+}
+// ✅ ANTILINK - index.js needs this, do not delete
 async function checkAntilink(o){
   const { sock, from, m, sender, isGroup, msgText, OWNER, CHANNEL_LINK } = o
   if(!isGroup) return false
@@ -67,10 +76,10 @@ async function checkAntilink(o){
   try{ await sock.sendMessage(from, {delete:{remoteJid:from, fromMe:false, id:m.key.id, participant:sender}}) }catch{}
   if(count >= 3){
     globalThis.ANTILINK_WARN[key] = 0
-    await sock.sendMessage(from, {text: `🚫 @${sender.split('@')[0]} - Antilink Violation (Link) Warning 3/3.\nSent Link 3 times - KICKED! 💥`, mentions:[sender]})
+    await sock.sendMessage(from, {text: `🚫 @${sender.split('@')[0]} - Antilink Violation Warning 3/3.\nSent Link 3 times - KICKED! 💥`, mentions:[sender]})
     try{ await sock.groupParticipantsUpdate(from, [sender], "remove") }catch{ await sock.sendMessage(from, {text: "❌ Failed to Kick! Make Bot Admin!"}) }
   } else {
-    await sock.sendMessage(from, {text: `⚠️ @${sender.split('@')[0]} - Antilink Violation (Link) Warning ${count}/3.\nLink is not allowed! Again = KICK! ❌`, mentions:[sender]})
+    await sock.sendMessage(from, {text: `⚠️ @${sender.split('@')[0]} - Antilink Violation Warning ${count}/3.\nLink is not allowed! Again = KICK! ❌`, mentions:[sender]})
   }
   return true
 }
@@ -86,20 +95,20 @@ async function handleCommand(o){
     if(cmd==='private'){ globalThis.BOT_MODE="private"; await reply("🔒 Bot is now *PRIVATE* 🔒\nOnly you can use it now!"); return true }
     await reply(globalThis.BOT_MODE==="private" ? "🔒 Bot is now *PRIVATE*\nTo make Public: .public" : "✅ Bot is now *PUBLIC*\nTo make Private: .private"); return true
   }
-  if(cmd==='recent' && text==='on'){ st.recentOn=true; st.autoReactOn=true; globalThis.BOT_STATE.recentOn=true; globalThis.BOT_STATE.autoReactOn=true; await reply("✅ Recent ON + Emoji React ON 🔥\nNow Emoji on every message!"); return true }
-  if(cmd==='recent' && text==='off'){ st.recentOn=false; st.autoReactOn=false; globalThis.BOT_STATE.recentOn=false; globalThis.BOT_STATE.autoReactOn=false; await reply("❌ Recent OFF + Emoji React OFF\nNo more Emoji!"); return true }
+  if(cmd==='recent' && text==='on'){ st.recentOn=true; st.autoReactOn=true; await reply("✅ Recent ON + Emoji React ON 🔥\nNow Emoji on every message!"); return true }
+  if(cmd==='recent' && text==='off'){ st.recentOn=false; st.autoReactOn=false; await reply("❌ Recent OFF + Emoji React OFF\nNo more Emoji!"); return true }
   if(cmd==='recent' || cmd==='trending'){ await reply(st.recentOn ? "✅ Recent: ON 🔥 + Emoji React: ON\nTo OFF: .recent off" : "❌ Recent: OFF + Emoji React: OFF\nTo ON: .recent on"); return true }
-  if(cmd==='react' && text==='on'){ st.autoReactOn=true; globalThis.BOT_STATE.autoReactOn=true; await reply("✅ Random Emoji React ON 🔥"); return true }
-  if(cmd==='react' && text==='off'){ st.autoReactOn=false; globalThis.BOT_STATE.autoReactOn=false; await reply("❌ Random Emoji React OFF\nNo more Emoji!"); return true }
+  if(cmd==='react' && text==='on'){ st.autoReactOn=true; await reply("✅ Random Emoji React ON 🔥"); return true }
+  if(cmd==='react' && text==='off'){ st.autoReactOn=false; await reply("❌ Random Emoji React OFF\nNo more Emoji!"); return true }
   if(cmd==='react' || cmd==='autoreact'){ await reply(st.autoReactOn ? "✅ React: ON 🔥\nTo OFF: .react off" : "❌ React: OFF\nTo ON: .react on"); return true }
-  if(cmd==='welcome' && text==='on'){ st.welcomeOn=true; globalThis.BOT_STATE.welcomeOn=true; await reply("✅ Welcome ON"); return true }
-  if(cmd==='welcome' && text==='off'){ st.welcomeOn=false; globalThis.BOT_STATE.welcomeOn=false; await reply("❌ Welcome OFF"); return true }
+  if(cmd==='welcome' && text==='on'){ st.welcomeOn=true; await reply("✅ Welcome ON"); return true }
+  if(cmd==='welcome' && text==='off'){ st.welcomeOn=false; await reply("❌ Welcome OFF"); return true }
   if(cmd==='welcome'){ await reply(st.welcomeOn ? "✅ Welcome: ON" : "❌ Welcome: OFF"); return true }
-  if(cmd==='goodbye' && text==='on'){ st.goodbyeOn=true; globalThis.BOT_STATE.goodbyeOn=true; await reply("✅ Goodbye ON"); return true }
-  if(cmd==='goodbye' && text==='off'){ st.goodbyeOn=false; globalThis.BOT_STATE.goodbyeOn=false; await reply("❌ Goodbye OFF"); return true }
+  if(cmd==='goodbye' && text==='on'){ st.goodbyeOn=true; await reply("✅ Goodbye ON"); return true }
+  if(cmd==='goodbye' && text==='off'){ st.goodbyeOn=false; await reply("❌ Goodbye OFF"); return true }
   if(cmd==='goodbye'){ await reply(st.goodbyeOn ? "✅ Goodbye: ON" : "❌ Goodbye: OFF"); return true }
-  if(cmd==='antilink' && text==='on'){ st.antilinkOn=true; globalThis.BOT_STATE.antilinkOn=true; await reply("✅ Anti-Link ON 🔥\nLink: 1/3 -> 2/3 -> 3/3 = KICK!"); return true }
-  if(cmd==='antilink' && text==='off'){ st.antilinkOn=false; globalThis.BOT_STATE.antilinkOn=false; await reply("❌ Anti-Link OFF\nNow Link will do nothing!"); return true }
+  if(cmd==='antilink' && text==='on'){ st.antilinkOn=true; await reply("✅ Anti-Link ON 🔥\nLink: 1/3 -> 2/3 -> 3/3 = KICK!"); return true }
+  if(cmd==='antilink' && text==='off'){ st.antilinkOn=false; await reply("❌ Anti-Link OFF\nNow Link will do nothing!"); return true }
   if(cmd==='antilink'){ await reply(st.antilinkOn ? "✅ Anti-Link: ON 🔥\nLink = 3 Warnings -> KICK\nTo OFF: .antilink off" : "❌ Anti-Link: OFF\nTo ON: .antilink on"); return true }
   if(cmd==='del' || cmd==='delete'){
     let q = qCtx; if(!q?.stanzaId){ await reply("❌ Reply on the message you want to delete and type:\n.del"); return true }
@@ -164,16 +173,29 @@ async function handleCommand(o){
   if(cmd==='quiz' || cmd==='trivia' || cmd==='riddle' || cmd==='guess'){ try{ let r = await axios.get("https://opentdb.com/api.php?amount=1&type=multiple", {timeout:10000}); let q = r.data.results[0]; await reply(`🧠 Quiz: ${q.question}\nA) ${q.incorrect_answers[0]} B) ${q.incorrect_answers[1]} C) ${q.correct_answer}\nAnswer: ${q.correct_answer}`) }catch{ await reply("🧠 Quiz: What is the capital of Bangladesh?\nA) Dhaka B) Chittagong\nAnswer: Dhaka! 🇧🇩") } return true }
   if(cmd==='math'){ try{ let expr = text.replace(/[^0-9+\-*/(). ]/g,''); if(!expr){ await reply("🧮 Usage: .math 2+2*3"); return true } await reply(`🧮 ${expr} = ${eval(expr)}`)}catch{ await reply("❌ Wrong math!") } return true }
   if(cmd==='lottery' || cmd==='lottery2'){ await reply(`🎟️ Lottery Number: ${1000+rand(9000)}\n🍀 Good Luck!`); return true }
+  // ✅ SONG = AUDIO ONLY
   if(['song','play','gan','music','gaan','gana','play2','song2','playlist','radio'].includes(cmd)){
     if(!text){ await reply("❌ Give song name!\nEx: .song Ami Tomake Valobashi"); return true }
-    await reply("🔍 Searching... *"+text+"*")
+    await reply("🎵 Searching Audio... *"+text+"*")
     try{
-      let got = await getPipedVideo(text); if(!got){ await reply("❌ Song not found!"); return true }
+      let got = await getPipedVideo(text+" song"); if(!got){ await reply("❌ Song not found!"); return true }
       let ok = await sendPipedAudio(o, text, got.v, got.sv)
-      if(ok){ await sock.sendMessage(from, {image: senderThumb, caption:`🎵 *${got.v.title||text}*\n👤 ${got.v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ Tap the Audio above to play full song!`}, {quoted:m}); return true }
+      if(ok){ await sock.sendMessage(from, {image: senderThumb, caption:`🎵 *${got.v.title||text}*\n👤 ${got.v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*\n▶️ Tap Audio above to play full song!`}, {quoted:m}); return true }
     }catch(e){ console.log("Song fail:", e.message) }
     await reply("❌ Full song not found! Try again after 2 min:\n.song "+text); return true
   }
+  // ✅ VIDEO = VIDEO ONLY
+  if(['video','vsong','vgan','vgana','ytmp4','ytvideo'].includes(cmd)){
+    if(!text){ await reply("❌ Give video song name!\nEx: .video Ami Tomake Valobashi"); return true }
+    await reply("🎬 Searching Video... *"+text+"*")
+    try{
+      let got = await getPipedVideo(text+" song"); if(!got){ await reply("❌ Video not found!"); return true }
+      let ok = await sendPipedVideo(o, text, got.v, got.sv, "VIDEO SONG 🎬")
+      if(ok) return true
+    }catch{}
+    await reply("❌ Failed to fetch video!"); return true
+  }
+  // ✅ ROMANTIC / DJ / FUNNY = VIDEO + AUDIO (both)
   if(['romantic','romanticvideo','lovevideo','dj','djbangla','djsong','djvideo','funny','funnyvideo','comedy','fany'].includes(cmd)){
     let query = text
     if(['romantic','romanticvideo','lovevideo'].includes(cmd)) query = text || "romantic bangla song"
@@ -187,43 +209,34 @@ async function handleCommand(o){
       let emoji = ['romantic','romanticvideo','lovevideo'].includes(cmd) ? "❤️" : (['dj','djbangla','djsong','djvideo'].includes(cmd) ? "🎧" : "😂")
       let title = ['romantic','romanticvideo','lovevideo'].includes(cmd) ? "ROMANTIC" : (['dj','djbangla','djsong','djvideo'].includes(cmd) ? "DJ BANGLA" : "FUNNY")
       if(vv?.url) await sock.sendMessage(from, {video:{url:vv.url}, caption:`${emoji} *${title}*\n🎬 *${got.v.title}*\n👤 ${got.v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype:'video/mp4'}, {quoted:m})
-      if(audios[0]?.url){ let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength>500000) await sock.sendMessage(from, {audio:Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(got.v.title||query)+".mp3", contextInfo:{externalAdReply:{title:got.v.title||query, body:"👑 RANA-X-VIP-BOT - "+title, thumbnail:senderThumb, mediaType:1, sourceUrl:CHANNEL_LINK}}}, {quoted:m}) }
+      if(audios[0]?.url){ let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); if(aud.data.byteLength>500000) await sock.sendMessage(from, {audio:Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(got.v.title||query)+".mp3"}, {quoted:m}) }
       return true
     }catch{ await reply("❌ Failed to fetch video!"); return true }
   }
-  if(['video','vsong','vgan','vgana','ytmp4','ytvideo'].includes(cmd)){
-    if(!text){ await reply("❌ Give video song name!\nEx: .video Ami Tomake Valobashi"); return true }
-    await reply("🎬 Searching video... *"+text+"*")
-    try{
-      let got = await getPipedVideo(text); if(!got){ await reply("❌ Video not found!"); return true }
-      let {audios, vids} = await getPipedAudio(got.v, got.sv)
-      let vv = vids.find(x=>x.quality==="720p") || vids.find(x=>x.quality==="360p") || vids[0]
-      if(vv?.url) await sock.sendMessage(from, {video:{url:vv.url}, caption:`🎬 *${got.v.title}*\n👤 ${got.v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype:'video/mp4'}, {quoted:m})
-      if(audios[0]?.url){ let aud = await axios.get(audios[0].url, {responseType:'arraybuffer', timeout:90000, headers:{'User-Agent':'Mozilla/5.0'}}); await sock.sendMessage(from, {audio:Buffer.from(aud.data), mimetype:'audio/mp4', fileName:(got.v.title||text)+".mp3", contextInfo:{externalAdReply:{title:got.v.title||text, body:"👑 RANA-X-VIP-BOT - Audio", thumbnail:senderThumb, mediaType:1, sourceUrl:CHANNEL_LINK}}}, {quoted:m}) }
-      return true
-    }catch{ await reply("❌ Failed to fetch video!"); return true }
-  }
+  // ✅ AUDIO - 3 WAYS: 1) Reply video -> Audio, 2) .audio <song name> -> Audio, 3) Video + Caption .audio -> Audio
   if(['audio','mp3','toaudio','songaudio','ytaudio','mp3dl','audio2','tomp3','ytmp3'].includes(cmd)){
     let qMsg = qCtx?.quotedMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage || null
     let inner = qMsg?.viewOnceMessage?.message || qMsg?.viewOnceMessageV2?.message || qMsg?.viewOnceMessageV2Extension?.message || null
     let vidMsg = m.message.videoMessage || qMsg?.videoMessage || inner?.videoMessage || null
+    // 1) Video Reply / Caption -> Convert to Audio
     if(vidMsg){
       await reply("🎵 Converting video to audio... 🔥")
       try{
         let stream = await downloadContentFromMessage(vidMsg, 'video')
         let buf = Buffer.concat([]); for await(let c of stream) buf = Buffer.concat([buf, c])
         if(buf.length < 10000){ await reply("❌ Video is empty! Send again and type .audio"); return true }
-        await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-Audio.mp3", ptt: false, contextInfo: { externalAdReply: { title: "RANA-X-VIP Audio ▶️", body: "👑 Tap to play | "+OWNER_NAME, thumbnail: senderThumb, mediaType: 1, sourceUrl: CHANNEL_LINK } } }, {quoted: m})
+        await sock.sendMessage(from, { audio: buf, mimetype: 'audio/mp4', fileName: "RANA-Audio.mp3", ptt: false }, {quoted: m})
         await reply("✅ Done! Video is now Audio! ▶️ Tap to play!")
       }catch(e){ console.log("Audio Convert Err:", e.message); await reply("❌ Failed to make audio! Send video again and Reply .audio") }
       return true
     }
+    // 2) Song name -> Audio
     if(text){
       await reply("🔍 Searching... *"+text+"* (Audio)")
-      try{ let got = await getPipedVideo(text); if(got){ let ok = await sendPipedAudio(o, text, got.v, got.sv); if(ok) return true } }catch{}
+      try{ let got = await getPipedVideo(text+" song"); if(got){ let ok = await sendPipedAudio(o, text, got.v, got.sv); if(ok) return true } }catch{}
       await reply("❌ Song not found!"); return true
     }
-    await reply("❌ Reply on the video you want to convert and type:\n.audio\n\nOr give song name:\n.audio Ami Tomake Valobashi"); return true
+    await reply("❌ Reply on the video you want to convert and type:\n.audio\n\nOr give song name:\n.audio Ami Tomake Valobashi\n\nOr send Video with Caption .audio"); return true
   }
   if(cmd==='tiktok' || cmd==='tiktokdl'){
     if(!text){ await reply("❌ Give TikTok link! Ex: .tiktok <link>"); return true }
@@ -248,7 +261,7 @@ async function handleCommand(o){
   if(cmd==='ytsearch' || cmd==='yt' || cmd==='youtube'){
     if(!text){ await reply("❌ What to search? Ex: .ytsearch Ami Tomake Valobashi"); return true }
     let got = await getPipedVideo(text); if(!got){ await reply("❌ Not found!"); return true }
-    await reply(`🔍 *YouTube Search*\n🎵 ${got.v.title}\n👤 ${got.v.uploaderName||""}\n🔗 https://youtube.com/watch?v=${(got.v.url||"").split("watch?v=")[1]||got.v.id}\n\nTo listen: .song ${text}`); return true
+    await reply(`🔍 *YouTube Search*\n🎵 ${got.v.title}\n👤 ${got.v.uploaderName||""}\n🔗 https://youtube.com/watch?v=${(got.v.url||"").split("watch?v=")[1]||got.v.id}\n\nTo listen: .song ${text}\nTo watch: .video ${text}`); return true
   }
   if(cmd==='wallpaper'){ try{ let r = await axios.get("https://picsum.photos/500", {responseType:'arraybuffer'}); await sock.sendMessage(from, {image: Buffer.from(r.data), caption:"🌸 Wallpaper for you! 👑"}, {quoted:m}) }catch{ await sock.sendMessage(from, {image:{url:"https://picsum.photos/500"}, caption:"🌸 Wallpaper for you! 👑"}, {quoted:m}) } return true }
   if(cmd==='sticker' || cmd==='s'){
@@ -450,6 +463,13 @@ async function handleCommand(o){
   if(cmd==='thank' || cmd==='thanks' || cmd==='please' || cmd==='sorry2' || cmd==='excuse' || cmd==='congrats2' || cmd==='happybirthday' || cmd==='birthday' || cmd==='newyear' || cmd==='christmas' || cmd==='diwali' || cmd==='holi' || cmd==='takecare' || cmd==='seeyou' || cmd==='cute2' || cmd==='smart2' || cmd==='awesome' || cmd==='amazing' || cmd==='wow' || cmd==='omg' || cmd==='lol' || cmd==='haha' || cmd==='ok' || cmd==='yes' || cmd==='no' || cmd==='maybe' || cmd==='namaste' || cmd==='assalamualaikum' || cmd==='salam' || cmd==='goodday' || cmd==='welcome3'){
     await reply(`🥰 ${cmd}: Thank you so much! You are awesome! 💜👑`); return true
   }
+  if(cmd==='channel' || cmd==='follow' || cmd==='joinchannel' || cmd==='viewchannel' || cmd==='channellink' || cmd==='channelmenu'){ await reply(`📢 *FOLLOW CHANNEL*\n${CHANNEL_LINK}\n\n👑 ${BOT_NAME}`); return true }
+  if(cmd==='support' || cmd==='donate'){ await reply(`💜 *SUPPORT*\n📞 01636487523\n💬 wa.me/8801636487523\n📢 ${CHANNEL_LINK}`); return true }
+  if(cmd==='broadcast' || cmd==='bc'){
+    if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ Broadcast only Owner can use!"); return true }
+    if(!text){ await reply("❌ What to broadcast? Ex: .bc Hello everyone"); return true }
+    await reply(`📢 Broadcast ready: ${text}`); return true
+  }
   if(cmd==='menu2' || cmd==='allmenu'){
     let t = `👑 *${BOT_NAME} - ALL MENU* 👑\n📦 Total: ${ALL_CMDS.length}\n\n`
     for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n` + CATS[cat].map(c=>`  • .${c}`).join("\n") + `\n\n` }
@@ -458,4 +478,4 @@ async function handleCommand(o){
   }
   return false
 }
-module.exports = { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand, checkAntilink }
+module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand, checkAntilink }
