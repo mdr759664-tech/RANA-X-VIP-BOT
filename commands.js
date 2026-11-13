@@ -30,7 +30,6 @@ for(let k in CATS) ALL_CMDS = ALL_CMDS.concat(CATS[k])
 ALL_CMDS = [...new Set(ALL_CMDS)]
 function getCatMenu(cat){ if(!CATS[cat]) return null; let t = `╭─━─━─${cat}─━─━─╮\n`; CATS[cat].forEach((c,i)=>{ t += `┃ ${i+1}. .${c}\n` }); t += `╰─━─━─━─━─━─╯\n👑 RANA-X-VIP`; return t }
 function getMenuText(ownerName, owner, channelLink){ let t = `━━━━━━━━━━━━━━\n👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n📞 Number: 01636487523\n📦 Total: ${ALL_CMDS.length} Commands\n━━━━━━━━━━━━━━\n\n`; for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n`; t += CATS[cat].slice(0,12).map(c=> `  • .${c}`).join("\n") + `\n`; if(CATS[cat].length > 12) t += `  • ... +${CATS[cat].length-12} more\n`; t += `\n` } t += `━━━━━━━━━━━━━━\n💡 Full list: .allmenu\n📢 Channel: ${channelLink || ""}\n👑 RANA-X-VIP`; return t }
-// NOTE: This file is ALL ENGLISH. Real Welcome in index.js stays Bangla screenshot design.
 function getWelcomeMenu(num, gName, count, ownerName){ let user = num.split('@')[0]; let date = new Date().toLocaleDateString('en-BD', { timeZone: 'Asia/Dhaka', day: 'numeric', month: 'long', year: 'numeric' }); let time = new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka', hour: '2-digit', minute: '2-digit', hour12: true }); return `╭─━─━─━─💜─━─━─━─╮\n┃ ✨ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 ✨ ┃\n╰─━─━─━─💜─━─━─━─╯\n\n🌸 Hello @${user} ! 🥰\n💖 Welcome to *${gName}* group!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👤 Name: @${user}\n┃ 👥 Total Members: ${count}\n┃ 📅 Date: ${date}\n┃ 🕒 Time: ${time}\n┃ 👑 Owner: ${ownerName || "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"}\n┗━━━━━━━━━━━━━━┛\n\n💡 Type .menu to see all Commands\n🎉 Enjoy, Stay Active!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
 function getGoodbyeMenu(num, gName, count){ let user = (num||"").split('@')[0]; return `╭─━─━─━─💔─━─━─━─╮\n┃ 🥺 𝗚𝗢𝗢𝗗𝗕𝗬𝗘 🥺 ┃\n╰─━─━─━─💔─━─━─━─╯\n\n🥺 @${user} left! 💔\n💖 Goodbye from *${gName}*!\n\n┏━━━━━━━━━━━━━━┓\n┃ 👥 Current Members: ${count}\n┃ 👑 Owner: 🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸\n┗━━━━━━━━━━━━━━┛\n\n🥺 Take care!\n╰─➤ *POWERED BY RANA X VIP* 👑💜` }
 const JOKES = ["😂 Teacher: Why don't you study?\nStudent: Sir, I run WhatsApp Bot, RANA X VIP BOT! 🤣","😂 My bot has 500+ commands, and I got 0 in exam 😭🤣","😂 Girlfriend: You don't give me time!\nBoyfriend: I have to write Bot commands! 🤣","😂 When WiFi is slow, life feels slow! 📶😭"]
@@ -50,7 +49,6 @@ async function sendPipedVideo(o, query, v, sv, title){
   await o.sock.sendMessage(o.from, {video:{url:vv.url}, caption:`🎬 *${title}*\n🎵 *${v.title}*\n👤 ${v.uploaderName||""}\n\n👑 *RANA-X-VIP-BOT*`, mimetype:'video/mp4'}, {quoted:o.m})
   return true
 }
-// ✅ ANTILINK - index.js needs this, do not delete
 async function checkAntilink(o){
   const { sock, from, m, sender, isGroup, msgText, OWNER, CHANNEL_LINK } = o
   if(!isGroup) return false
@@ -173,7 +171,6 @@ async function handleCommand(o){
   if(cmd==='quiz' || cmd==='trivia' || cmd==='riddle' || cmd==='guess'){ try{ let r = await axios.get("https://opentdb.com/api.php?amount=1&type=multiple", {timeout:10000}); let q = r.data.results[0]; await reply(`🧠 Quiz: ${q.question}\nA) ${q.incorrect_answers[0]} B) ${q.incorrect_answers[1]} C) ${q.correct_answer}\nAnswer: ${q.correct_answer}`) }catch{ await reply("🧠 Quiz: What is the capital of Bangladesh?\nA) Dhaka B) Chittagong\nAnswer: Dhaka! 🇧🇩") } return true }
   if(cmd==='math'){ try{ let expr = text.replace(/[^0-9+\-*/(). ]/g,''); if(!expr){ await reply("🧮 Usage: .math 2+2*3"); return true } await reply(`🧮 ${expr} = ${eval(expr)}`)}catch{ await reply("❌ Wrong math!") } return true }
   if(cmd==='lottery' || cmd==='lottery2'){ await reply(`🎟️ Lottery Number: ${1000+rand(9000)}\n🍀 Good Luck!`); return true }
-  // ✅ SONG = AUDIO ONLY
   if(['song','play','gan','music','gaan','gana','play2','song2','playlist','radio'].includes(cmd)){
     if(!text){ await reply("❌ Give song name!\nEx: .song Ami Tomake Valobashi"); return true }
     await reply("🎵 Searching Audio... *"+text+"*")
@@ -184,7 +181,6 @@ async function handleCommand(o){
     }catch(e){ console.log("Song fail:", e.message) }
     await reply("❌ Full song not found! Try again after 2 min:\n.song "+text); return true
   }
-  // ✅ VIDEO = VIDEO ONLY
   if(['video','vsong','vgan','vgana','ytmp4','ytvideo'].includes(cmd)){
     if(!text){ await reply("❌ Give video song name!\nEx: .video Ami Tomake Valobashi"); return true }
     await reply("🎬 Searching Video... *"+text+"*")
@@ -195,7 +191,6 @@ async function handleCommand(o){
     }catch{}
     await reply("❌ Failed to fetch video!"); return true
   }
-  // ✅ ROMANTIC / DJ / FUNNY = VIDEO + AUDIO (both)
   if(['romantic','romanticvideo','lovevideo','dj','djbangla','djsong','djvideo','funny','funnyvideo','comedy','fany'].includes(cmd)){
     let query = text
     if(['romantic','romanticvideo','lovevideo'].includes(cmd)) query = text || "romantic bangla song"
@@ -213,12 +208,10 @@ async function handleCommand(o){
       return true
     }catch{ await reply("❌ Failed to fetch video!"); return true }
   }
-  // ✅ AUDIO - 3 WAYS: 1) Reply video -> Audio, 2) .audio <song name> -> Audio, 3) Video + Caption .audio -> Audio
   if(['audio','mp3','toaudio','songaudio','ytaudio','mp3dl','audio2','tomp3','ytmp3'].includes(cmd)){
     let qMsg = qCtx?.quotedMessage || m.message?.extendedTextMessage?.contextInfo?.quotedMessage || null
     let inner = qMsg?.viewOnceMessage?.message || qMsg?.viewOnceMessageV2?.message || qMsg?.viewOnceMessageV2Extension?.message || null
     let vidMsg = m.message.videoMessage || qMsg?.videoMessage || inner?.videoMessage || null
-    // 1) Video Reply / Caption -> Convert to Audio
     if(vidMsg){
       await reply("🎵 Converting video to audio... 🔥")
       try{
@@ -230,7 +223,6 @@ async function handleCommand(o){
       }catch(e){ console.log("Audio Convert Err:", e.message); await reply("❌ Failed to make audio! Send video again and Reply .audio") }
       return true
     }
-    // 2) Song name -> Audio
     if(text){
       await reply("🔍 Searching... *"+text+"* (Audio)")
       try{ let got = await getPipedVideo(text+" song"); if(got){ let ok = await sendPipedAudio(o, text, got.v, got.sv); if(ok) return true } }catch{}
