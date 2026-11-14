@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP - commands.js - FULL - ALL ENGLISH - WITH VIEW CHANNEL BUTTON =====
+// ===== RANA-X-VIP - commands.js - FULL - ALL ENGLISH - MENU FROM index.js =====
 const axios = require('axios')
 const EMOJIS = ["❤️","🔥","👑","😎","✨","💖","🥰","😍","💥","⚡","🌸","🌺","🎉","💯","✅","😂","🤣","😁","🥳","😏","🖤","🤍","💙","💚","💜","🧡","❣️","💕","💞","💓","💗","💘","💝","😘","😗","😙","😚","🤗","🤩","🤤","😋","🤫","🤭","🫣","🤔","🤨","😐","😑","😶","😒","🙄","😬","😌","😔","😪","😴","🤒","🤕","🤮","🥵","🥶","🥴","😵","🤯","🤓","🥺","😭","😢","😤","😡","🤬","👿","💀","☠️","👻","👽","🤖","💩","👋","🤚","🖐️","✋","🖖","👌","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","👇","👍","👎","👊","✊","👏","🙌","🫶","🤝","🙏","💪"]
 const CATS = {
@@ -48,32 +48,7 @@ async function handleCommand(o){
   let st = o.state || globalThis.BOT_STATE || { recentOn: true, autoReactOn: true, welcomeOn: true, goodbyeOn: true, antilinkOn: true }
   if(!globalThis.BOT_STATE) globalThis.BOT_STATE = st
   if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
-  // ✅ MENU + VIEW CHANNEL BUTTON - SAME AS index.js - forwardedNewsletterMessageInfo
-  if(cmd==='menu' || cmd==='commands' || cmd==='list'){
-    await sock.sendMessage(from, {
-      text: getMenuText(OWNER_NAME, OWNER, CHANNEL_LINK),
-      contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" } }
-    }, {quoted:m})
-    return true
-  }
-  if(cmd==='menu2' || cmd==='allmenu'){
-    let t = `👑 *${BOT_NAME} - ALL MENU* 👑\n📦 Total: ${ALL_CMDS.length}\n\n`
-    for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n` + CATS[cat].map(c=>`  • .${c}`).join("\n") + `\n\n` }
-    t += `📢 ${CHANNEL_LINK}`
-    await sock.sendMessage(from, {
-      text: t,
-      contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" } }
-    }, {quoted:m})
-    return true
-  }
-  // ✅ CHANNEL + VIEW CHANNEL BUTTON
-  if(cmd==='channel' || cmd==='follow' || cmd==='joinchannel' || cmd==='viewchannel' || cmd==='channellink' || cmd==='channelmenu'){
-    await sock.sendMessage(from, {
-      text: `📢 *FOLLOW CHANNEL*\n${CHANNEL_LINK}\n\n👑 ${BOT_NAME}`,
-      contextInfo: { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" } }
-    }, {quoted:m})
-    return true
-  }
+  // ✅ MENU / CHANNEL - NO HANDLER HERE - index.js will handle it, so View channel button comes from index.js like in screenshot
   if(['public','private','mode','botmode'].includes(cmd)){
     if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ Only Owner can use this Command!"); return true }
     if(cmd==='public'){ globalThis.BOT_MODE="public"; await reply("✅ Bot is now *PUBLIC* 🔥\nEveryone can use .menu .song .video now!"); return true }
