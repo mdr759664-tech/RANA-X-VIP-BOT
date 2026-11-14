@@ -87,6 +87,17 @@ async function handleCommand(o){
   let st = o.state || globalThis.BOT_STATE || { recentOn: true, autoReactOn: true, welcomeOn: true, goodbyeOn: true, antilinkOn: true }
   if(!globalThis.BOT_STATE) globalThis.BOT_STATE = st
   if(!globalThis.BOT_MODE) globalThis.BOT_MODE = "public"
+  // ✅ MENU + VIEW CHANNEL BUTTON - FIXED INSIDE commands.js
+  if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){
+    await sock.sendMessage(from, {
+      text: getMenuText(OWNER_NAME, OWNER, CHANNEL_LINK) + "\n\n📢 *Tap View Channel Button Below* 👇",
+      contextInfo: {
+        forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" },
+        externalAdReply: { title: "RANA-X-VIP-BOT 👑", body: "Tap To View Channel 👑", sourceUrl: CHANNEL_LINK, thumbnailUrl: "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg", mediaType: 1, renderLargerThumbnail: true, showAdAttribution: true }
+      }
+    }, {quoted:m})
+    return true
+  }
   if(['public','private','mode','botmode'].includes(cmd)){
     if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ Only Owner can use this Command!"); return true }
     if(cmd==='public'){ globalThis.BOT_MODE="public"; await reply("✅ Bot is now *PUBLIC* 🔥\nEveryone can use .menu .song .video now!"); return true }
@@ -478,11 +489,17 @@ async function handleCommand(o){
     if(!text){ await reply("❌ What to broadcast? Ex: .bc Hello everyone"); return true }
     await reply(`📢 Broadcast ready: ${text}`); return true
   }
-  if(cmd==='menu2' || cmd==='allmenu'){
+  if(cmd==='menu2'){
     let t = `👑 *${BOT_NAME} - ALL MENU* 👑\n📦 Total: ${ALL_CMDS.length}\n\n`
     for(let cat in CATS){ t += `🔥 *${cat}* (${CATS[cat].length})\n` + CATS[cat].map(c=>`  • .${c}`).join("\n") + `\n\n` }
-    t += `📢 ${CHANNEL_LINK}`
-    await reply(t); return true
+    t += `📢 ${CHANNEL_LINK}\n\n📢 *Tap View Channel Below* 👇`
+    await sock.sendMessage(from, {
+      text: t,
+      contextInfo: {
+        externalAdReply: { title: "RANA-X-VIP-BOT 👑", body: "Tap To View Channel", sourceUrl: CHANNEL_LINK, thumbnailUrl: "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg", mediaType: 1, renderLargerThumbnail: true }
+      }
+    }, {quoted:m})
+    return true
   }
   return false
 }
