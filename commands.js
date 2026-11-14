@@ -455,7 +455,23 @@ async function handleCommand(o){
   if(cmd==='thank' || cmd==='thanks' || cmd==='please' || cmd==='sorry2' || cmd==='excuse' || cmd==='congrats2' || cmd==='happybirthday' || cmd==='birthday' || cmd==='newyear' || cmd==='christmas' || cmd==='diwali' || cmd==='holi' || cmd==='takecare' || cmd==='seeyou' || cmd==='cute2' || cmd==='smart2' || cmd==='awesome' || cmd==='amazing' || cmd==='wow' || cmd==='omg' || cmd==='lol' || cmd==='haha' || cmd==='ok' || cmd==='yes' || cmd==='no' || cmd==='maybe' || cmd==='namaste' || cmd==='assalamualaikum' || cmd==='salam' || cmd==='goodday' || cmd==='welcome3'){
     await reply(`🥰 ${cmd}: Thank you so much! You are awesome! 💜👑`); return true
   }
-  if(cmd==='channel' || cmd==='follow' || cmd==='joinchannel' || cmd==='viewchannel' || cmd==='channellink' || cmd==='channelmenu'){ await reply(`📢 *FOLLOW CHANNEL*\n${CHANNEL_LINK}\n\n👑 ${BOT_NAME}`); return true }
+  // ✅ VIEW CHANNEL BUTTON - externalAdReply = WhatsApp shows "View Channel" button
+  if(cmd==='channel' || cmd==='follow' || cmd==='joinchannel' || cmd==='viewchannel' || cmd==='channellink' || cmd==='channelmenu'){
+    await sock.sendMessage(from, {
+      text: `📢 *FOLLOW CHANNEL*\n${CHANNEL_LINK}\n\n👑 ${BOT_NAME}`,
+      contextInfo: {
+        externalAdReply: {
+          title: "RANA-X-VIP-BOT 👑",
+          body: "Tap to View Channel",
+          sourceUrl: CHANNEL_LINK,
+          thumbnailUrl: "https://i.ibb.co.com/Pz52VSWF/IMG-20261027-WA0000.jpg",
+          mediaType: 1,
+          renderLargerThumbnail: true
+        }
+      }
+    }, {quoted:m})
+    return true
+  }
   if(cmd==='support' || cmd==='donate'){ await reply(`💜 *SUPPORT*\n📞 01636487523\n💬 wa.me/8801636487523\n📢 ${CHANNEL_LINK}`); return true }
   if(cmd==='broadcast' || cmd==='bc'){
     if(sender.replace(/[^0-9]/g,'') !== OWNER){ await reply("❌ Broadcast only Owner can use!"); return true }
