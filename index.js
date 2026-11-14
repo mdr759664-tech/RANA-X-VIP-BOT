@@ -1,4 +1,4 @@
-// ===== RANA-X-VIP-BOT - FULL index.js - ALL ENGLISH EXCEPT WELCOME/GOODBYE - WELCOME = SCREENSHOT DESIGN + PUBLIC DP =====
+// ===== RANA-X-VIP-BOT - FULL index.js - FIXED - VIEW CHANNEL BUTTON =====
 const express = require('express')
 const { default: makeWASocket, useMultiFileAuthState, makeCacheableSignalKeyStore, fetchLatestBaileysVersion, downloadContentFromMessage, DisconnectReason } = require('@whiskeysockets/baileys')
 const P = require('pino')
@@ -95,17 +95,27 @@ async function downloadVideoBufferFast(vidMsg){
     return Buffer.concat(chunks)
   }catch(e){ return null }
 }
+// ✅ FIXED - VIEW CHANNEL BUTTON - forwardedNewsletterMessageInfo, NO templateButtons
+function getChannelContext(){
+  return { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" } }
+}
+async function ensureChannelJid(sock){
+  if(CHANNEL_JID) return CHANNEL_JID
+  try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id }catch{}
+  return CHANNEL_JID
+}
 async function sendMenuWithChannel(sock, from, msg, thumb){
+  await ensureChannelJid(sock)
   let recentTxt = recentCmds.length ? "\n\n┏━━〔 🔥 RECENT 〕━━┓\n"+recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n")+"\n┗━━━━━━━━━━━━━┛" : ""
   let menuTxt = getMenuText(OWNER_NAME, OWNER, CHANNEL)+recentTxt
   let picBuf = await getBotPicBuffer()
   try{
     if(picBuf){
-      await sock.sendMessage(from, { image: picBuf, caption: menuTxt + "\n\n📢 *Channel:* "+CHANNEL, footer: "Tap View Channel Button Below 👇", templateButtons: [{ index: 1, urlButton: { displayText: "📢 View Channel", url: CHANNEL } }, { index: 2, quickReplyButton: { displayText: "📋 Menu", id: "menu" } }, { index: 3, quickReplyButton: { displayText: "🔥 Recent", id: "recent" } }] }, {quoted: msg})
+      await sock.sendMessage(from, { image: picBuf, caption: menuTxt + "\n\n📢 *Channel:* "+CHANNEL, contextInfo: getChannelContext() }, {quoted: msg})
       return
     }
   }catch{}
-  await sock.sendMessage(from, { text: menuTxt+"\n\n📢 *Channel:* "+CHANNEL }, {quoted: msg})
+  await sock.sendMessage(from, { text: menuTxt+"\n\n📢 *Channel:* "+CHANNEL, contextInfo: getChannelContext() }, {quoted: msg})
 }
 async function getYTSearch(query){
   let items = []
@@ -230,9 +240,8 @@ async function startBot(number){
         let delay = Math.min(5000 * sess.retry, 30000)
         setTimeout(()=>{ if(!sessions.get(numKey)?.connected){ sessions.delete(numKey); startBot(numKey) } }, delay)
       }
-      if(u.connection === 'open'){ sess.connected=true; sess.retry=0; sess._retryAt=0; isConnected=true; console.log('RANA-X-VIP CONNECTED: '+numKey+' MODE='+globalThis.BOT_MODE.toUpperCase()); try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id }catch{} }
+      if(u.connection === 'open'){ sess.connected=true; sess.retry=0; sess._retryAt=0; isConnected=true; console.log('RANA-X-VIP CONNECTED: '+numKey+' MODE='+globalThis.BOT_MODE.toUpperCase()); try{ let meta = await sock.newsletterMetadata('invite', CHANNEL_INVITE); if(meta?.id) CHANNEL_JID = meta.id; console.log('CHANNEL_JID:', CHANNEL_JID) }catch(e){ console.log('Channel JID fetch fail:', e.message) } }
     })
-    // ===== WELCOME / GOODBYE - ONLY THIS PART IS BANGLA - SCREENSHOT DESIGN + PUBLIC DP =====
     sock.ev.on('group-participants.update', async (anu)=>{
       try{
         groupMetaCache.delete(anu.id)
@@ -291,7 +300,7 @@ async function handleOneMessage(sock, m){
       const getTarget = () => mentioned[0] || (qCtx?.participant) || null
       const needAdmin = async ()=>{ if(!isGroup){ await sendV("❌ Use in Group!"); return false } return true }
       let btnId = m.message?.buttonsResponseMessage?.selectedButtonId || m.message?.templateButtonReplyMessage?.selectedId || ""
-      if(btnId === "viewchannel"){ await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 Tap the link below:\n"+CHANNEL+"\n\n💜 Follow!" }, {quoted: m}); return }
+      if(btnId === "viewchannel"){ await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 Tap the link below:\n"+CHANNEL+"\n\n💜 Follow!", contextInfo: getChannelContext() }, {quoted: m}); return }
       if(btnId === "menu"){ if(globalThis.BOT_MODE==="private" && sender.replace(/[^0-9]/g,'')!==OWNER){ await sendV("🔒 *BOT PRIVATE*\nOnly Owner can use!"); return } await sendMenuWithChannel(sock, from, m, botThumb); return }
       if(btnId === "recent"){ let last = [...recentMsgs].slice(-20); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); await sock.sendMessage(from, { text: `🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`, mentions }, {quoted: m}); return }
       if(isGroup && body && !body.startsWith('.')){
@@ -329,7 +338,8 @@ async function handleOneMessage(sock, m){
       if(globalThis.BOT_MODE === "private" && sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("🔒 *BOT PRIVATE*\n\nThis Bot is Private now!\nOnly Owner can use it!\n\n👑 Owner: "+OWNER+"\n💡 Ask Owner to type .mode public!"); return }
       if(cmd==='recent' || cmd==='trending'){ let last = [...recentMsgs].slice(-20).reverse(); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); let r2 = recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n"); await sock.sendMessage(from, { text: `🔥 *RECENT - Emoji On All Messages* 🔥\n\n${r1||"No recent yet - Send a message now, Emoji will come!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}\n👆 Tap name above to open their Profile`, mentions }, {quoted: m}); return }
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, botThumb); return }
-      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await sock.sendMessage(from, { text: "📢 *Follow Channel:*", footer: "RANA X VIP 👑💜", templateButtons: [{ index: 1, urlButton: { displayText: "📢 View Channel", url: CHANNEL } }] }, {quoted: m}); return }
+      // ✅ FIXED CHANNEL - NO templateButtons
+      if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await ensureChannelJid(sock); await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 Follow our Channel:\n"+CHANNEL+"\n\n💜 Tap View Channel Button Below 👇", contextInfo: getChannelContext() }, {quoted: m}); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ let pic = await getBotPicBuffer(); let txt = `🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: ${OWNER_NAME}\n📞 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length} 🔥`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await success(txt); return }
       if(cmd==='status' || cmd==='bot' || cmd==='alive'){ let pic = await getBotPicBuffer(); let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ${globalThis.BOT_STATE.recentOn?"ON 🔥":"OFF ❌"} | *React:* ${globalThis.BOT_STATE.autoReactOn?"ON 🔥":"OFF ❌"} | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT* 👑 ${OWNER_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
       if(cmd==='owner' || cmd==='creator' || cmd==='rana'){ let pic = await getBotPicBuffer(); let txt = `👑 *OWNER INFO* 👑\n\n👤 *Name:* ${OWNER_NAME} 🔥\n📞 *Number:* ${OWNER}\n📢 *Channel:* ${CHANNEL}\n\n💜 ${BOT_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
