@@ -420,3 +420,5 @@ async function handleCommand(o){
   return false
 }
 module.exports = { CATS, ALL_CMDS, EMOJIS, getMenuText, getCatMenu, getWelcomeMenu, getGoodbyeMenu, handleCommand }
+function checkAntilink() { return false; }
+module.exports.checkAntilink = checkAntilink;
