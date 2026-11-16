@@ -5,7 +5,14 @@ const P = require('pino')
 const fs = require('fs')
 const axios = require('axios')
 const QRCode = require('qrcode')
-const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand, checkAntilink } = require('./commands')
+const { CATS, ALL_CMDS, getMenuText, getWelcomeMenu, getGoodbyeMenu, getCatMenu, handleCommand } = require('./commands')
+// ✅ FIXED - checkAntilink safe, না থাকলেও Error আসবে না
+let _checkAntilink = null
+try { _checkAntilink = require('./commands').checkAntilink } catch {}
+async function checkAntilinkSafe(opts){
+  if(typeof _checkAntilink !== 'function') return false
+  try { return await _checkAntilink(opts) } catch(e){ return false }
+}
 const app = express()
 const OWNER = "8801636487523"
 const OWNER_NAME = "🇷┳◇┳𝗝♥︎‿♥︎𝗥𝗔𝗡𝗔ᯤ̸"
@@ -95,7 +102,6 @@ async function downloadVideoBufferFast(vidMsg){
     return Buffer.concat(chunks)
   }catch(e){ return null }
 }
-// ✅ FIXED - VIEW CHANNEL BUTTON - forwardedNewsletterMessageInfo, NO templateButtons
 function getChannelContext(){
   return { forwardingScore: 999, isForwarded: true, forwardedNewsletterMessageInfo: { newsletterJid: CHANNEL_JID, serverMessageId: 1, newsletterName: "RANA-X-VIP-BOT" } }
 }
@@ -304,7 +310,7 @@ async function handleOneMessage(sock, m){
       if(btnId === "menu"){ if(globalThis.BOT_MODE==="private" && sender.replace(/[^0-9]/g,'')!==OWNER){ await sendV("🔒 *BOT PRIVATE*\nOnly Owner can use!"); return } await sendMenuWithChannel(sock, from, m, botThumb); return }
       if(btnId === "recent"){ let last = [...recentMsgs].slice(-20); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); await sock.sendMessage(from, { text: `🔥 *RECENT*\n\n${r1||"No recent yet"}\n\n💜 ${BOT_NAME}`, mentions }, {quoted: m}); return }
       if(isGroup && body && !body.startsWith('.')){
-        let blocked = await checkAntilink({ sock, from, m, sender, isGroup, msgText: body, OWNER, CHANNEL_LINK: CHANNEL })
+        let blocked = await checkAntilinkSafe({ sock, from, m, sender, isGroup, msgText: body, OWNER, CHANNEL_LINK: CHANNEL })
         if(blocked) return
       }
       let myEmoji = EMOJI[Math.floor(Math.random()*EMOJI.length)]
@@ -338,7 +344,6 @@ async function handleOneMessage(sock, m){
       if(globalThis.BOT_MODE === "private" && sender.replace(/[^0-9]/g,'') !== OWNER){ await sendV("🔒 *BOT PRIVATE*\n\nThis Bot is Private now!\nOnly Owner can use it!\n\n👑 Owner: "+OWNER+"\n💡 Ask Owner to type .mode public!"); return }
       if(cmd==='recent' || cmd==='trending'){ let last = [...recentMsgs].slice(-20).reverse(); let r1 = last.map(x=> `${x.emoji} @${x.user}: ${x.txt}`).join("\n"); let mentions = last.map(x=> x.jid).filter(Boolean); let r2 = recentCmds.slice(-10).reverse().map(c=>"┃ ✦ ."+c).join("\n"); await sock.sendMessage(from, { text: `🔥 *RECENT - Emoji On All Messages* 🔥\n\n${r1||"No recent yet - Send a message now, Emoji will come!"}\n\n┏━━〔 🔥 RECENT COMMANDS 〕━━┓\n${r2||"┃ ✦ .menu"}\n┗━━━━━━━━━━━━━┛\n\n💜 ${BOT_NAME} | 👑 ${OWNER_NAME}\n👆 Tap name above to open their Profile`, mentions }, {quoted: m}); return }
       if(cmd==='menu' || cmd==='allmenu' || cmd==='commands' || cmd==='list'){ await sendMenuWithChannel(sock, from, m, botThumb); return }
-      // ✅ FIXED CHANNEL - NO templateButtons
       if(cmd==='channel' || cmd==='channellink' || cmd==='viewchannel' || cmd==='joinchannel' || cmd==='follow'){ await ensureChannelJid(sock); await sock.sendMessage(from, { text: "📢 *RANA X VIP CHANNEL*\n\n👉 Follow our Channel:\n"+CHANNEL+"\n\n💜 Tap View Channel Button Below 👇", contextInfo: getChannelContext() }, {quoted: m}); return }
       if(cmd==='ping' || cmd==='pong' || cmd==='speed'){ let pic = await getBotPicBuffer(); let txt = `🏖️ PONG: ${Date.now()%200+45} Ms\n👑 Bot: ${BOT_NAME}\n👑 Owner: ${OWNER_NAME}\n📞 Owner: 01636487523\n📦 Commands: ${ALL_CMDS.length} 🔥`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await success(txt); return }
       if(cmd==='status' || cmd==='bot' || cmd==='alive'){ let pic = await getBotPicBuffer(); let txt = `╭─━─━─👑─━─━─╮\n┃ 🤖 *${BOT_NAME}* ┃\n╰─━─━─👑─━─━─╯\n\n✅ *Status:* Online 🟢\n👑 *Owner:* ${OWNER_NAME}\n📞 *Owner:* ${OWNER}\n📦 *Commands:* ${ALL_CMDS.length}+\n👥 *Connected Bots:* ${sessions.size}\n🔥 *Mode:* ${globalThis.BOT_MODE.toUpperCase()} | *Recent:* ${globalThis.BOT_STATE.recentOn?"ON 🔥":"OFF ❌"} | *React:* ${globalThis.BOT_STATE.autoReactOn?"ON 🔥":"OFF ❌"} | *Welcome:* ${globalThis.BOT_STATE.welcomeOn?"ON":"OFF"} | *Antilink:* ${globalThis.BOT_STATE.antilinkOn?"ON":"OFF"}\n\n💜 *RANA-X-VIP-BOT* 👑 ${OWNER_NAME}`; if(pic) await sock.sendMessage(from, { image: pic, caption: txt }, {quoted: m}); else await sendV(txt); return }
